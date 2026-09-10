@@ -16,6 +16,8 @@ out/
 storage/
 references/
 render/out/
+render/api-*.png
+render/api-*.mp4
 render/public/test-*.mp3
 
 # runtime
