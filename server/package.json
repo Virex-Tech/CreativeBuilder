@@ -6,7 +6,7 @@
 	"scripts": {
 		"dev": "tsx watch src/server.ts",
 		"start": "node dist/server.js",
-		"build": "tsc",
+		"build": "tsc && tsc-alias",
 		"worker": "tsx src/queue/worker.ts",
 		"typecheck": "tsc --noEmit",
 		"prisma:generate": "prisma generate",
@@ -28,6 +28,7 @@
 		"@types/bcryptjs": "^2.4.6",
 		"@types/node": "^22.10.2",
 		"prisma": "^6.1.0",
+		"tsc-alias": "^1.9.4",
 		"tsx": "^4.19.2",
 		"typescript": "^5.7.2"
 	}

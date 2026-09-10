@@ -12,6 +12,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY web ./
 COPY render/src /render/src
 COPY render/package.json /render/package.json
+# The @render/* files live at /render/src (outside /app) and import "remotion". Node
+# resolves modules by walking up from the file, so it never reaches /app/node_modules.
+# Expose the same node_modules at the root so those imports resolve during the build.
+RUN ln -s /app/node_modules /node_modules
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN npm run build
