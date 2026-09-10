@@ -1,4 +1,9 @@
+import { mkdir } from "node:fs/promises";
+import { join } from "node:path";
+
 import { env } from "@/lib/env";
+import { downloadVideo } from "@/lib/fetchVideo";
+import { ingestVideo } from "@/lib/ingest";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -86,14 +91,60 @@ async function fail(id: string, error: string): Promise<void> {
 	});
 }
 
+/**
+ * Ingests one queued reference per cycle: download (if it came as a link), then extract the
+ * frames + audio the agent reads to write a blueprint. One at a time on purpose — ffmpeg is
+ * CPU-heavy and this shares a box with the renderer.
+ */
+async function reconcileReferencesOnce(): Promise<void> {
+	const ref = await prisma.referenceAsset.findFirst({
+		where: { status: "QUEUED" },
+		orderBy: { createdAt: "asc" },
+	});
+	if (!ref) return;
+
+	// Claim it before the slow work so a second worker (or the next cycle) skips it.
+	await prisma.referenceAsset.update({ where: { id: ref.id }, data: { status: "RUNNING" } });
+
+	try {
+		const outDir = join(env.STORAGE_DIR, "references", ref.id);
+		await mkdir(outDir, { recursive: true });
+
+		let video = ref.filePath;
+		if (!video) {
+			if (!ref.sourceUrl) throw new Error("referência sem arquivo nem link");
+			video = join(outDir, "source.mp4");
+			await downloadVideo(ref.sourceUrl, video);
+		}
+
+		const manifest = await ingestVideo(video, outDir);
+		await prisma.referenceAsset.update({
+			where: { id: ref.id },
+			data: { status: "DONE", manifest: manifest as object, error: null },
+		});
+		console.log(`worker: referência ${ref.id} pronta (${manifest.frames.length} frames)`);
+	} catch (err) {
+		await prisma.referenceAsset.update({
+			where: { id: ref.id },
+			data: { status: "FAILED", error: err instanceof Error ? err.message : "ingestão falhou" },
+		});
+		console.error(`worker: referência ${ref.id} falhou`, err);
+	}
+}
+
 async function main(): Promise<void> {
-	console.log(`worker: reconciliando render jobs a cada ${POLL_MS}ms`);
+	console.log(`worker: reconciliando render jobs + referências a cada ${POLL_MS}ms`);
 
 	for (;;) {
 		try {
 			await reconcileOnce();
 		} catch (err) {
-			console.error("worker: ciclo falhou", err);
+			console.error("worker: ciclo de render falhou", err);
+		}
+		try {
+			await reconcileReferencesOnce();
+		} catch (err) {
+			console.error("worker: ciclo de referência falhou", err);
 		}
 		await new Promise((resolve) => setTimeout(resolve, POLL_MS));
 	}

@@ -1,6 +1,10 @@
 FROM node:22-bookworm-slim
 
-RUN apt-get update && apt-get install -y --no-install-recommends openssl \
+# openssl: Prisma. ffmpeg: reference ingestion (frame/audio extraction). yt-dlp: pulling a
+# reference from a social link (Instagram/TikTok/YouTube), which ffmpeg cannot fetch itself.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+		openssl ffmpeg python3 python3-pip \
+	&& pip3 install --no-cache-dir --break-system-packages yt-dlp \
 	&& rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

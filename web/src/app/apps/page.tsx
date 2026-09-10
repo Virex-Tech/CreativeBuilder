@@ -148,14 +148,14 @@ export default function AppsPage() {
 
 			<div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", marginTop: 20 }}>
 				{apps.map((a) => (
-					<div key={a.id} className="panel" style={{ padding: 16 }}>
+					<Link key={a.id} href={`/apps/${a.id}`} className="panel" style={{ padding: 16, textDecoration: "none", display: "block" }}>
 						<div style={{ fontWeight: 700 }}>{a.name}</div>
 						<div className="muted" style={{ fontSize: 12 }}>{a.slug}{a.niche ? ` · ${a.niche}` : ""}</div>
 						<div className="row" style={{ marginTop: 10, gap: 6 }}>
 							<span className="badge">{a._count?.creatives ?? 0} criativos</span>
 							<span className="badge">{a._count?.references ?? 0} referências</span>
 						</div>
-					</div>
+					</Link>
 				))}
 				{apps.length === 0 && !error ? <p className="muted">Nenhum app ainda.</p> : null}
 			</div>

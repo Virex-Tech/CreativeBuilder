@@ -48,6 +48,29 @@ export interface CreativeDetail extends CreativeRow {
 	app: { id: string; name: string; director: Record<string, unknown>; brandKit: Record<string, unknown> };
 }
 
+export interface ReferenceManifest {
+	durationSec?: number;
+	width?: number | null;
+	height?: number | null;
+	fps?: number | null;
+	hasAudio?: boolean;
+	cutCount?: number;
+	avgShotSec?: number | null;
+	frames?: { index: number; cutAtSec: number; atSec: number; file: string }[];
+	audioFile?: string | null;
+}
+
+export interface ReferenceRow {
+	id: string;
+	appId: string;
+	sourceUrl: string | null;
+	filePath: string | null;
+	status: "QUEUED" | "RUNNING" | "DONE" | "FAILED";
+	manifest: ReferenceManifest;
+	error: string | null;
+	createdAt: string;
+}
+
 export interface LineageNode {
 	id: string;
 	name: string;

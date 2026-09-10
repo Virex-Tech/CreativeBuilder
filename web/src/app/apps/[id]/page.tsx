@@ -1,0 +1,190 @@
+"use client";
+
+import Link from "next/link";
+import { use, useEffect, useRef, useState } from "react";
+
+import { api, getToken } from "@/lib/api";
+import type { AppRow, CreativeRow, ReferenceRow } from "@/lib/types";
+
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:11200";
+
+const statusLabel: Record<ReferenceRow["status"], string> = {
+	QUEUED: "na fila",
+	RUNNING: "processando",
+	DONE: "pronta",
+	FAILED: "falhou",
+};
+
+export default function AppDetailPage({ params }: { params: Promise<{ id: string }> }) {
+	const { id } = use(params);
+
+	const [app, setApp] = useState<AppRow | null>(null);
+	const [refs, setRefs] = useState<ReferenceRow[]>([]);
+	const [creatives, setCreatives] = useState<CreativeRow[]>([]);
+	const [error, setError] = useState<string | null>(null);
+
+	const [url, setUrl] = useState("");
+	const [busy, setBusy] = useState(false);
+	const fileInput = useRef<HTMLInputElement>(null);
+
+	async function loadRefs(): Promise<void> {
+		setRefs(await api<ReferenceRow[]>(`/apps/${id}/references`));
+	}
+
+	async function loadAll(): Promise<void> {
+		const [apps, cr] = await Promise.all([
+			api<AppRow[]>("/apps"),
+			api<CreativeRow[]>(`/creatives?appId=${id}`),
+		]);
+		setApp(apps.find((a) => a.id === id) ?? null);
+		setCreatives(cr);
+		await loadRefs();
+	}
+
+	useEffect(() => {
+		void (async () => {
+			try {
+				await loadAll();
+			} catch (err) {
+				setError(err instanceof Error ? err.message : "falha ao carregar");
+			}
+		})();
+	}, [id]);
+
+	// Poll while anything is still being ingested, so status flips to "pronta" on its own.
+	useEffect(() => {
+		if (!refs.some((r) => r.status === "QUEUED" || r.status === "RUNNING")) return;
+		const t = setInterval(() => void loadRefs().catch(() => undefined), 4000);
+
+		return () => clearInterval(t);
+	}, [refs, id]);
+
+	async function submitLink(e: React.FormEvent): Promise<void> {
+		e.preventDefault();
+		setBusy(true);
+		setError(null);
+		try {
+			await api<ReferenceRow>(`/apps/${id}/references`, {
+				method: "POST",
+				body: JSON.stringify({ sourceUrl: url }),
+			});
+			setUrl("");
+			await loadRefs();
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "falha ao enviar link");
+		} finally {
+			setBusy(false);
+		}
+	}
+
+	async function submitFile(): Promise<void> {
+		const file = fileInput.current?.files?.[0];
+		if (!file) return;
+		setBusy(true);
+		setError(null);
+		try {
+			// Multipart: the shared api() helper forces JSON, so post the file directly with
+			// the auth token and let the browser set the multipart boundary.
+			const form = new FormData();
+			form.append("file", file);
+			const res = await fetch(`${BASE}/apps/${id}/references`, {
+				method: "POST",
+				headers: { Authorization: `Bearer ${getToken() ?? ""}` },
+				body: form,
+			});
+			if (!res.ok) {
+				const body = (await res.json().catch(() => null)) as { error?: string } | null;
+				throw new Error(body?.error ?? `HTTP ${res.status}`);
+			}
+			if (fileInput.current) fileInput.current.value = "";
+			await loadRefs();
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "falha no upload");
+		} finally {
+			setBusy(false);
+		}
+	}
+
+	return (
+		<main style={{ maxWidth: 1100, margin: "0 auto", padding: 32 }}>
+			<Link href="/apps" className="muted" style={{ fontSize: 13, textDecoration: "none" }}>
+				← apps
+			</Link>
+			<h1 style={{ fontSize: 22, margin: "8px 0 0" }}>{app?.name ?? "App"}</h1>
+			{app ? <div className="muted" style={{ fontSize: 12 }}>{app.slug}{app.niche ? ` · ${app.niche}` : ""}</div> : null}
+			{error ? <p style={{ color: "var(--danger)" }}>{error}</p> : null}
+
+			<h2 style={{ fontSize: 18, marginTop: 28 }}>Referências</h2>
+			<p className="muted" style={{ fontSize: 13, marginTop: 4 }}>
+				Mande um vídeo ou um link (Instagram, TikTok, YouTube ou URL direta). Extraímos os
+				cortes, os frames e o áudio — a estrutura e o ritmo, nunca a marca da referência.
+			</p>
+
+			<div className="row" style={{ gap: 20, marginTop: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
+				<div className="panel stack" style={{ padding: 16, width: 340 }}>
+					<label className="muted" style={{ fontSize: 12 }}>arquivo de vídeo</label>
+					<input ref={fileInput} type="file" accept="video/*" />
+					<button className="primary" onClick={() => void submitFile()} disabled={busy}>
+						{busy ? "enviando..." : "enviar vídeo"}
+					</button>
+				</div>
+				<form onSubmit={submitLink} className="panel stack" style={{ padding: 16, width: 340 }}>
+					<label className="muted" style={{ fontSize: 12 }}>link do vídeo</label>
+					<input
+						type="url"
+						placeholder="https://..."
+						value={url}
+						onChange={(e) => setUrl(e.target.value)}
+						required
+					/>
+					<button className="primary" disabled={busy || !url}>
+						{busy ? "enviando..." : "ingerir link"}
+					</button>
+				</form>
+			</div>
+
+			<div className="stack" style={{ marginTop: 16 }}>
+				{refs.map((r) => (
+					<div key={r.id} className="panel" style={{ padding: 14 }}>
+						<div className="row" style={{ justifyContent: "space-between" }}>
+							<div style={{ overflow: "hidden", textOverflow: "ellipsis", maxWidth: 620, whiteSpace: "nowrap" }}>
+								{r.sourceUrl ? (
+									<a href={r.sourceUrl} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>{r.sourceUrl}</a>
+								) : (
+									<span>vídeo enviado</span>
+								)}
+							</div>
+							<span className={`badge${r.status === "DONE" ? " accent" : ""}`}>{statusLabel[r.status]}</span>
+						</div>
+						{r.status === "DONE" ? (
+							<div className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+								{r.manifest.durationSec ? `${r.manifest.durationSec.toFixed(1)}s` : "?"} ·{" "}
+								{r.manifest.cutCount ?? 0} cortes ·{" "}
+								ritmo {r.manifest.avgShotSec ? `${r.manifest.avgShotSec}s/cena` : "?"} ·{" "}
+								{r.manifest.frames?.length ?? 0} frames ·{" "}
+								{r.manifest.hasAudio ? "com áudio" : "sem áudio"}
+							</div>
+						) : null}
+						{r.status === "FAILED" && r.error ? (
+							<div style={{ color: "var(--danger)", fontSize: 12, marginTop: 8 }}>{r.error}</div>
+						) : null}
+					</div>
+				))}
+				{refs.length === 0 && !error ? <p className="muted">Nenhuma referência ainda.</p> : null}
+			</div>
+
+			<h2 style={{ fontSize: 18, marginTop: 32 }}>Criativos deste app</h2>
+			<div className="stack" style={{ marginTop: 12 }}>
+				{creatives.map((c) => (
+					<Link key={c.id} href={`/creatives/${c.id}`} className="panel row" style={{ padding: 14, textDecoration: "none", justifyContent: "space-between" }}>
+						<div style={{ fontWeight: 600 }}>{c.name}</div>
+						<span className={`badge${c.renders?.[0]?.status === "DONE" ? " accent" : ""}`}>
+							{c.renders?.[0]?.status ?? "sem render"}
+						</span>
+					</Link>
+				))}
+				{creatives.length === 0 ? <p className="muted">Nenhum criativo ainda.</p> : null}
+			</div>
+		</main>
+	);
+}

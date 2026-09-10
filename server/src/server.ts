@@ -1,5 +1,6 @@
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
+import multipart from "@fastify/multipart";
 import Fastify, { type FastifyReply, type FastifyRequest } from "fastify";
 
 import { env } from "@/lib/env";
@@ -7,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { appRoutes } from "@/routes/apps";
 import { authRoutes } from "@/routes/auth";
 import { creativeRoutes } from "@/routes/creatives";
+import { referenceRoutes } from "@/routes/references";
 import { renderRoutes } from "@/routes/render";
 
 declare module "fastify" {
@@ -37,6 +39,10 @@ export function buildServer() {
 		sign: { expiresIn: env.JWT_EXPIRATION },
 	});
 
+	// Reference uploads are the only large bodies; keep the ceiling generous but finite so a
+	// stray upload cannot fill the disk. nginx also caps this at the edge (client_max_body_size).
+	void app.register(multipart, { limits: { fileSize: 200 * 1024 * 1024, files: 1 } });
+
 	app.decorate("authenticate", async (request: FastifyRequest, reply: FastifyReply) => {
 		try {
 			await request.jwtVerify();
@@ -61,6 +67,7 @@ export function buildServer() {
 	void app.register(appRoutes);
 	void app.register(creativeRoutes);
 	void app.register(renderRoutes);
+	void app.register(referenceRoutes);
 
 	return app;
 }
