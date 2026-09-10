@@ -22,6 +22,18 @@ const envSchema = z.object({
 	// respondem 503 com instrução; o resto da API funciona normal.
 	ANTHROPIC_API_KEY: z.string().optional(),
 	ANTHROPIC_MODEL: z.string().default("claude-opus-4-8"),
+	// Fase 3 — geração de b-roll no Higgsfield (api.higgsfield.ai). Credenciais server-side
+	// criadas em cloud.higgsfield.ai. Sem elas, os endpoints de b-roll respondem 503.
+	// O path do modelo de vídeo é configurável porque varia por modelo (Seedance/Kling/...);
+	// confirmar no cloud e setar HIGGSFIELD_VIDEO_ENDPOINT (ex: /higgsfield-ai/<modelo>/<versao>).
+	HIGGSFIELD_API_KEY_ID: z.string().optional(),
+	HIGGSFIELD_API_KEY_SECRET: z.string().optional(),
+	HIGGSFIELD_BASE_URL: z.string().url().default("https://api.higgsfield.ai"),
+	HIGGSFIELD_VIDEO_ENDPOINT: z.string().default(""),
+	// JSON extra mesclado no body do submit (ex: {"model":"...","duration":5}). Opcional.
+	HIGGSFIELD_VIDEO_PARAMS: z.string().default("{}"),
+	HIGGSFIELD_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(4000),
+	HIGGSFIELD_TIMEOUT_MS: z.coerce.number().int().positive().default(300000),
 });
 
 const parsed = envSchema.safeParse(process.env);

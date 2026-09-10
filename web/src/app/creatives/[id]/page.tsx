@@ -26,6 +26,7 @@ export default function CreativePage() {
 	const [busy, setBusy] = useState(false);
 	const [instruction, setInstruction] = useState("");
 	const [aiBusy, setAiBusy] = useState(false);
+	const [brollBusy, setBrollBusy] = useState(false);
 
 	const load = useCallback(async () => {
 		const data = await api<CreativeDetail>(`/creatives/${params.id}`);
@@ -124,6 +125,23 @@ export default function CreativePage() {
 		}
 	}
 
+	async function broll() {
+		setBrollBusy(true);
+		setError(null);
+		try {
+			const res = await api<{ generated?: number; unchanged?: boolean; message?: string }>(
+				`/creatives/${params.id}/broll`,
+				{ method: "POST", body: JSON.stringify({}) },
+			);
+			if (res.unchanged) setError(res.message ?? "nenhuma camada generative_video pendente");
+			await load();
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "falha ao gerar b-roll");
+		} finally {
+			setBrollBusy(false);
+		}
+	}
+
 	function poll(jobId: string) {
 		const timer = setInterval(() => {
 			void api<RenderJob>(`/render-jobs/${jobId}`)
@@ -164,6 +182,9 @@ export default function CreativePage() {
 					</button>
 					<button onClick={() => void render("STILL")} disabled={busy}>
 						still
+					</button>
+					<button onClick={() => void broll()} disabled={brollBusy}>
+						{brollBusy ? "gerando b-roll..." : "gerar b-roll"}
 					</button>
 				</div>
 
