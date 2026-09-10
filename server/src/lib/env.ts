@@ -18,6 +18,10 @@ const envSchema = z.object({
 	STORAGE_DIR: z.string().default("./storage"),
 	ALLOWED_ORIGINS: z.string().default("http://localhost:3000"),
 	HIGGSFIELD_WORKSPACE_ID: z.string().optional(),
+	// Fase 2 — a IA escreve/edita o CreativeSpec. Sem a chave, os endpoints de geração
+	// respondem 503 com instrução; o resto da API funciona normal.
+	ANTHROPIC_API_KEY: z.string().optional(),
+	ANTHROPIC_MODEL: z.string().default("claude-opus-4-8"),
 });
 
 const parsed = envSchema.safeParse(process.env);

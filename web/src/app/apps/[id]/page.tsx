@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { use, useEffect, useRef, useState } from "react";
 
 import { api, getToken } from "@/lib/api";
@@ -17,6 +18,7 @@ const statusLabel: Record<ReferenceRow["status"], string> = {
 
 export default function AppDetailPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = use(params);
+	const router = useRouter();
 
 	const [app, setApp] = useState<AppRow | null>(null);
 	const [refs, setRefs] = useState<ReferenceRow[]>([]);
@@ -26,6 +28,12 @@ export default function AppDetailPage({ params }: { params: Promise<{ id: string
 	const [url, setUrl] = useState("");
 	const [busy, setBusy] = useState(false);
 	const fileInput = useRef<HTMLInputElement>(null);
+
+	// Gerar com IA
+	const [genName, setGenName] = useState("");
+	const [genBrief, setGenBrief] = useState("");
+	const [genRef, setGenRef] = useState("");
+	const [genBusy, setGenBusy] = useState(false);
 
 	async function loadRefs(): Promise<void> {
 		setRefs(await api<ReferenceRow[]>(`/apps/${id}/references`));
@@ -105,6 +113,29 @@ export default function AppDetailPage({ params }: { params: Promise<{ id: string
 		}
 	}
 
+	async function generate(e: React.FormEvent): Promise<void> {
+		e.preventDefault();
+		setGenBusy(true);
+		setError(null);
+		try {
+			const res = await api<{ creative: { id: string } }>("/creatives/generate", {
+				method: "POST",
+				body: JSON.stringify({
+					appId: id,
+					name: genName,
+					brief: genBrief || undefined,
+					referenceId: genRef || undefined,
+				}),
+			});
+			router.push(`/creatives/${res.creative.id}`);
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "falha ao gerar com IA");
+			setGenBusy(false);
+		}
+	}
+
+	const readyRefs = refs.filter((r) => r.status === "DONE");
+
 	return (
 		<main style={{ maxWidth: 1100, margin: "0 auto", padding: 32 }}>
 			<Link href="/apps" className="muted" style={{ fontSize: 13, textDecoration: "none" }}>
@@ -172,6 +203,31 @@ export default function AppDetailPage({ params }: { params: Promise<{ id: string
 				))}
 				{refs.length === 0 && !error ? <p className="muted">Nenhuma referência ainda.</p> : null}
 			</div>
+
+			<h2 style={{ fontSize: 18, marginTop: 32 }}>Gerar criativo com IA</h2>
+			<p className="muted" style={{ fontSize: 13, marginTop: 4 }}>
+				A IA escreve o CreativeSpec a partir de um brief e/ou de uma referência pronta.
+				Precisa da chave da Anthropic no servidor — sem ela, retorna aviso.
+			</p>
+			<form onSubmit={generate} className="panel stack" style={{ padding: 16, marginTop: 12, maxWidth: 560 }}>
+				<input placeholder="nome do criativo" value={genName} onChange={(e) => setGenName(e.target.value)} required />
+				<textarea
+					placeholder="brief (ex: app de treino, oferta 50% off, hook agressivo, 20s, pt-BR)"
+					value={genBrief}
+					onChange={(e) => setGenBrief(e.target.value)}
+					rows={3}
+				/>
+				<label className="muted" style={{ fontSize: 12 }}>referência (opcional)</label>
+				<select value={genRef} onChange={(e) => setGenRef(e.target.value)}>
+					<option value="">— sem referência —</option>
+					{readyRefs.map((r) => (
+						<option key={r.id} value={r.id}>{r.sourceUrl ?? "vídeo enviado"} · {r.manifest.cutCount ?? 0} cortes</option>
+					))}
+				</select>
+				<button className="primary" disabled={genBusy || !genName}>
+					{genBusy ? "gerando..." : "gerar com IA"}
+				</button>
+			</form>
 
 			<h2 style={{ fontSize: 18, marginTop: 32 }}>Criativos deste app</h2>
 			<div className="stack" style={{ marginTop: 12 }}>

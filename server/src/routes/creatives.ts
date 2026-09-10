@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 
+import { env } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
 import {
 	isSpec,
@@ -11,6 +12,7 @@ import {
 	validateSpec,
 	type Spec,
 } from "@/lib/spec";
+import { adjustSpec, agentEnabled, authorSpec } from "@/lib/specAuthor";
 
 const createSchema = z.object({
 	appId: z.string().uuid(),
@@ -31,6 +33,16 @@ const variationSchema = z.object({
 	patch: z.record(z.unknown()),
 	name: z.string().optional(),
 });
+
+const generateSchema = z.object({
+	appId: z.string().uuid(),
+	name: z.string().min(1),
+	locale: z.string().default("pt-BR"),
+	brief: z.string().optional(),
+	referenceId: z.string().uuid().optional(),
+});
+
+const adjustSchema = z.object({ instruction: z.string().min(1) });
 
 /** Loads a creative with its newest version, or null. */
 async function latestVersion(creativeId: string) {
@@ -121,6 +133,124 @@ export async function creativeRoutes(app: FastifyInstance): Promise<void> {
 		});
 
 		return reply.code(201).send({ creative, issues });
+	});
+
+	/**
+	 * Gera um criativo do zero com a IA (Fase 2), a partir de um brief e/ou uma referência
+	 * ingerida. Inerte sem ANTHROPIC_API_KEY: responde 503 com instrução.
+	 */
+	app.post("/creatives/generate", async (request, reply) => {
+		if (!agentEnabled()) {
+			return reply.code(503).send({ error: "geração por IA indisponível: configure ANTHROPIC_API_KEY no servidor" });
+		}
+		const parsed = generateSchema.safeParse(request.body);
+		if (!parsed.success) return reply.code(400).send({ error: parsed.error.format() });
+
+		const targetApp = await prisma.app.findUnique({ where: { id: parsed.data.appId } });
+		if (!targetApp) return reply.code(404).send({ error: "app não encontrado" });
+
+		let referenceManifest: Record<string, unknown> | undefined;
+		if (parsed.data.referenceId) {
+			const ref = await prisma.referenceAsset.findUnique({ where: { id: parsed.data.referenceId } });
+			if (!ref) return reply.code(404).send({ error: "referência não encontrada" });
+			if (ref.status !== "DONE") return reply.code(409).send({ error: `referência ainda ${ref.status}` });
+			referenceManifest = ref.manifest as Record<string, unknown>;
+		}
+
+		let result;
+		try {
+			result = await authorSpec({
+				app: {
+					id: targetApp.id,
+					name: targetApp.name,
+					director: targetApp.director as Record<string, unknown>,
+					brandKit: targetApp.brandKit as Record<string, unknown>,
+				},
+				name: parsed.data.name,
+				locale: parsed.data.locale,
+				brief: parsed.data.brief,
+				referenceId: parsed.data.referenceId,
+				referenceManifest,
+				storageDir: env.STORAGE_DIR,
+			});
+		} catch (err) {
+			return reply.code(502).send({ error: err instanceof Error ? err.message : "falha na geração" });
+		}
+		if (result.issues.errors.length) {
+			return reply.code(422).send({ error: "IA gerou spec inválido", issues: result.issues });
+		}
+
+		const creative = await prisma.creative.create({
+			data: {
+				appId: targetApp.id,
+				userId: request.user.sub,
+				name: parsed.data.name,
+				locale: parsed.data.locale,
+				mutation: "ai_generate",
+				versions: {
+					create: {
+						version: 1,
+						spec: result.spec as object,
+						specHash: specHash(result.spec),
+						createdBy: "ai",
+					},
+				},
+			},
+			include: { versions: true },
+		});
+
+		return reply.code(201).send({ creative, issues: result.issues });
+	});
+
+	/** Ajusta um criativo existente em linguagem natural (Fase 2), gravando nova versão. */
+	app.post<{ Params: { id: string } }>("/creatives/:id/adjust", async (request, reply) => {
+		if (!agentEnabled()) {
+			return reply.code(503).send({ error: "ajuste por IA indisponível: configure ANTHROPIC_API_KEY no servidor" });
+		}
+		const parsed = adjustSchema.safeParse(request.body);
+		if (!parsed.success) return reply.code(400).send({ error: parsed.error.format() });
+
+		const creative = await prisma.creative.findUnique({
+			where: { id: request.params.id },
+			include: { app: { select: { director: true, brandKit: true } } },
+		});
+		if (!creative) return reply.code(404).send({ error: "criativo não encontrado" });
+
+		const current = await latestVersion(creative.id);
+		if (!current) return reply.code(409).send({ error: "criativo sem versão" });
+
+		let result;
+		try {
+			result = await adjustSpec(
+				current.spec as unknown as Spec,
+				parsed.data.instruction,
+				creative.app.director as Record<string, unknown>,
+				creative.app.brandKit as Record<string, unknown>,
+			);
+		} catch (err) {
+			return reply.code(502).send({ error: err instanceof Error ? err.message : "falha no ajuste" });
+		}
+		if (result.issues.errors.length) {
+			return reply.code(422).send({ error: "IA gerou spec inválido", issues: result.issues });
+		}
+
+		const hash = specHash(result.spec);
+		if (hash === current.specHash) {
+			return { unchanged: true, version: current.version, issues: result.issues, changes: [] };
+		}
+
+		const version = await prisma.creativeVersion.create({
+			data: {
+				creativeId: creative.id,
+				version: current.version + 1,
+				spec: result.spec as object,
+				specHash: hash,
+				createdBy: "ai",
+				note: parsed.data.instruction,
+			},
+		});
+
+		return { version, issues: result.issues, durationMs: specDurationMs(result.spec) };
 	});
 
 	app.get<{ Params: { id: string } }>("/creatives/:id", async (request, reply) => {

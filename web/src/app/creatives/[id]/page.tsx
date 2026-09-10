@@ -24,6 +24,8 @@ export default function CreativePage() {
 	const [result, setResult] = useState<PatchResult | null>(null);
 	const [job, setJob] = useState<RenderJob | null>(null);
 	const [busy, setBusy] = useState(false);
+	const [instruction, setInstruction] = useState("");
+	const [aiBusy, setAiBusy] = useState(false);
 
 	const load = useCallback(async () => {
 		const data = await api<CreativeDetail>(`/creatives/${params.id}`);
@@ -103,6 +105,25 @@ export default function CreativePage() {
 		}
 	}
 
+	async function adjust() {
+		if (!instruction.trim()) return;
+		setAiBusy(true);
+		setError(null);
+		try {
+			const res = await api<PatchResult>(`/creatives/${params.id}/adjust`, {
+				method: "POST",
+				body: JSON.stringify({ instruction }),
+			});
+			setResult(res);
+			setInstruction("");
+			await load();
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "falha ao ajustar com IA");
+		} finally {
+			setAiBusy(false);
+		}
+	}
+
 	function poll(jobId: string) {
 		const timer = setInterval(() => {
 			void api<RenderJob>(`/render-jobs/${jobId}`)
@@ -143,6 +164,21 @@ export default function CreativePage() {
 					</button>
 					<button onClick={() => void render("STILL")} disabled={busy}>
 						still
+					</button>
+				</div>
+
+				<div className="panel stack" style={{ padding: 12 }}>
+					<div className="muted" style={{ fontSize: 12 }}>ajustar com IA</div>
+					<input
+						placeholder="ex: encurta o hook pra 1.8s / versão em espanhol / troca a cena 2"
+						value={instruction}
+						onChange={(e) => setInstruction(e.target.value)}
+						onKeyDown={(e) => {
+							if (e.key === "Enter") void adjust();
+						}}
+					/>
+					<button onClick={() => void adjust()} disabled={aiBusy || !instruction.trim()}>
+						{aiBusy ? "ajustando..." : "aplicar ajuste"}
 					</button>
 				</div>
 
