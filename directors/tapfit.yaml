@@ -1,0 +1,42 @@
+# DirectorProfile — TapFit
+# Regras de edição que valem para TODO criativo do app. Escritas uma vez, versionadas.
+# O bloco `never` vence brief e referência.
+director: tapfit_v1
+
+pacing:
+  cut_every_ms: [900, 1600]     # ritmo de corte alvo
+  hook_max_ms: 2500
+  scene_min_ms: 700
+
+transitions:
+  allowed: [hard_cut, match_cut]
+  forbidden: [crossfade, zoom_blur]
+
+captions:
+  style: karaoke_bold
+  position: lower_third
+  max_chars_per_line: 24
+  always_on: true               # som off é o default do feed
+
+typography:
+  hook: hook_stroke
+  body: sub
+
+camera:
+  app_screen: [tilt_scroll, punch_in]
+  generative: [handheld_subtle]
+
+audio:
+  music_energy: high
+  vo: { gender: female, age: young_adult, pace: fast }
+  duck_db: -14
+
+b_roll_policy:
+  prefer: asset_library         # gerar é fallback, não padrão
+  generate_if_missing: true
+
+never:
+  - "texto renderizado dentro de imagem gerada por IA"
+  - "mais de 2 frases por cena"
+  - "logo antes dos 3s"
+  - "claim numérico sem fonte"  # compliance de ads

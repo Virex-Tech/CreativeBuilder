@@ -1,0 +1,24 @@
+# dependências
+node_modules/
+
+# builds
+.next/
+dist/
+out/
+*.tsbuildinfo
+
+# segredos — o .env local tem senha de banco e JWT_SECRET
+.env
+.env.*
+!.env.example
+
+# artefatos de mídia: pesados e reproduzíveis a partir do spec
+storage/
+references/
+render/out/
+render/public/test-*.mp3
+
+# runtime
+*.log
+.DS_Store
+.playwright-mcp/

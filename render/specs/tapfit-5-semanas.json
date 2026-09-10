@@ -1,0 +1,183 @@
+{
+	"specVersion": "1",
+	"creativeId": "cr_tapfit_5semanas_001",
+	"appId": "app_tapfit",
+	"locale": "pt-BR",
+	"lineage": {
+		"mutation": "from_reference_befit_1715"
+	},
+	"output": {
+		"kind": "video"
+	},
+	"format": {
+		"w": 1080,
+		"h": 1920,
+		"fps": 30
+	},
+	"brandKit": {
+		"bg": "#0B0B0F",
+		"fg": "#FFFFFF",
+		"accent": "#C6F432",
+		"fontFamily": "Inter, Segoe UI, system-ui, sans-serif"
+	},
+	"scenes": [
+		{
+			"id": "hook",
+			"role": "HOOK",
+			"startMs": 0,
+			"durationMs": 2500,
+			"timing": "locked",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "vertical phone video, young woman in gym locker room taking a mirror selfie with her phone, wearing sportswear, natural gym lighting, casual UGC look, slight handheld movement",
+					"provider": "higgsfield",
+					"fit": "cover",
+					"anim": "none"
+				},
+				{
+					"type": "badge",
+					"label": "se você seguir por",
+					"value": "5 SEMANAS",
+					"anim": "pop_in"
+				},
+				{
+					"type": "karaoke",
+					"text": "Se você começar hoje e não parar",
+					"anim": "none"
+				},
+				{
+					"type": "disclaimer",
+					"text": "Dramatização. Resultados variam de pessoa para pessoa."
+				}
+			]
+		},
+		{
+			"id": "semana1",
+			"role": "POINT",
+			"startMs": 2500,
+			"durationMs": 3400,
+			"timing": "flex",
+			"layers": [
+				{
+					"type": "solid",
+					"color": "#14141C"
+				},
+				{
+					"type": "generative_video",
+					"prompt": "vertical phone video, woman entering a gym through the turnstile, morning light, UGC style",
+					"provider": "higgsfield",
+					"fit": "cover",
+					"anim": "handheld_subtle"
+				},
+				{
+					"type": "badge",
+					"label": "semana",
+					"value": "1",
+					"anim": "pop_in"
+				},
+				{
+					"type": "karaoke",
+					"text": "Na primeira semana o app monta tudo pra você",
+					"anim": "none"
+				},
+				{
+					"type": "disclaimer",
+					"text": "Dramatização. Resultados variam de pessoa para pessoa."
+				}
+			]
+		},
+		{
+			"id": "semana3",
+			"role": "POINT",
+			"startMs": 5900,
+			"durationMs": 3400,
+			"timing": "flex",
+			"layers": [
+				{
+					"type": "solid",
+					"color": "#14141C"
+				},
+				{
+					"type": "app_screen_recording",
+					"assetId": "as_scr_treino_semana3",
+					"device": "iphone15_mock",
+					"anim": "tilt_scroll"
+				},
+				{
+					"type": "badge",
+					"label": "semana",
+					"value": "3",
+					"anim": "pop_in"
+				},
+				{
+					"type": "karaoke",
+					"text": "Na terceira o treino já sobe de carga sozinho",
+					"anim": "none"
+				},
+				{
+					"type": "disclaimer",
+					"text": "Dramatização. Resultados variam de pessoa para pessoa."
+				}
+			]
+		},
+		{
+			"id": "semana5",
+			"role": "PROOF",
+			"startMs": 9300,
+			"durationMs": 3600,
+			"timing": "flex",
+			"layers": [
+				{
+					"type": "solid",
+					"color": "#14141C"
+				},
+				{
+					"type": "generative_video",
+					"prompt": "vertical phone video, woman finishing a workout, tired but satisfied, gym background, UGC style",
+					"provider": "higgsfield",
+					"fit": "cover",
+					"anim": "handheld_subtle"
+				},
+				{
+					"type": "badge",
+					"label": "semana",
+					"value": "5",
+					"anim": "pop_in"
+				},
+				{
+					"type": "karaoke",
+					"text": "Na quinta você não reconhece mais o seu treino",
+					"anim": "none"
+				},
+				{
+					"type": "disclaimer",
+					"text": "Dramatização. Resultados variam de pessoa para pessoa."
+				}
+			]
+		},
+		{
+			"id": "cta",
+			"role": "CTA",
+			"startMs": 12900,
+			"durationMs": 3200,
+			"timing": "locked",
+			"layers": [
+				{
+					"type": "solid",
+					"color": "#0B0B0F"
+				},
+				{
+					"type": "text",
+					"content": "TapFit — baixe grátis",
+					"preset": "cta_label",
+					"anim": "slide_up"
+				},
+				{
+					"type": "disclaimer",
+					"text": "Dramatização. Resultados variam de pessoa para pessoa."
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,109 @@
+{
+	"specVersion": "1",
+	"creativeId": "cr_tapfit_treino_aleatorio_001",
+	"appId": "app_tapfit",
+	"locale": "pt-BR",
+	"lineage": { "mutation": "seed" },
+	"output": { "kind": "video" },
+	"format": { "w": 1080, "h": 1920, "fps": 30 },
+	"brandKit": {
+		"bg": "#0B0B0F",
+		"fg": "#FFFFFF",
+		"accent": "#7C5CFF",
+		"fontFamily": "Inter, Segoe UI, system-ui, sans-serif"
+	},
+	"scenes": [
+		{
+			"id": "hook",
+			"role": "HOOK",
+			"startMs": 0,
+			"durationMs": 2400,
+			"timing": "locked",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "mulher jovem parada no meio da academia olhando o celular, sem saber o que treinar, luz natural da manhã, câmera na mão",
+					"provider": "higgsfield",
+					"fit": "cover",
+					"anim": "handheld_subtle"
+				},
+				{
+					"type": "text",
+					"content": "Chega na academia e não sabe o que treinar?",
+					"preset": "hook_stroke",
+					"anim": "pop_in"
+				}
+			]
+		},
+		{
+			"id": "problem",
+			"role": "PROBLEM",
+			"startMs": 2400,
+			"durationMs": 3000,
+			"timing": "flex",
+			"layers": [
+				{ "type": "solid", "color": "#0B0B0F" },
+				{
+					"type": "text",
+					"content": "Você perde 15 minutos decidindo. Todo dia.",
+					"preset": "sub",
+					"anim": "slide_up"
+				}
+			]
+		},
+		{
+			"id": "demo",
+			"role": "DEMO",
+			"startMs": 5400,
+			"durationMs": 8000,
+			"timing": "locked",
+			"layers": [
+				{
+					"type": "app_screen_recording",
+					"assetId": "as_scr_treino_aleatorio",
+					"device": "iphone15_mock",
+					"anim": "tilt_scroll"
+				},
+				{
+					"type": "text",
+					"content": "Um toque. Treino sorteado.",
+					"preset": "caption",
+					"anim": "fade_in",
+					"startMs": 800
+				}
+			]
+		},
+		{
+			"id": "proof",
+			"role": "PROOF",
+			"startMs": 13400,
+			"durationMs": 3200,
+			"timing": "flex",
+			"layers": [
+				{ "type": "solid", "color": "#12121A" },
+				{
+					"type": "text",
+					"content": "+40 mil treinos sorteados esta semana",
+					"preset": "sub",
+					"anim": "pop_in"
+				}
+			]
+		},
+		{
+			"id": "cta",
+			"role": "CTA",
+			"startMs": 16600,
+			"durationMs": 3400,
+			"timing": "locked",
+			"layers": [
+				{ "type": "solid", "color": "#0B0B0F" },
+				{
+					"type": "text",
+					"content": "TapFit — baixe grátis",
+					"preset": "cta_label",
+					"anim": "slide_up"
+				}
+			]
+		}
+	]
+}

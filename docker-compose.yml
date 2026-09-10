@@ -1,0 +1,124 @@
+﻿# Creative Engine â€” stack completa para o VPS.
+#
+# Um volume compartilhado (`media`) serve todos os serviÃ§os: Ã© por isso que S3 ainda nÃ£o Ã©
+# necessÃ¡rio. A interface de storage continua abstraÃ­da para trocar quando houver mais de
+# uma mÃ¡quina.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cb-postgres
+    environment:
+      POSTGRES_DB: creativebuilder
+      POSTGRES_USER: creativebuilder
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-creativebuilder}
+    ports:
+      - "5440:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U creativebuilder"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: cb-redis
+    ports:
+      - "6390:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  web:
+    build:
+      # Context is the repo root: the web app imports the renderer's components directly,
+      # so both folders have to be inside the build context.
+      context: .
+      dockerfile: web/Dockerfile
+      args:
+        # Baked at build time â€” Next inlines NEXT_PUBLIC_* into the client bundle, so this
+        # cannot be changed by restarting the container. Rebuild to change it.
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:?defina PUBLIC_API_URL no .env}
+    container_name: cb-web
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  render:
+    build:
+      context: ./render
+    container_name: cb-render
+    environment:
+      PORT: 11100
+      RENDER_OUT_DIR: /media/renders
+      # Chrome inside a container needs an explicit ceiling; left unset it opens one tab per
+      # core and competes with itself.
+      RENDER_CONCURRENCY: ${RENDER_CONCURRENCY:-2}
+    ports:
+      - "11100:11100"
+    volumes:
+      - media:/media
+    # Chrome needs more than the default 64MB of shared memory or it crashes mid-render
+    # with errors that look like a bug in the composition.
+    shm_size: 1gb
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./server
+    container_name: cb-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 11200
+      DATABASE_URL: postgresql://creativebuilder:${POSTGRES_PASSWORD:-creativebuilder}@postgres:5432/creativebuilder
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env}
+      RENDER_SERVICE_URL: http://render:11100
+      STORAGE_DIR: /media
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000}
+    ports:
+      - "11200:11200"
+    volumes:
+      - media:/media
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ./server
+    container_name: cb-worker
+    command: ["npm", "run", "worker"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://creativebuilder:${POSTGRES_PASSWORD:-creativebuilder}@postgres:5432/creativebuilder
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env}
+      RENDER_SERVICE_URL: http://render:11100
+      STORAGE_DIR: /media
+    volumes:
+      - media:/media
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
+  media:

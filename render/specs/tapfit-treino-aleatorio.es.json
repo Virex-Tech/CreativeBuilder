@@ -1,0 +1,127 @@
+{
+	"specVersion": "1",
+	"creativeId": "cr_tapfit_treino_aleatorio_es",
+	"appId": "app_tapfit",
+	"locale": "es-MX",
+	"lineage": {
+		"parentId": "cr_tapfit_treino_aleatorio_001",
+		"mutation": "locale_swap"
+	},
+	"output": {
+		"kind": "video"
+	},
+	"format": {
+		"w": 1080,
+		"h": 1920,
+		"fps": 30
+	},
+	"brandKit": {
+		"bg": "#0B0B0F",
+		"fg": "#FFFFFF",
+		"accent": "#7C5CFF",
+		"fontFamily": "Inter, Segoe UI, system-ui, sans-serif"
+	},
+	"scenes": [
+		{
+			"id": "hook",
+			"role": "HOOK",
+			"startMs": 0,
+			"durationMs": 2400,
+			"timing": "locked",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "mulher jovem parada no meio da academia olhando o celular, sem saber o que treinar, luz natural da manhã, câmera na mão",
+					"provider": "higgsfield",
+					"fit": "cover",
+					"anim": "handheld_subtle"
+				},
+				{
+					"type": "text",
+					"content": "¿Llegas al gym y no sabes qué entrenar?",
+					"preset": "hook_stroke",
+					"anim": "pop_in"
+				}
+			]
+		},
+		{
+			"id": "problem",
+			"role": "PROBLEM",
+			"startMs": 2400,
+			"durationMs": 3000,
+			"timing": "flex",
+			"layers": [
+				{
+					"type": "solid",
+					"color": "#0B0B0F"
+				},
+				{
+					"type": "text",
+					"content": "Pierdes 15 minutos decidiendo. Cada día.",
+					"preset": "sub",
+					"anim": "slide_up"
+				}
+			]
+		},
+		{
+			"id": "demo",
+			"role": "DEMO",
+			"startMs": 5400,
+			"durationMs": 8000,
+			"timing": "locked",
+			"layers": [
+				{
+					"type": "app_screen_recording",
+					"assetId": "as_scr_treino_aleatorio",
+					"device": "iphone15_mock",
+					"anim": "tilt_scroll"
+				},
+				{
+					"type": "text",
+					"content": "Un toque. Rutina sorteada.",
+					"preset": "caption",
+					"anim": "fade_in",
+					"startMs": 800
+				}
+			]
+		},
+		{
+			"id": "proof",
+			"role": "PROOF",
+			"startMs": 13400,
+			"durationMs": 3200,
+			"timing": "flex",
+			"layers": [
+				{
+					"type": "solid",
+					"color": "#12121A"
+				},
+				{
+					"type": "text",
+					"content": "+40 mil rutinas sorteadas esta semana",
+					"preset": "sub",
+					"anim": "pop_in"
+				}
+			]
+		},
+		{
+			"id": "cta",
+			"role": "CTA",
+			"startMs": 16600,
+			"durationMs": 3400,
+			"timing": "locked",
+			"layers": [
+				{
+					"type": "solid",
+					"color": "#0B0B0F"
+				},
+				{
+					"type": "text",
+					"content": "TapFit — descarga gratis",
+					"preset": "cta_label",
+					"anim": "slide_up"
+				}
+			]
+		}
+	]
+}

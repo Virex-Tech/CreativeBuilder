@@ -1,0 +1,260 @@
+// Creative Engine — internal team tool.
+//
+// The load-bearing idea: a Creative is an identity, and its content lives in an ordered
+// list of CreativeVersion rows holding the spec JSON. Nothing ever edits a spec in place,
+// so "what did this look like when it performed well" always has an answer.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  // No billing and no self-signup: an admin creates accounts for the team.
+  role         Role     @default(MEMBER)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  apps       App[]
+  creatives  Creative[]
+  references ReferenceAsset[]
+
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+/// A product being marketed. Everything else hangs off this.
+model App {
+  id        String   @id @default(uuid()) @db.Uuid
+  ownerId   String   @map("owner_id") @db.Uuid
+  name      String
+  slug      String   @unique
+  niche     String?
+  /// DirectorProfile: pacing, transitions, caption style and the `never` list.
+  /// Stored as JSON so the team edits it in the UI without a migration.
+  director  Json     @default("{}")
+  brandKit  Json     @default("{}") @map("brand_kit")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  owner      User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  creatives  Creative[]
+  templates  Template[]
+  references ReferenceAsset[]
+  assets     Asset[]
+
+  @@index([ownerId])
+  @@map("apps")
+}
+
+/// A reference video ingested for its STRUCTURE. Frames and audio are extracted so the
+/// model can read it; the source is never reused as footage.
+model ReferenceAsset {
+  id        String    @id @default(uuid()) @db.Uuid
+  appId     String    @map("app_id") @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  sourceUrl String?   @map("source_url")
+  filePath  String?   @map("file_path")
+  status    JobStatus @default(QUEUED)
+  /// Output of tools/ingest-reference.mjs: cuts, avgShotSec, frame list.
+  manifest  Json      @default("{}")
+  /// The derived structure: beats with role, timing and on-screen text.
+  blueprint Json?
+  error     String?
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  app       App        @relation(fields: [appId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  templates Template[]
+
+  @@index([appId, createdAt(sort: Desc)])
+  @@map("reference_assets")
+}
+
+/// A reusable structure ("Treino aleatório", "5 semanas"), usually derived from a reference.
+model Template {
+  id          String   @id @default(uuid()) @db.Uuid
+  appId       String?  @map("app_id") @db.Uuid
+  referenceId String?  @map("reference_id") @db.Uuid
+  name        String
+  niche       String?
+  blueprint   Json
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Optional: a niche template ("5 semanas") can be reused across apps, not only the one
+  // whose reference produced it.
+  app       App?            @relation(fields: [appId], references: [id], onDelete: Cascade)
+  reference ReferenceAsset? @relation(fields: [referenceId], references: [id], onDelete: SetNull)
+  creatives Creative[]
+
+  @@index([appId])
+  @@map("templates")
+}
+
+model Creative {
+  id         String     @id @default(uuid()) @db.Uuid
+  appId      String     @map("app_id") @db.Uuid
+  userId     String     @map("user_id") @db.Uuid
+  templateId String?    @map("template_id") @db.Uuid
+  name       String
+  locale     String     @default("pt-BR")
+  outputKind OutputKind @default(VIDEO) @map("output_kind")
+  status     CreativeStatus @default(DRAFT)
+
+  /// Lineage. `mutation` names the ONE dimension that changed from the parent — this is
+  /// what later lets a metric be attributed to a cause instead of to a whole rewrite.
+  parentId String? @map("parent_id") @db.Uuid
+  mutation String?
+
+  /// Groups the same creative across locales, so pt/en/es are siblings rather than
+  /// unrelated rows competing in the same baseline.
+  localeGroupId String? @map("locale_group_id") @db.Uuid
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  app      App               @relation(fields: [appId], references: [id], onDelete: Cascade)
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template Template?         @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  parent   Creative?         @relation("Lineage", fields: [parentId], references: [id], onDelete: SetNull)
+  children Creative[]        @relation("Lineage")
+  versions CreativeVersion[]
+  renders  RenderJob[]
+
+  @@index([appId, createdAt(sort: Desc)])
+  @@index([parentId])
+  @@index([localeGroupId])
+  @@map("creatives")
+}
+
+enum OutputKind {
+  VIDEO
+  IMAGE
+  CAROUSEL
+}
+
+enum CreativeStatus {
+  DRAFT
+  READY
+  APPROVED
+  ARCHIVED
+}
+
+/// Immutable snapshot of a spec. Editing always appends.
+model CreativeVersion {
+  id         String   @id @default(uuid()) @db.Uuid
+  creativeId String   @map("creative_id") @db.Uuid
+  version    Int
+  spec       Json
+  /// sha256 of the spec — lets a render be skipped when nothing actually changed.
+  specHash   String   @map("spec_hash")
+  createdBy  String   @default("human") @map("created_by")
+  note       String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  creative Creative    @relation(fields: [creativeId], references: [id], onDelete: Cascade)
+  renders  RenderJob[]
+
+  @@unique([creativeId, version])
+  @@index([specHash])
+  @@map("creative_versions")
+}
+
+/// Any file we hold: generated clip, uploaded footage, voiceover, music, rendered output.
+model Asset {
+  id             String    @id @default(uuid()) @db.Uuid
+  appId          String    @map("app_id") @db.Uuid
+  kind           AssetKind
+  /// sha256 of prompt+params for generated assets — the cache key that stops us paying
+  /// twice for the same b-roll.
+  contentHash    String?   @map("content_hash")
+  path           String
+  mimeType       String?   @map("mime_type")
+  sizeBytes      Int?      @map("size_bytes")
+  durationMs     Int?      @map("duration_ms")
+  prompt         String?
+  provider       String?
+  model          String?
+  creditsUsed    Float?    @map("credits_used")
+  /// Provider URLs expire (Higgsfield ~7 days); after this the local copy is the only one.
+  providerUrlExpiresAt DateTime? @map("provider_url_expires_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  app App @relation(fields: [appId], references: [id], onDelete: Cascade)
+
+  @@unique([appId, contentHash])
+  @@index([appId, kind])
+  @@map("assets")
+}
+
+enum AssetKind {
+  GENERATED_VIDEO
+  GENERATED_IMAGE
+  UPLOAD
+  SCREEN_RECORDING
+  VOICEOVER
+  MUSIC
+  RENDER
+  REFERENCE_FRAME
+}
+
+model RenderJob {
+  id                String    @id @default(uuid()) @db.Uuid
+  creativeId        String    @map("creative_id") @db.Uuid
+  creativeVersionId String    @map("creative_version_id") @db.Uuid
+  kind              RenderKind @default(VIDEO)
+  frame             Int?
+  status            JobStatus @default(QUEUED)
+  progress          Int       @default(0)
+  /// Job id inside render, for polling.
+  externalJobId     String?   @map("external_job_id")
+  outputPath        String?   @map("output_path")
+  error             String?
+  durationMs        Int?      @map("duration_ms")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  finishedAt        DateTime? @map("finished_at")
+
+  creative Creative        @relation(fields: [creativeId], references: [id], onDelete: Cascade)
+  version  CreativeVersion @relation(fields: [creativeVersionId], references: [id], onDelete: Cascade)
+
+  @@index([creativeId, createdAt(sort: Desc)])
+  @@index([status])
+  @@map("render_jobs")
+}
+
+enum RenderKind {
+  VIDEO
+  STILL
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  DONE
+  FAILED
+}
+
+/// Performance data, imported from a Meta Ads CSV export while there is no API integration.
+/// Kept as JSON because the useful field set keeps changing on Meta's side.
+model CreativeMetric {
+  id         String   @id @default(uuid()) @db.Uuid
+  creativeId String   @map("creative_id") @db.Uuid
+  source     String   @default("META_ADS_CSV")
+  capturedAt DateTime @map("captured_at")
+  windowDays Int      @default(1) @map("window_days")
+  metrics    Json
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([creativeId, capturedAt(sort: Desc)])
+  @@map("creative_metrics")
+}
