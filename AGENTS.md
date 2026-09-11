@@ -84,9 +84,18 @@ O patch contém só as cenas que mudam (casadas por id); `variant` refaz o `star
 | "faz em espanhol" | `locale_swap` |
 | "versão 4:5 de 15s" | mutação `format` |
 
+## Geração de b-roll (local) — MCP do Higgsfield
+
+O b-roll de IA (camadas `generative_video`) sai pelo **MCP do Higgsfield** conectado a este
+agente, autenticado pela conta Higgsfield (OAuth, sem API key). Setup: `npm i -g
+@higgsfield/cli && higgsfield auth login`, depois adicione o MCP (`https://mcp.higgsfield.ai/mcp`)
+nas configurações de MCP do agente. Passo a passo detalhado em `docs/COMO-USAR.md`.
+
 ## Relação com a plataforma
 
-O mesmo fluxo roda na plataforma (VPS): a **ingestão de referência** já é feita pelo
-servidor (upload/link na UI → worker roda o mesmo ffmpeg). A **escrita do spec pela IA** e a
-**geração no Higgsfield** ainda dependem de chaves no servidor (Anthropic / Higgsfield) —
-até lá, essa parte roda por aqui (agente local) e o resultado é colado na plataforma.
+O mesmo fluxo roda na plataforma (VPS): a **ingestão de referência**, a **escrita do spec
+pela IA** e a **geração no Higgsfield** já estão implementadas no servidor — ficam ativas
+quando as chaves são configuradas (`docs/ATIVACAO-IA.md`). Na plataforma o b-roll usa a **API
+HTTP** do Higgsfield (credencial server-side); no local, o **MCP** (OAuth). Enquanto as chaves
+do servidor não estão setadas, essa parte roda por aqui (agente local) e o resultado é colado
+na plataforma.

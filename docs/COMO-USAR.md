@@ -89,6 +89,36 @@ node tools/spec-tool.mjs variant render/specs/<pai>.json --mutation hook_rewrite
 node tools/spec-tool.mjs diff render/specs/<pai>.json render/specs/<filho>.json
 ```
 
+### Gerar b-roll localmente com o MCP do Higgsfield
+
+O que gera o vídeo de IA (b-roll) no modo local é o **MCP do Higgsfield** conectado ao seu
+agente. A autenticação é pela sua conta Higgsfield (OAuth no navegador) — **sem API key pra
+gerenciar**. Setup uma vez:
+
+```bash
+# 1. CLI do Higgsfield + login (abre o navegador)
+npm i -g @higgsfield/cli
+higgsfield auth login
+
+# 2. Skills companion do Higgsfield (opcional, ajuda o agente)
+npx skills add higgsfield-ai/skills
+```
+
+Depois, conecte o **MCP** ao seu agente:
+
+- **Claude Code:** adicione o servidor MCP do Higgsfield (`https://mcp.higgsfield.ai/mcp`)
+  via `claude mcp add` ou no `.mcp.json` do projeto; a primeira chamada autentica pela sua
+  conta Higgsfield. (Confirme URL/transport na doc do Higgsfield, pois eles evoluem o setup.)
+- **Codex / outro agente:** adicione a mesma URL do MCP nas configurações de MCP do agente.
+
+Fluxo local completo então fica: você pede o criativo → o agente escreve o spec → **chama o
+MCP do Higgsfield pra gerar o b-roll** → baixa o asset → referencia no spec → renderiza pelo
+Remotion. É o mesmo "criativo infinito", rodando na sua máquina em vez do servidor.
+
+> Diferença local × plataforma: no **local** o b-roll sai pelo **MCP do Higgsfield** (OAuth,
+> créditos do seu plano). Na **plataforma** o mesmo b-roll sai pela **API HTTP** do Higgsfield
+> (credencial server-side em `cloud.higgsfield.ai`) — ver `docs/ATIVACAO-IA.md`.
+
 ---
 
 ## C) Passar para outros usarem
