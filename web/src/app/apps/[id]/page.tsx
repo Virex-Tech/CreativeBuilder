@@ -35,6 +35,24 @@ export default function AppDetailPage({ params }: { params: Promise<{ id: string
 	const [genRef, setGenRef] = useState("");
 	const [genBusy, setGenBusy] = useState(false);
 
+	// Performance (CSV da Meta)
+	interface MetricRow {
+		creativeId: string;
+		name?: string;
+		metrics: {
+			impressions?: number | null;
+			spend?: number | null;
+			hookRate?: number | null;
+			holdRate?: number | null;
+			ctr?: number | null;
+		};
+	}
+	const [metrics, setMetrics] = useState<MetricRow[]>([]);
+	const [metricsBusy, setMetricsBusy] = useState(false);
+	const [diagBusy, setDiagBusy] = useState(false);
+	const [diagnosis, setDiagnosis] = useState<string | null>(null);
+	const csvInput = useRef<HTMLInputElement>(null);
+
 	async function loadRefs(): Promise<void> {
 		setRefs(await api<ReferenceRow[]>(`/apps/${id}/references`));
 	}
@@ -47,7 +65,49 @@ export default function AppDetailPage({ params }: { params: Promise<{ id: string
 		setApp(apps.find((a) => a.id === id) ?? null);
 		setCreatives(cr);
 		await loadRefs();
+		setMetrics(await api<MetricRow[]>(`/apps/${id}/metrics`));
 	}
+
+	async function uploadCsv(): Promise<void> {
+		const file = csvInput.current?.files?.[0];
+		if (!file) return;
+		setMetricsBusy(true);
+		setError(null);
+		try {
+			const form = new FormData();
+			form.append("file", file);
+			const res = await fetch(`${BASE}/apps/${id}/metrics`, {
+				method: "POST",
+				headers: { Authorization: `Bearer ${getToken() ?? ""}` },
+				body: form,
+			});
+			if (!res.ok) {
+				const body = (await res.json().catch(() => null)) as { error?: string } | null;
+				throw new Error(body?.error ?? `HTTP ${res.status}`);
+			}
+			if (csvInput.current) csvInput.current.value = "";
+			setMetrics(await api<MetricRow[]>(`/apps/${id}/metrics`));
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "falha no CSV");
+		} finally {
+			setMetricsBusy(false);
+		}
+	}
+
+	async function diagnose(): Promise<void> {
+		setDiagBusy(true);
+		setError(null);
+		try {
+			const res = await api<{ analysis: string }>(`/apps/${id}/metrics/diagnose`, { method: "POST", body: JSON.stringify({}) });
+			setDiagnosis(res.analysis);
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "falha ao diagnosticar");
+		} finally {
+			setDiagBusy(false);
+		}
+	}
+
+	const pct = (n?: number | null): string => (n === null || n === undefined ? "—" : `${(n * 100).toFixed(1)}%`);
 
 	useEffect(() => {
 		void (async () => {
@@ -228,6 +288,59 @@ export default function AppDetailPage({ params }: { params: Promise<{ id: string
 					{genBusy ? "gerando..." : "gerar com IA"}
 				</button>
 			</form>
+
+			<h2 style={{ fontSize: 18, marginTop: 32 }}>Performance</h2>
+			<p className="muted" style={{ fontSize: 13, marginTop: 4 }}>
+				Suba o CSV exportado do Gerenciador de Anúncios da Meta. As linhas casam com os
+				criativos pelo <strong>nome do anúncio</strong> (ou id). Calculamos hook rate (2s
+				iniciais), hold rate (p75) e CTR por posição.
+			</p>
+			<div className="row" style={{ gap: 12, marginTop: 12, flexWrap: "wrap", alignItems: "center" }}>
+				<input ref={csvInput} type="file" accept=".csv,text/csv" />
+				<button className="primary" onClick={() => void uploadCsv()} disabled={metricsBusy}>
+					{metricsBusy ? "processando..." : "subir CSV"}
+				</button>
+				<button onClick={() => void diagnose()} disabled={diagBusy || metrics.length === 0} title={metrics.length === 0 ? "suba um CSV primeiro" : undefined}>
+					{diagBusy ? "analisando..." : "diagnosticar com IA"}
+				</button>
+			</div>
+
+			{metrics.length > 0 ? (
+				<div className="panel" style={{ padding: 0, marginTop: 12, overflowX: "auto" }}>
+					<table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+						<thead>
+							<tr style={{ textAlign: "left" }}>
+								<th style={{ padding: 10 }}>criativo</th>
+								<th style={{ padding: 10 }}>impr.</th>
+								<th style={{ padding: 10 }}>hook</th>
+								<th style={{ padding: 10 }}>hold</th>
+								<th style={{ padding: 10 }}>CTR</th>
+								<th style={{ padding: 10 }}>gasto</th>
+							</tr>
+						</thead>
+						<tbody>
+							{metrics.map((m) => (
+								<tr key={m.creativeId} style={{ borderTop: "1px solid var(--line)" }}>
+									<td style={{ padding: 10 }}>
+										<Link href={`/creatives/${m.creativeId}`} style={{ color: "var(--accent)", textDecoration: "none" }}>{m.name ?? m.creativeId.slice(0, 8)}</Link>
+									</td>
+									<td style={{ padding: 10 }}>{m.metrics.impressions ?? "—"}</td>
+									<td style={{ padding: 10 }}>{pct(m.metrics.hookRate)}</td>
+									<td style={{ padding: 10 }}>{pct(m.metrics.holdRate)}</td>
+									<td style={{ padding: 10 }}>{pct(m.metrics.ctr)}</td>
+									<td style={{ padding: 10 }}>{m.metrics.spend ?? "—"}</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+			) : null}
+
+			{diagnosis ? (
+				<div className="panel" style={{ padding: 16, marginTop: 12, whiteSpace: "pre-wrap", fontSize: 13, lineHeight: 1.5 }}>
+					{diagnosis}
+				</div>
+			) : null}
 
 			<h2 style={{ fontSize: 18, marginTop: 32 }}>Criativos deste app</h2>
 			<div className="stack" style={{ marginTop: 12 }}>

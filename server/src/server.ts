@@ -9,6 +9,7 @@ import { appRoutes } from "@/routes/apps";
 import { authRoutes } from "@/routes/auth";
 import { creativeRoutes } from "@/routes/creatives";
 import { higgsfieldRoutes } from "@/routes/higgsfield";
+import { metricsRoutes } from "@/routes/metrics";
 import { referenceRoutes } from "@/routes/references";
 import { renderRoutes } from "@/routes/render";
 
@@ -70,6 +71,7 @@ export function buildServer() {
 	void app.register(renderRoutes);
 	void app.register(referenceRoutes);
 	void app.register(higgsfieldRoutes);
+	void app.register(metricsRoutes);
 
 	return app;
 }

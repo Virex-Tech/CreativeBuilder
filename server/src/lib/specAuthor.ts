@@ -200,6 +200,30 @@ export async function authorSpec(input: AuthorInput): Promise<{ spec: Spec; issu
 	return complete(system, parts, input.app.director);
 }
 
+/**
+ * Fase 5 — a "2ª IA" que analisa o que deu certo. Recebe as métricas por criativo (já
+ * calculadas do CSV) + um resumo dos specs e diagnostica por posição: o que segurou o
+ * público, o que matou, e o que variar em seguida. Devolve texto (markdown).
+ */
+export async function diagnoseMetrics(payload: unknown): Promise<string> {
+	const anthropic = client();
+	const system =
+		"Você é analista de performance de criativos de vídeo. Recebe métricas por posição " +
+		"(hook rate = 2s iniciais, hold rate = p75/plays, CTR, quartis) cruzadas com o spec de " +
+		"cada criativo. Diagnostique: o que está segurando/perdendo o público e EM QUAL trecho, " +
+		"o que deu certo e por quê, e recomende variações concretas (dimensão + mudança) para os " +
+		"próximos testes. Seja específico e acionável. Responda em markdown, em português.";
+	const res = await anthropic.messages.create({
+		model: env.ANTHROPIC_MODEL,
+		max_tokens: 4000,
+		thinking: { type: "adaptive" },
+		system,
+		messages: [{ role: "user", content: `Dados (por criativo):\n${JSON.stringify(payload)}` }],
+	});
+
+	return res.content.filter((b) => b.type === "text").map((b) => b.text).join("");
+}
+
 /** Reescreve um spec existente a partir de uma instrução em linguagem natural. */
 export async function adjustSpec(
 	current: Spec,
