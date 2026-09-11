@@ -28,7 +28,10 @@ botão **"gerar b-roll"** (página do criativo) chamam esses endpoints — hoje 
 
 Se um dia a decisão mudar, é preciso: (1) adicionar as variáveis no `environment:` do
 serviço `api` no `docker-compose.yml`; (2) preencher no `.env`; (3) `docker compose up -d
---build api`. As variáveis aceitas estão em `server/src/lib/env.ts`.
+--build api`. As variáveis aceitas estão em `server/src/lib/env.ts`. Para o b-roll gerado
+pelo servidor não expirar, inclua também `PUBLIC_API_BASE` (URL pública da API): o
+`/creatives/:id/broll` baixa o clipe para `/media/assets` e o serve em `GET /assets/:file`.
+Sem ela, o spec fica com a URL do provedor (~7 dias).
 
 ## B-roll gerado local × render na plataforma
 

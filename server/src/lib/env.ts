@@ -17,6 +17,10 @@ const envSchema = z.object({
 	RENDER_SERVICE_URL: z.string().url().default("http://localhost:11100"),
 	STORAGE_DIR: z.string().default("./storage"),
 	ALLOWED_ORIGINS: z.string().default("http://localhost:3000"),
+	// URL pública da API (ex: https://creativebuilder.lucasqueiroga.shop). Usada para servir
+	// assets de b-roll baixados por uma URL que o render (Chrome) e o preview (navegador)
+	// alcançam. Vazio = mantém a URL do provedor no spec (que expira ~7 dias).
+	PUBLIC_API_BASE: z.string().default(""),
 	HIGGSFIELD_WORKSPACE_ID: z.string().optional(),
 	// Fase 2 — a IA escreve/edita o CreativeSpec. Sem a chave, os endpoints de geração
 	// respondem 503 com instrução; o resto da API funciona normal.

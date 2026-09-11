@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 
+import { downloadAsset } from "@/lib/assets";
 import { generateVideo, higgsfieldEnabled } from "@/lib/higgsfield";
 import { prisma } from "@/lib/prisma";
 import { reflow, specHash, type Spec } from "@/lib/spec";
@@ -83,7 +84,16 @@ export async function higgsfieldRoutes(app: FastifyInstance): Promise<void> {
 		try {
 			for (const layer of batch) {
 				const out = await generateVideo(layer.prompt as string);
-				layer.src = out.url;
+				// Baixa o asset pra /media e usa a URL local (não expira). Se o download ou o
+				// PUBLIC_API_BASE não estiverem disponíveis, cai na URL do provedor (~7 dias).
+				let src = out.url;
+				try {
+					const saved = await downloadAsset(out.url);
+					if (saved.publicUrl) src = saved.publicUrl;
+				} catch {
+					// mantém a URL do provedor
+				}
+				layer.src = src;
 				generated++;
 			}
 		} catch (err) {
