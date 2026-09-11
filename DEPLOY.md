@@ -29,23 +29,21 @@ RENDER_CONCURRENCY=2
 `PUBLIC_API_URL` é embutida no bundle do front na hora do build — **mudou, precisa
 rebuildar o web**, reiniciar não adianta. É o erro mais comum aqui.
 
-## 3. Migration inicial (uma vez)
+## 3. Migrations
 
-O repositório ainda **não tem migration** — só o `schema.prisma`. Gere a primeira com o
-banco no ar:
+Nada a fazer à mão: a migration inicial já está no repositório
+(`server/prisma/migrations/0_init`) e o container da API roda `prisma migrate deploy` a cada
+boot.
+
+Mudou o `server/prisma/schema.prisma`? Gere a nova migration com o banco no ar e commite:
 
 ```bash
 docker compose up -d postgres
-cd api
+cd server
 npm ci
 DATABASE_URL=postgresql://creativebuilder:<senha>@localhost:5440/creativebuilder \
-  npx prisma migrate dev --name init
-cd ..
-git add api/prisma/migrations && git commit -m "migration inicial"
+  npx prisma migrate dev --name <nome>
 ```
-
-Depois disso o container da API roda `prisma migrate deploy` sozinho a cada boot, e você
-nunca mais precisa fazer isso à mão.
 
 ## 4. Subir
 
@@ -89,9 +87,9 @@ docker exec creativebuilder-postgres pg_dump -U creativebuilder creativebuilder 
 O volume `media` guarda renders e assets gerados. Vale backup também: asset do Higgsfield
 **expira em ~7 dias** no provedor, então depois disso a cópia local é a única que existe.
 
-## 7. Ainda não está no deploy
+## 7. O que fica fora do deploy (por decisão)
 
-- **Geração no Higgsfield**: o CLI não está instalado em nenhum container e o fluxo não
-  está ligado à API. Hoje a geração roda pelo Claude Code na máquina de quem opera.
-- **Ingestão de referência**: `tools/ingest-reference.mjs` roda local, não pela API.
+- **IA**: nenhuma chave de IA vai para o VPS. Escrita do spec, b-roll (Higgsfield via
+  CLI/MCP) e diagnóstico de métricas rodam no Claude Code de quem opera — ver
+  `docs/ATIVACAO-IA.md`. Os endpoints de IA do servidor respondem `503`.
 - **Métricas**: nenhuma integração com a Meta; a análise é por CSV exportado.

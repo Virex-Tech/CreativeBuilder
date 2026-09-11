@@ -150,7 +150,38 @@ carrossel, publicação e ingestão automática de métricas.
 voz — sem ela a música fica abafada até o fim. Layers de mídia sem asset
 renderizam um placeholder com o prompt — é o esperado enquanto o spec é rascunho.
 
-**Higgsfield ainda não está ligado.** Quando o usuário pedir b-roll gerado, escreva o
-`prompt` na layer e avise que ela vai renderizar como placeholder até a chave existir.
-Se houver arquivo local de vídeo ou screen recording, use `src` na layer — isso funciona
-hoje e vale muito mais que um placeholder.
+Se houver arquivo local de vídeo ou screen recording, use `src` na layer — vale mais que
+gerar.
+
+## B-roll com o Higgsfield (CLI / MCP, aqui no Claude Code)
+
+A geração roda **nesta máquina**, pela conta Higgsfield logada (OAuth) — sem API key e sem
+passar pelo servidor. Use o MCP do Higgsfield se estiver conectado; senão, o CLI
+(`higgsfield`, alias `hf`). Conferir login e saldo: `higgsfield account status`.
+
+Para cada layer `generative_video` sem `src`:
+
+```bash
+# 1. parâmetros aceitos pelo modelo (aspect_ratio, duration, mode...)
+higgsfield model get kling3_0
+
+# 2. custo ANTES de gerar — mostre ao usuário e só siga com o ok dele (gasta créditos)
+higgsfield generate cost kling3_0 --prompt "<prompt da layer>" --aspect_ratio 9:16 --duration 5 --sound off
+
+# 3. gerar e esperar a URL
+higgsfield generate create kling3_0 --prompt "<prompt da layer>" --aspect_ratio 9:16 \
+  --duration 5 --sound off --wait --wait-timeout 20m --json
+```
+
+`--sound off` sempre: o áudio vem do Remotion, e o som do modelo encarece (Kling 3.0 5s:
+10 → 7.5 créditos). Os valores de `duration` mudam por modelo (Veo 3.1 Lite: 4/6/8;
+Seedance 1.5: 4/8/12) — confira no `model get` antes.
+
+4. Baixe o vídeo para `render/public/broll/<spec>-<scene-id>.mp4` e preencha a layer:
+   `"src": "broll/<spec>-<scene-id>.mp4"`, `"assetId": "<job id>"`, `"provider": "higgsfield"`.
+   **Não deixe a URL do Higgsfield no `src`**: ela expira em ~7 dias.
+5. Rode `validate` → `props` → `still` e olhe o frame antes do MP4.
+
+Modelos de vídeo: `higgsfield model list --video`. Sempre `9:16` (ou `3:4`/`1:1` na mutação
+`format`), `duration` ≥ a duração da cena. Nunca peça texto, logo ou UI no prompt — isso é
+do Remotion.

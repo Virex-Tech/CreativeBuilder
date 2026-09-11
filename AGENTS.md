@@ -84,18 +84,29 @@ O patch contém só as cenas que mudam (casadas por id); `variant` refaz o `star
 | "faz em espanhol" | `locale_swap` |
 | "versão 4:5 de 15s" | mutação `format` |
 
-## Geração de b-roll (local) — MCP do Higgsfield
+## Geração de b-roll — Higgsfield (CLI ou MCP) no agente
 
-O b-roll de IA (camadas `generative_video`) sai pelo **MCP do Higgsfield** conectado a este
-agente, autenticado pela conta Higgsfield (OAuth, sem API key). Setup: `npm i -g
-@higgsfield/cli && higgsfield auth login`, depois adicione o MCP (`https://mcp.higgsfield.ai/mcp`)
-nas configurações de MCP do agente. Passo a passo detalhado em `docs/COMO-USAR.md`.
+O b-roll de IA (camadas `generative_video`) é gerado **por este agente**, pela conta
+Higgsfield logada (OAuth, sem API key). Setup uma vez: `npm i -g @higgsfield/cli && higgsfield
+auth login`; o MCP (`https://mcp.higgsfield.ai/mcp`) é opcional — o CLI basta.
+
+```bash
+higgsfield account status                                  # login + créditos
+higgsfield model get       kling3_0                         # params aceitos (duration varia por modelo)
+higgsfield generate cost   kling3_0 --prompt "..." --aspect_ratio 9:16 --duration 5 --sound off
+higgsfield generate create kling3_0 --prompt "..." --aspect_ratio 9:16 --duration 5 --sound off --wait --json
+```
+
+Mostre o custo e peça ok antes do `create` (gasta créditos). `--sound off` sempre: o áudio
+vem do Remotion. Baixe o resultado para
+`render/public/broll/<spec>-<scene-id>.mp4` e preencha a layer com `src` (esse caminho),
+`assetId` (job id) e `provider: "higgsfield"`. Não deixe a URL do provedor no `src`: expira em
+~7 dias.
 
 ## Relação com a plataforma
 
-O mesmo fluxo roda na plataforma (VPS): a **ingestão de referência**, a **escrita do spec
-pela IA** e a **geração no Higgsfield** já estão implementadas no servidor — ficam ativas
-quando as chaves são configuradas (`docs/ATIVACAO-IA.md`). Na plataforma o b-roll usa a **API
-HTTP** do Higgsfield (credencial server-side); no local, o **MCP** (OAuth). Enquanto as chaves
-do servidor não estão setadas, essa parte roda por aqui (agente local) e o resultado é colado
-na plataforma.
+**Toda a IA roda no agente** — escrita/ajuste do spec, b-roll e diagnóstico de métricas. O
+servidor não usa `ANTHROPIC_API_KEY` nem credencial do Higgsfield; os endpoints de IA dele
+(`/creatives/generate`, `/creatives/:id/adjust`, `/creatives/:id/broll`,
+`/apps/:id/metrics/diagnose`) ficam inertes (`503`) de propósito. A plataforma serve para
+guardar specs/versões, editar, renderizar e subir CSV. Detalhes em `docs/ATIVACAO-IA.md`.

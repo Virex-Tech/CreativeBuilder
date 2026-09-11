@@ -7,7 +7,10 @@ contrário.
 
 ---
 
-## A) Plataforma (web) — https://creativebuilder.paywallo.com.br
+## A) Plataforma (web)
+
+- **Web:** https://creativebuilder.paywallo.com.br
+- **API:** https://creativebuilder.lucasqueiroga.shop (`/health` → `{"ok":true,"db":true}`)
 
 Ferramenta interna: sem cadastro aberto, um admin cria as contas.
 
@@ -42,11 +45,11 @@ fica pronto, o link baixa o arquivo final (1080×1920, h264).
 `POST /creatives/:id/variations` cria um filho mudando **uma** dimensão (hook, cta, pacing,
 locale…), pra você testar A/B e atribuir resultado à causa.
 
-> **Limite atual da plataforma:** camadas `generative_video` (b-roll de IA via Higgsfield) e
-> a *escrita automática do spec pela IA* ainda dependem de chaves no servidor (Higgsfield /
-> Anthropic). Até configurá-las, essas duas partes se fazem no modo local (B) e o resultado
-> entra na plataforma. Todo o resto do Remotion (texto, legenda, mockup, CTA, áudio) já
-> renderiza na plataforma.
+> **A IA não roda na plataforma.** Escrita/ajuste do spec e b-roll (`generative_video`) são
+> feitos no modo local (B), pelo Claude Code — o servidor não tem chave de IA, e os botões
+> "Gerar criativo com IA", "Ajustar com IA" e "gerar b-roll" respondem com aviso. Todo o resto
+> do Remotion (texto, legenda, mockup, CTA, áudio) renderiza na plataforma. Criativo **com
+> b-roll** gerado local: renderize o MP4 local (ver `docs/ATIVACAO-IA.md`).
 
 ---
 
@@ -89,35 +92,36 @@ node tools/spec-tool.mjs variant render/specs/<pai>.json --mutation hook_rewrite
 node tools/spec-tool.mjs diff render/specs/<pai>.json render/specs/<filho>.json
 ```
 
-### Gerar b-roll localmente com o MCP do Higgsfield
+### Gerar b-roll com o Higgsfield (CLI ou MCP)
 
-O que gera o vídeo de IA (b-roll) no modo local é o **MCP do Higgsfield** conectado ao seu
-agente. A autenticação é pela sua conta Higgsfield (OAuth no navegador) — **sem API key pra
-gerenciar**. Setup uma vez:
+O b-roll de IA é gerado **pelo agente, na sua máquina**, pela sua conta Higgsfield (OAuth no
+navegador) — **sem API key**. O CLI basta; o MCP é opcional. Setup uma vez:
 
 ```bash
-# 1. CLI do Higgsfield + login (abre o navegador)
 npm i -g @higgsfield/cli
-higgsfield auth login
-
-# 2. Skills companion do Higgsfield (opcional, ajuda o agente)
-npx skills add higgsfield-ai/skills
+higgsfield auth login          # abre o navegador
+higgsfield account status      # confere login, plano e créditos
 ```
 
-Depois, conecte o **MCP** ao seu agente:
+MCP (opcional): adicione `https://mcp.higgsfield.ai/mcp` via `claude mcp add` ou no
+`.mcp.json` do projeto (Codex: nas configurações de MCP dele). Confirme URL/transport na doc
+do Higgsfield, que muda com frequência.
 
-- **Claude Code:** adicione o servidor MCP do Higgsfield (`https://mcp.higgsfield.ai/mcp`)
-  via `claude mcp add` ou no `.mcp.json` do projeto; a primeira chamada autentica pela sua
-  conta Higgsfield. (Confirme URL/transport na doc do Higgsfield, pois eles evoluem o setup.)
-- **Codex / outro agente:** adicione a mesma URL do MCP nas configurações de MCP do agente.
+Os comandos que o agente roda (você também pode rodar à mão):
 
-Fluxo local completo então fica: você pede o criativo → o agente escreve o spec → **chama o
-MCP do Higgsfield pra gerar o b-roll** → baixa o asset → referencia no spec → renderiza pelo
-Remotion. É o mesmo "criativo infinito", rodando na sua máquina em vez do servidor.
+```bash
+higgsfield model list --video                  # modelos
+higgsfield model get kling3_0                  # params aceitos
+higgsfield generate cost   kling3_0 --prompt "..." --aspect_ratio 9:16 --duration 5 --sound off
+higgsfield generate create kling3_0 --prompt "..." --aspect_ratio 9:16 --duration 5 --sound off --wait --json
+```
 
-> Diferença local × plataforma: no **local** o b-roll sai pelo **MCP do Higgsfield** (OAuth,
-> créditos do seu plano). Na **plataforma** o mesmo b-roll sai pela **API HTTP** do Higgsfield
-> (credencial server-side em `cloud.higgsfield.ai`) — ver `docs/ATIVACAO-IA.md`.
+Referência de custo (9:16, 5s): Kling 3.0 com `--sound off` 7.5 créditos (10 com som),
+Kling 3.0 Turbo 7.5, Grok Video 7.5 (3s: 4.5), Seedance 2.0 Mini 12.5, Wan 2.6 13. O plano
+free tem 10 créditos — dá ~1 clipe.
+
+Fluxo: você pede o criativo → o agente escreve o spec → mostra o custo e pede ok → gera o
+b-roll → baixa para `render/public/broll/` → preenche `src`/`assetId` na layer → renderiza.
 
 ---
 
