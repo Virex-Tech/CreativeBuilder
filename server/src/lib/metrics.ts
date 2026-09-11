@@ -100,15 +100,41 @@ export interface ComputedMetrics {
 
 /** Extrai e calcula as métricas por posição de uma linha do CSV. */
 export function computeMetrics(row: CsvRow): ComputedMetrics {
-	const impressions = num(row, ["impress"]);
+	const impressions = num(row, ["impress", "impressõ", "impressoe"]);
 	const spend = num(row, ["amount spent", "valor gasto", "valor usado", "spend", "gasto"]);
-	const clicks = num(row, ["outbound click", "cliques de saída", "link click", "cliques no link"]);
-	const twoSec = num(row, ["2-second", "2 sec", "2s cont", "contínuas de 2", "reproduções contínuas de v"]);
-	const plays = num(row, ["video plays", "reproduções de vídeo", "video_play", "plays de v"]);
+	const clicks = num(row, [
+		"outbound click",
+		"cliques de saída",
+		"cliques de saida",
+		"link click",
+		"cliques no link",
+		"clicks (all)",
+		"cliques (todos",
+	]);
+	const twoSec = num(row, [
+		"2-second continuous",
+		"2-second",
+		"2 sec",
+		"2s cont",
+		"contínuas de 2",
+		"continuas de 2",
+		"reproduções contínuas de v",
+		"reproducoes continuas de v",
+		"thruplay", // fallback: ThruPlays aproxima o engajamento inicial quando não há 2s
+	]);
+	const plays = num(row, [
+		"video plays",
+		"reproduções de vídeo",
+		"reproducoes de video",
+		"video_play",
+		"plays de v",
+		"3-second video plays",
+		"reproduções de vídeo de 3 s",
+	]);
 	const p25 = num(row, ["25%"]);
 	const p50 = num(row, ["50%"]);
 	const p75 = num(row, ["75%"]);
-	const p95 = num(row, ["95%"]);
+	const p95 = num(row, ["95%", "100%"]);
 
 	const ratio = (a: number | null, b: number | null): number | null =>
 		a !== null && b !== null && b > 0 ? Number((a / b).toFixed(4)) : null;
