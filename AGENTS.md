@@ -41,6 +41,16 @@ Isso extrai frames nos cortes reais + áudio em `references/<nome>/` e escreve u
 4. Preencha o `CreativeSpec` com o conteúdo do app, respeitando o `DirectorProfile`.
 5. Mostre o blueprint ao usuário antes de renderizar.
 
+Limites: você não ouve o áudio da referência — se o hook parece falado, pergunte o que é dito.
+Views/curtidas não vêm da ingestão.
+
+## Contexto do app
+
+Antes de escrever qualquer spec, leia `apps/<slug>/contexto.md`: produto, público, dores,
+oferta, provas, tom, marca (`brandKit`) e **compliance** — as regras de compliance vencem brief
+e referência. App sem contexto: copie `apps/_modelo/contexto.md`, pergunte o essencial ao
+usuário e salve antes de seguir. Nunca invente provas.
+
 ## Fluxo 2 — Brief → criativo
 
 Sem referência, use um spec de `render/specs/` como esqueleto e troque o conteúdo. Pergunte

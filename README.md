@@ -28,6 +28,7 @@ node tools/doctor.mjs
 ## Estrutura
 
 ```
+apps/        contexto de produto de cada app (apps/<slug>/contexto.md) — o Claude lê antes de criar
 render/      Remotion — specs, renderer, material do app (public/app) e b-roll (public/broll)
 tools/       spec-tool (validar, variar, diff), ingest-reference, doctor
 directors/   regras de edição por app

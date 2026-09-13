@@ -44,6 +44,17 @@ Isso detecta os cortes reais e extrai um frame em cada um, mais o áudio, em
    `DirectorProfile` (abaixo).
 5. Mostre o blueprint ao usuário antes de renderizar.
 
+**Limites da referência:** você não ouve o `audio.wav`. Se os frames sugerem hook falado ou
+narração (pessoa falando para a câmera, sem texto na tela), pergunte ao usuário o que é dito
+em vez de inventar. Views/curtidas não vêm da ingestão — use os números que o usuário der.
+
+**Contexto do app:** antes de escrever qualquer spec, leia `apps/<slug>/contexto.md` (o que o
+app faz, público, dores, funcionalidades, oferta, provas, tom, marca e **compliance**). As
+regras de "Compliance — NUNCA" vencem brief e referência, como o bloco `never` do director.
+Use as cores/fonte da seção "Marca" no `brandKit`. Se o arquivo não existir, copie
+`apps/_modelo/contexto.md`, pergunte ao usuário o essencial (o que faz, público, dor, oferta)
+e salve antes de seguir. Nunca invente provas (números, avaliações, depoimentos).
+
 ### 2. Brief → criativo
 
 Sem referência, use um spec existente em `render/specs/` como esqueleto e

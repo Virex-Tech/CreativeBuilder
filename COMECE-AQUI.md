@@ -187,6 +187,33 @@ Quando ele pedir permissão para rodar algum comando, leia e clique em **Allow**
 normais da ferramenta já estão liberados; ele só pergunta o que é diferente — e **sempre**
 pergunta antes de gastar créditos do Higgsfield.
 
+### Como escrever um bom pedido
+
+Quanto mais contexto, melhor o resultado. Um pedido completo diz:
+
+- **App:** o nome basta. O contexto de cada app (o que faz, público, dores, oferta, marca e
+  regras de anúncio) fica em `apps/<app>/contexto.md` e o Claude lê sozinho. Apps prontos:
+  `apps/ozempro/`. Para um app novo, peça: *"cria o contexto do app X"* — ele usa o modelo
+  `apps/_modelo/` e te pergunta o que faltar.
+- **Ideia ou referência:** o ângulo do vídeo, ou o link/arquivo que serve de modelo.
+- **Formato:** duração (ex: 20s), formato (9:16 padrão, ou 4:5), idioma.
+- **Material:** se vai usar gravação de tela do app (e o nome do arquivo).
+- **CTA:** a frase final (ex: "baixe grátis").
+
+> cria um criativo de 20s pro TapFit. O app sorteia treinos de academia pra quem não sabe o
+> que treinar; público são mulheres de 20 a 35 que treinam sozinhas. Usa a referência
+> https://www.tiktok.com/@.../video/... como modelo de ritmo. Mostra a gravação
+> treino-sorteado.mp4 na demo. Fecha com "7 dias grátis".
+
+### Limites de hoje
+
+- **O áudio da referência não é ouvido.** O Claude analisa as imagens de cada cena; se o hook
+  da referência é **falado** (sem texto na tela), ele não pega. Descreva no pedido o que é dito.
+- **Views e curtidas não são lidas automaticamente.** Se a referência performou bem, diga os
+  números no pedido.
+- **Referências analisadas ficam só no seu computador** (pasta `references/`, não vai pro
+  GitHub). Para outra pessoa usar a mesma referência, mande o link.
+
 ---
 
 ## 6. Regras da equipe
@@ -216,11 +243,12 @@ Os MP4 finais (`render/out/`) **não** vão para o GitHub — mande pelo canal d
 
 | Pasta | O que tem |
 |---|---|
+| `apps/<app>/contexto.md` | **contexto de cada app** (produto, público, oferta, marca, regras de anúncio) |
 | `render/specs/` | os roteiros dos criativos (arquivos `.json`) |
 | `render/public/app/<app>/` | **você coloca** gravações de tela e prints do app |
 | `render/public/broll/` | clipes gerados no Higgsfield |
 | `render/out/` | **vídeos finais** (MP4) e previews |
-| `references/` | referências analisadas (frames e áudio) |
+| `references/` | referências analisadas (frames e áudio) — fica só no seu computador |
 | `directors/` | regras de edição de cada app (ritmo, legendas) |
 | `tools/` | ferramentas que o Claude usa (inclui `doctor.mjs`) |
 | `.claude/` | instruções e permissões do Claude Code para este projeto — não mexa |
