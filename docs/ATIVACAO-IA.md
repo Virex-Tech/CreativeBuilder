@@ -1,5 +1,9 @@
 # IA no CreativeBuilder — onde ela roda
 
+> **Fora de uso por enquanto.** O fluxo oficial do CreativeBuilder é **100% local**: Claude Code +
+> Higgsfield CLI + Remotion, sem plataforma web e sem API key. Comece por
+> [`COMECE-AQUI.md`](../COMECE-AQUI.md). Este documento fica só como referência para o futuro.
+
 **Decisão: toda a IA roda no agente local (Claude Code), não no servidor.** Sem
 `ANTHROPIC_API_KEY` e sem credencial do Higgsfield no VPS.
 

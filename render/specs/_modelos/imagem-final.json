@@ -1,0 +1,179 @@
+{
+	"specVersion": "1",
+	"creativeId": "imagem-final",
+	"appId": "app_modelo",
+	"locale": "pt-BR",
+	"lineage": {
+		"mutation": "seed_modelo"
+	},
+	"output": {
+		"kind": "video"
+	},
+	"format": {
+		"w": 1080,
+		"h": 1920,
+		"fps": 30
+	},
+	"brandKit": {
+		"bg": "#0B0B0F",
+		"fg": "#FFFFFF",
+		"accent": "#6C5CE7",
+		"fontFamily": "Inter, system-ui, sans-serif"
+	},
+	"scenes": [
+		{
+			"id": "hook",
+			"role": "HOOK",
+			"startMs": 0,
+			"durationMs": 2400,
+			"timing": "locked",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "[b-roll: pessoa no dia a dia enfrentando um pequeno problema relacionado ao app, estilo UGC]",
+					"provider": "higgsfield",
+					"fit": "cover",
+					"anim": "handheld_subtle"
+				},
+				{
+					"type": "karaoke",
+					"text": "Você sabia que dá pra resolver isso em minutos?",
+					"anim": "none"
+				}
+			]
+		},
+		{
+			"id": "problema",
+			"role": "PROBLEM",
+			"startMs": 2400,
+			"durationMs": 3200,
+			"timing": "flex",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "[b-roll: pessoa tentando resolver algo manualmente, frustrada, ambiente cotidiano]",
+					"provider": "higgsfield",
+					"fit": "cover",
+					"anim": "handheld_subtle"
+				},
+				{
+					"type": "karaoke",
+					"text": "Sem o app certo, você perde tempo tentando adivinhar.",
+					"anim": "none"
+				}
+			],
+			"transitionIn": "whip",
+			"transitionMs": 250
+		},
+		{
+			"id": "beneficio",
+			"role": "POINT",
+			"startMs": 5600,
+			"durationMs": 3600,
+			"timing": "flex",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "[b-roll: pessoa usando o celular com tranquilidade, resolvendo o problema com facilidade]",
+					"provider": "higgsfield",
+					"fit": "cover",
+					"anim": "handheld_subtle"
+				},
+				{
+					"type": "karaoke",
+					"text": "Com ele, tudo fica organizado e simples de acompanhar.",
+					"anim": "none"
+				}
+			],
+			"transitionIn": "zoom",
+			"transitionMs": 250
+		},
+		{
+			"id": "prova",
+			"role": "PROOF",
+			"startMs": 9200,
+			"durationMs": 3200,
+			"timing": "flex",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "[b-roll: sequência rápida de pessoas diferentes satisfeitas usando o celular]",
+					"provider": "higgsfield",
+					"fit": "cover",
+					"anim": "handheld_subtle"
+				},
+				{
+					"type": "karaoke",
+					"text": "Cada vez mais gente está trocando de app por causa disso.",
+					"anim": "none"
+				}
+			],
+			"transitionIn": "slide_up",
+			"transitionMs": 250
+		},
+		{
+			"id": "cta",
+			"role": "CTA",
+			"startMs": 12400,
+			"durationMs": 4000,
+			"timing": "locked",
+			"layers": [
+				{
+					"type": "app_screen_recording",
+					"assetId": "[imagem: print da loja de aplicativos com nota alta ou banner de oferta de lançamento]",
+					"device": "none",
+					"anim": "none"
+				},
+				{
+					"type": "text",
+					"content": "[Nome do App] — baixe grátis",
+					"preset": "cta_label",
+					"anim": "slide_up"
+				},
+				{
+					"type": "karaoke",
+					"text": "Baixe agora e aproveite a oferta de lançamento.",
+					"anim": "none"
+				}
+			],
+			"transitionIn": "flash",
+			"transitionMs": 200
+		}
+	],
+	"audio": {
+		"voiceover": {
+			"src": "audio/imagem-final-vo.mp3",
+			"volume": 1,
+			"atMs": 0,
+			"durationMs": 16400,
+			"script": "Você sabia que dá pra resolver isso em minutos? Sem o app certo, você perde tempo tentando adivinhar. Com ele, tudo fica organizado e simples de acompanhar. Cada vez mais gente está trocando de app por causa disso. Baixe agora e aproveite a oferta de lançamento."
+		},
+		"sfx": [
+			{
+				"src": "sfx/whoosh.mp3",
+				"atMs": 2280,
+				"volume": 0.45
+			},
+			{
+				"src": "sfx/whoosh.mp3",
+				"atMs": 5480,
+				"volume": 0.45
+			},
+			{
+				"src": "sfx/whoosh.mp3",
+				"atMs": 9080,
+				"volume": 0.45
+			},
+			{
+				"src": "sfx/rise.mp3",
+				"atMs": 11700,
+				"volume": 0.45
+			},
+			{
+				"src": "sfx/pop.mp3",
+				"atMs": 12400,
+				"volume": 0.5
+			}
+		]
+	}
+}

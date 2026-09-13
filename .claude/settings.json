@@ -4,6 +4,7 @@
 			"Bash(node tools/spec-tool.mjs *)",
 			"Bash(node tools/ingest-reference.mjs *)",
 			"Bash(node tools/doctor.mjs)",
+			"Bash(python tools/transcribe.py *)",
 			"Bash(npx remotion still *)",
 			"Bash(npx remotion render *)",
 			"Bash(yt-dlp *)",
@@ -20,6 +21,7 @@
 			"PowerShell(node tools/spec-tool.mjs *)",
 			"PowerShell(node tools/ingest-reference.mjs *)",
 			"PowerShell(node tools/doctor.mjs)",
+			"PowerShell(python tools/transcribe.py *)",
 			"PowerShell(npx remotion still *)",
 			"PowerShell(npx remotion render *)",
 			"PowerShell(yt-dlp *)",
@@ -32,11 +34,33 @@
 			"PowerShell(higgsfield generate list*)",
 			"PowerShell(higgsfield generate wait *)",
 			"PowerShell(higgsfield workspace list*)",
-			"PowerShell(higgsfield workspace status*)"
+			"PowerShell(higgsfield workspace status*)",
+			"Bash(node tools/review.mjs *)",
+			"Bash(higgsfield voices *)",
+			"Bash(higgsfield workflow list*)",
+			"Bash(higgsfield workflow get *)",
+			"PowerShell(node tools/review.mjs *)",
+			"PowerShell(higgsfield voices *)",
+			"PowerShell(higgsfield workflow list*)",
+			"PowerShell(higgsfield workflow get *)",
+			"Bash(git status*)",
+			"Bash(git pull*)",
+			"Bash(git add *)",
+			"Bash(git commit *)",
+			"Bash(git log*)",
+			"Bash(git diff*)",
+			"PowerShell(git status*)",
+			"PowerShell(git pull*)",
+			"PowerShell(git add *)",
+			"PowerShell(git commit *)",
+			"PowerShell(git log*)",
+			"PowerShell(git diff*)"
 		],
 		"ask": [
 			"Bash(higgsfield generate create *)",
-			"PowerShell(higgsfield generate create *)"
+			"PowerShell(higgsfield generate create *)",
+			"Bash(git push*)",
+			"PowerShell(git push*)"
 		]
 	}
 }

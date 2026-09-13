@@ -26,6 +26,12 @@ export const animPreset = z.enum([
 
 export const textPreset = z.enum(["hook_stroke", "sub", "caption", "cta_label"]);
 
+/**
+ * Entrance effect for a scene's first frames. Never changes total duration or `startMs` —
+ * it is purely how the first `transitionMs` of the entering scene render.
+ */
+export const transitionKind = z.enum(["cut", "fade", "zoom", "whip", "slide_up", "flash"]);
+
 const baseLayer = z.object({
 	/** Offset inside the scene; defaults to the scene start. */
 	startMs: z.number().int().min(0).optional(),
@@ -47,6 +53,8 @@ export const generativeVideoLayer = baseLayer.extend({
 	assetId: z.string().optional(),
 	src: z.string().optional(),
 	fit: z.enum(["cover", "contain"]).default("cover"),
+	/** Skip this much of the source clip — use a long attached video without pre-cutting it. */
+	startFromMs: z.number().int().min(0).default(0),
 });
 
 /** App screen recording, composited inside a device frame. */
@@ -55,6 +63,8 @@ export const appScreenLayer = baseLayer.extend({
 	assetId: z.string().optional(),
 	src: z.string().optional(),
 	device: z.enum(["iphone15_mock", "none"]).default("iphone15_mock"),
+	/** Skip this much of the recording. Ignored for images. */
+	startFromMs: z.number().int().min(0).default(0),
 });
 
 export const solidLayer = baseLayer.extend({
@@ -114,6 +124,10 @@ export const scene = z.object({
 	 * voiceover that runs 20% longer in PT than in EN.
 	 */
 	timing: z.enum(["locked", "flex"]).default("flex"),
+	/** How this scene enters. The first scene always ignores it (nothing to transition from). */
+	transitionIn: transitionKind.default("cut"),
+	/** Length of the entrance effect in ms — bounded so it can never eat a whole short scene. */
+	transitionMs: z.number().int().min(80).max(600).default(250),
 	layers: z.array(layer).min(1),
 });
 
@@ -161,6 +175,16 @@ export const specAudio = z.object({
 			duckingDb: z.number().max(0).default(-14),
 		})
 		.optional(),
+	/** One-shot effects (cut whooshes, UI pops) placed at absolute timeline positions. */
+	sfx: z
+		.array(
+			z.object({
+				src: z.string().min(1),
+				atMs: z.number().int().min(0),
+				volume: z.number().min(0).max(1).default(0.6),
+			}),
+		)
+		.optional(),
 });
 
 export const brandKit = z.object({
@@ -197,6 +221,7 @@ export type Layer = z.infer<typeof layer>;
 export type BrandKit = z.infer<typeof brandKit>;
 export type TextPreset = z.infer<typeof textPreset>;
 export type SpecAudio = z.infer<typeof specAudio>;
+export type TransitionKind = z.infer<typeof transitionKind>;
 
 /** dB attenuation as a linear multiplier, for mixing. */
 export function dbToGain(db: number): number {

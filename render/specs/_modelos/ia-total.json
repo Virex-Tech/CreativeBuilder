@@ -1,0 +1,180 @@
+{
+	"specVersion": "1",
+	"creativeId": "ia-total",
+	"appId": "app_modelo",
+	"locale": "pt-BR",
+	"lineage": {
+		"mutation": "seed_modelo"
+	},
+	"output": {
+		"kind": "video"
+	},
+	"format": {
+		"w": 1080,
+		"h": 1920,
+		"fps": 30
+	},
+	"brandKit": {
+		"bg": "#0B0B0F",
+		"fg": "#FFFFFF",
+		"accent": "#6C5CE7",
+		"fontFamily": "Inter, system-ui, sans-serif"
+	},
+	"scenes": [
+		{
+			"id": "hook",
+			"role": "HOOK",
+			"startMs": 0,
+			"durationMs": 2400,
+			"timing": "locked",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "[b-roll: pessoa frustrada olhando o celular sem saber o que fazer, ambiente de academia, luz natural, estilo UGC]",
+					"provider": "higgsfield",
+					"fit": "cover",
+					"anim": "handheld_subtle"
+				},
+				{
+					"type": "karaoke",
+					"text": "Você já tentou de tudo e nada funcionou?",
+					"anim": "none"
+				}
+			]
+		},
+		{
+			"id": "problema",
+			"role": "PROBLEM",
+			"startMs": 2400,
+			"durationMs": 3200,
+			"timing": "flex",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "[b-roll: pessoa treinando sem foco, movimentos aleatórios, expressão de cansaço e confusão, câmera na mão]",
+					"provider": "higgsfield",
+					"fit": "cover",
+					"anim": "handheld_subtle"
+				},
+				{
+					"type": "karaoke",
+					"text": "Treino sem plano é treino perdido, todo santo dia.",
+					"anim": "none"
+				}
+			],
+			"transitionIn": "whip",
+			"transitionMs": 250
+		},
+		{
+			"id": "solucao",
+			"role": "POINT",
+			"startMs": 5600,
+			"durationMs": 3600,
+			"timing": "flex",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "[b-roll: pessoa sorrindo ao ver o celular, sensação de alívio e clareza, luz quente, estilo UGC]",
+					"provider": "higgsfield",
+					"fit": "cover",
+					"anim": "handheld_subtle"
+				},
+				{
+					"type": "karaoke",
+					"text": "Esse app monta o treino certo pra você, na hora.",
+					"anim": "none"
+				}
+			],
+			"transitionIn": "zoom",
+			"transitionMs": 250
+		},
+		{
+			"id": "prova",
+			"role": "PROOF",
+			"startMs": 9200,
+			"durationMs": 3600,
+			"timing": "flex",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "[b-roll: várias pessoas diferentes treinando com energia e satisfação, sequência rápida de cenas genéricas]",
+					"provider": "higgsfield",
+					"fit": "cover",
+					"anim": "handheld_subtle"
+				},
+				{
+					"type": "karaoke",
+					"text": "Gente como você já está usando e sentindo a diferença.",
+					"anim": "none"
+				}
+			],
+			"transitionIn": "slide_up",
+			"transitionMs": 250
+		},
+		{
+			"id": "cta",
+			"role": "CTA",
+			"startMs": 12800,
+			"durationMs": 3600,
+			"timing": "locked",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "[b-roll: pessoa animada guardando o celular no bolso e saindo da academia, sensação de vitória]",
+					"provider": "higgsfield",
+					"fit": "cover",
+					"anim": "handheld_subtle"
+				},
+				{
+					"type": "text",
+					"content": "[Nome do App] — baixe grátis",
+					"preset": "cta_label",
+					"anim": "slide_up"
+				},
+				{
+					"type": "karaoke",
+					"text": "Baixe agora e comece o seu treino hoje.",
+					"anim": "none"
+				}
+			],
+			"transitionIn": "flash",
+			"transitionMs": 200
+		}
+	],
+	"audio": {
+		"voiceover": {
+			"src": "audio/ia-total-vo.mp3",
+			"volume": 1,
+			"atMs": 0,
+			"durationMs": 16400,
+			"script": "Você já tentou de tudo e nada funcionou? Treino sem plano é treino perdido, todo santo dia. Esse app monta o treino certo pra você, na hora. Gente como você já está usando e sentindo a diferença. Baixe agora e comece o seu treino hoje."
+		},
+		"sfx": [
+			{
+				"src": "sfx/whoosh.mp3",
+				"atMs": 2280,
+				"volume": 0.45
+			},
+			{
+				"src": "sfx/whoosh.mp3",
+				"atMs": 5480,
+				"volume": 0.45
+			},
+			{
+				"src": "sfx/whoosh.mp3",
+				"atMs": 9080,
+				"volume": 0.45
+			},
+			{
+				"src": "sfx/rise.mp3",
+				"atMs": 12100,
+				"volume": 0.45
+			},
+			{
+				"src": "sfx/pop.mp3",
+				"atMs": 12800,
+				"volume": 0.5
+			}
+		]
+	}
+}

@@ -44,9 +44,10 @@ Isso detecta os cortes reais e extrai um frame em cada um, mais o áudio, em
    `DirectorProfile` (abaixo).
 5. Mostre o blueprint ao usuário antes de renderizar.
 
-**Limites da referência:** você não ouve o `audio.wav`. Se os frames sugerem hook falado ou
-narração (pessoa falando para a câmera, sem texto na tela), pergunte ao usuário o que é dito
-em vez de inventar. Views/curtidas não vêm da ingestão — use os números que o usuário der.
+**Fala da referência:** você não ouve o `audio.wav`, mas pode transcrever:
+`python tools/transcribe.py references/<nome>/audio.wav --lang pt` → use o `text` (hook falado,
+narração). A transcrição não traz tom de voz, música nem efeitos — pergunte se forem relevantes.
+Views/curtidas não vêm da ingestão — use os números que o usuário der.
 
 **Contexto do app:** antes de escrever qualquer spec, leia `apps/<slug>/contexto.md` (o que o
 app faz, público, dores, funcionalidades, oferta, provas, tom, marca e **compliance**). As
@@ -154,8 +155,8 @@ se quer criar ou use os defaults do renderer.
 
 ## Estado atual — o que ainda não existe
 
-Alinhamento palavra a palavra da legenda, transições entre cenas, saída de imagem e
-carrossel, publicação e ingestão automática de métricas.
+Saída de imagem e carrossel, publicação e ingestão automática de métricas. (Já existem: transições,
+efeitos sonoros, zoom em imagem estática e legenda sincronizada com a voz — veja as seções acima.)
 
 **Áudio já funciona**: `spec.audio.voiceover` (com `atMs` e `durationMs`) e `spec.audio.music`
 (com `duckingDb`). Arquivos locais em `render/public/`. Sempre declare a duração da
@@ -179,6 +180,131 @@ Dois modos, escolha pelo que existe na pasta:
 - **Sem material do app** → não use `app_screen_recording` (renderiza placeholder). Monte
   o criativo com b-roll gerado + texto + CTA (problema → promessa → CTA). **Nunca gere a tela
   do app com modelo generativo** — UI inventada erra letra e mente sobre o produto.
+
+## Material anexado (pasta `entrada/` ou Google Drive)
+
+O usuário anexa vídeos e imagens de dois jeitos:
+
+- **Pasta `entrada/`** na raiz do projeto (fora do git): ele arrasta os arquivos para lá.
+- **Google Drive para computador:** monta o Drive como unidade (normalmente `G:\My Drive` e
+  `G:\Shared drives`). Trate como pasta local. Se ele mandar só um link do Drive, peça o caminho
+  no `G:\` ou que ele baixe o arquivo para `entrada/`.
+
+- **Analisar:** imagens → Read direto. Vídeos → `node tools/ingest-reference.mjs "<arquivo>"` e
+  leia os frames. Para o que é **falado**, `python tools/transcribe.py "<arquivo>"`. Liste o que
+  serve e por quê antes de usar.
+- **Usar na edição:** **nunca referencie `entrada/` nem `G:\` no spec** — o render só enxerga
+  `render/public/`. Copie o arquivo usado (se for longo, corte com ffmpeg para não pesar no git;
+  para pular o começo sem cortar, use `startFromMs` na layer):
+  - gravação/print do app → `render/public/app/<slug>/` → layer `app_screen_recording`
+    (`"device": "none"` para tela cheia sem mockup; imagem estática entra por aqui também);
+  - vídeo real em tela cheia (UGC, filmagem) → `render/public/broll/` → layer `generative_video`
+    com `src` e `prompt` descrevendo o clipe (o campo é obrigatório; sem `assetId`).
+- **Base para o Higgsfield:** o CLI aceita caminho local e sobe o arquivo sozinho. Custo antes
+  (`generate cost` com os mesmos flags), ok do usuário, depois `create`.
+  - `kling3_0`: `--start-image <arquivo>` e/ou `--end-image <arquivo>` (anima a partir da foto);
+  - `seedance_2_0`: `--image-references <arquivo>` (até 9, repetindo o flag) e
+    `--video-references <arquivo>` (até 3) para cenário/estilo/produto.
+  Confira os params com `higgsfield model get <modelo>` antes.
+- **Direitos:** rosto de pessoa real só com autorização; música de terceiros não vai para o
+  anúncio (use o áudio do spec); nunca use imagem de tela do app como referência para gerar UI.
+  O compliance de `apps/<slug>/contexto.md` vale para material do Drive e para o que for gerado
+  a partir dele.
+
+## Padrão de qualidade (vale para todo criativo)
+
+O usuário exige vídeo **o mais real e humanizado possível**, **voz natural** e **edição
+profissional**. Nada pode ter cara de IA.
+
+### Modelos de criativo
+
+Comece sempre de um modelo em `render/specs/_modelos/` (veja o `LEIA-ME.md` de lá) e pergunte
+qual padrão o usuário quer se ele não disser: **ia-total** (tudo gerado), **app-demo** (com
+gravação do app) ou **imagem-final** (imagem estática no fim). Regras de todos:
+- **toda cena tem vídeo ou imagem** — nunca só fundo + texto;
+- o clipe cobre a cena inteira (gere com `duration` ≥ duração da cena, ou use `startFromMs`/outro
+  trecho); se uma cena for longa, divida em dois planos;
+- com voz, legenda `karaoke` sincronizada (seção abaixo); sem voz, legenda de texto;
+- use `transitionIn` nas cenas e `audio.sfx` discretos nos cortes (`render/public/sfx/`); imagem
+  estática ganha zoom lento automático;
+- textos nas faixas padrão do renderer (hook no terço inferior-médio, legenda embaixo) — não
+  invente posição.
+
+### Imagem real (Higgsfield)
+
+- **Prompt de UGC real:** "filmado com iPhone na mão", luz natural, ambiente comum (casa,
+  cozinha, rua, academia de bairro), pessoa comum com roupa do dia a dia, pequenas imperfeições
+  (tremor leve, foco que respira), sem "cinematic", sem pele de plástico, sem cores saturadas.
+  Descreva idade, aparência e ação concreta. Escreva o prompt em inglês.
+- **Nunca** texto, logo ou tela de app no prompt.
+- **Qual modelo** (confira preço com `generate cost` antes — o saldo é limitado):
+
+| Uso | Modelo | Custo aprox. |
+|---|---|---|
+| b-roll de ação/ambiente (padrão) | `kling3_0` 9:16, `--sound off` | 6,25 cr / 5s |
+| plano principal com mais nitidez | `kling3_0_turbo` `--resolution 1080p` | 10 cr / 5s |
+| **pessoa falando para a câmera** (UGC) com fala nativa | `veo3_1` 9:16 (4/6/8s) | 11 cr / 4s |
+| animar uma foto real do usuário | `kling3_0 --start-image <foto>` | 6,25 cr / 5s |
+
+Pessoa falando: escreva no prompt a fala exata em português entre aspas e o tom ("conversando,
+natural, sem parecer propaganda"). Transcreva o resultado com `transcribe.py` para conferir se
+falou certo antes de usar.
+
+### Voz humana
+
+- Roteiro **falado**, não escrito: frases curtas, coloquiais, com pausas (vírgulas, reticências),
+  como alguém contando para uma amiga. Leia em voz alta mentalmente; se soa como locutor de
+  comercial, reescreva.
+- Padrão: `text2speech_v2 --variant elevenlabs` (voz multilíngue, ~0,3 cr). Voz nativa pt-BR:
+  `inworld_text_to_speech --voice "Maitê (pt)"` ou `"Heitor (pt)"` (~2 cr). Quando o usuário
+  escolher a voz de um app, registre em `apps/<slug>/contexto.md` (seção Marca) e use sempre a mesma.
+- Música sempre abaixo da voz (`duckingDb`), volume da música baixo; sem música de terceiros.
+- Trocar a voz de um vídeo já pronto: workflow `voice_change`.
+
+### Outros idiomas
+
+1. Gere a variação com `variant --mutation locale_swap` traduzindo textos e karaokê (adapte, não
+   traduza literal; PT/ES ~20–30% mais longos — encurte cenas `flex`).
+2. Locução nova no idioma (mesma voz se possível) → `transcribe.py --lang <en|es|...>` →
+   `sync-captions`.
+3. Vídeo com pessoa falando (UGC/Veo): workflow `dubbing` com `target_language` (por, spa, eng...).
+4. Compliance do país vale (`apps/<slug>/contexto.md`).
+
+### Validar antes de entregar (obrigatório)
+
+1. `node tools/spec-tool.mjs check render/specs/<spec>.json` → zero `errors`; resolva os `warnings`
+   (cena sem visual, clipe mais curto que a cena, legenda não sincronizada).
+2. Stills dos momentos-chave (hook, cada troca de cena, CTA) → **olhe com Read**.
+3. Depois do MP4: `node tools/review.mjs render/out/<nome>.mp4` → abra a folha de contato com Read e
+   leia o JSON de áudio (silêncios longos, volume). Critique como editor: tem cena parada? texto
+   ilegível? cara de IA? voz robótica? Corrija e re-renderize antes de mostrar.
+4. Diga ao usuário o que conferiu e o que não dá para conferir (você não ouve o áudio — peça para
+   ele ouvir a voz na primeira vez).
+
+**Rapidez sem perder qualidade:** stills antes do MP4; gere b-roll só depois do roteiro aprovado;
+reaproveite clipes nas variações; um MP4 de ~20s renderiza em 1–2 min.
+
+## Locução e legenda sincronizada (karaokê)
+
+A layer `karaoke` destaca a palavra falada na cor `accent`. Para o destaque seguir a voz:
+
+1. **Locução.** Áudio do usuário (gravação, narração): copie para `render/public/audio/`. Sem áudio,
+   gere no Higgsfield — mostre o custo e peça ok antes do `create`:
+   - `higgsfield voices list` → escolha a voz;
+     `higgsfield generate cost text2speech_v2 --prompt "<roteiro falado>" --variant elevenlabs --voice_id <id> --voice_type preset` (~0,3 crédito);
+   - voz nativa em português: `higgsfield generate cost inworld_text_to_speech --prompt "<roteiro>" --voice "Maitê (pt)"` (ou `"Heitor (pt)"`, ~2 créditos);
+   - `higgsfield generate create <mesmos flags> --wait --json` → baixe para `render/public/audio/<spec>-vo.mp3`.
+2. **Spec:** `audio.voiceover` com `src` (ex: `audio/<spec>-vo.mp3`), `atMs` (quando a voz começa),
+   `durationMs` (duração do arquivo — `ffprobe`) e `script`.
+3. **Legenda:** uma layer `karaoke` por cena com **exatamente o trecho falado** naquela cena.
+4. **Tempos:** `python tools/transcribe.py render/public/audio/<arquivo> --lang pt` → `<arquivo>.words.json`.
+5. **Sincronizar:** `node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/public/audio/<arquivo>.words.json --fit-scenes`
+   → preenche `wordEndsMs` e, com `--fit-scenes`, ajusta a duração das cenas faladas para cortar no
+   ritmo da voz (use sempre, salvo cena `locked` que precise manter tempo). Resultado sem `warnings`.
+   Depois confira se os clipes ainda cobrem as cenas (`check`).
+6. **Conferir:** `props` → `still` em 2–3 momentos da fala; a palavra destacada tem que ser a dita.
+
+Sem locução, a legenda divide o tempo da cena igualmente — serve para vídeo sem voz.
 
 ## B-roll com o Higgsfield (CLI / MCP, aqui no Claude Code)
 

@@ -1,6 +1,6 @@
-import { interpolate, spring } from "remotion";
+import { Easing, interpolate, spring } from "remotion";
 
-import type { BrandKit, Layer, TextPreset } from "../spec";
+import { msToFrames, type BrandKit, type Layer, type TextPreset, type TransitionKind } from "../spec";
 
 export interface AnimState {
 	opacity: number;
@@ -70,6 +70,85 @@ export function resolveAnim(
 	}
 }
 
+export interface TransitionState {
+	opacity: number;
+	transform: string;
+	filter: string;
+	/** Extra white overlay on top of everything, for the "flash" cut. 0 = no overlay. */
+	flashOpacity: number;
+}
+
+const TRANSITION_IDLE: TransitionState = {
+	opacity: 1,
+	transform: "none",
+	filter: "none",
+	flashOpacity: 0,
+};
+
+/**
+ * Entrance effect for a whole scene, driven purely by frames elapsed since the scene's own
+ * `Sequence` started — it never touches `startMs` or duration, only how the first
+ * `transitionMs` render. Values are clamped so the scene settles at its normal look right on
+ * schedule and stays there for the rest of its run.
+ */
+export function resolveTransition(
+	kind: TransitionKind,
+	frame: number,
+	fps: number,
+	transitionMs: number,
+): TransitionState {
+	const durFrames = Math.max(1, msToFrames(transitionMs, fps));
+	const t = Math.min(1, Math.max(0, frame / durFrames));
+
+	switch (kind) {
+		case "fade":
+			return { ...TRANSITION_IDLE, opacity: t };
+		case "zoom": {
+			const eased = Easing.out(Easing.cubic)(t);
+
+			return {
+				...TRANSITION_IDLE,
+				transform: `scale(${(1.15 - eased * 0.15).toFixed(4)})`,
+				filter: `blur(${((1 - eased) * 6).toFixed(2)}px)`,
+			};
+		}
+		case "whip": {
+			const eased = Easing.out(Easing.cubic)(t);
+
+			// The previous scene is already gone, so a full-width slide would expose an empty frame.
+			// Keep the offset inside what the overscale covers (|dx| <= (scale - 1) / 2): the eye
+			// reads the heavy blur as a whip pan, and no black edge ever shows.
+			const scale = 1.3 - eased * 0.3;
+			const dx = -15 * (1 - eased);
+
+			return {
+				...TRANSITION_IDLE,
+				transform: `scale(${scale.toFixed(4)}) translateX(${dx.toFixed(2)}%)`,
+				filter: `blur(${((1 - eased) * 28).toFixed(2)}px)`,
+			};
+		}
+		case "slide_up": {
+			const eased = Easing.out(Easing.cubic)(t);
+
+			// Same overscale rule as "whip": rise from slightly below without revealing the background.
+			const scale = 1.3 - eased * 0.3;
+			const dy = 15 * (1 - eased);
+
+			return {
+				...TRANSITION_IDLE,
+				transform: `scale(${scale.toFixed(4)}) translateY(${dy.toFixed(2)}%)`,
+				filter: `blur(${((1 - eased) * 10).toFixed(2)}px)`,
+			};
+		}
+		case "flash":
+			// Content stays put; a white overlay flashes and burns off over the transition.
+			return { ...TRANSITION_IDLE, flashOpacity: (1 - t) * 0.8 };
+		case "cut":
+		default:
+			return TRANSITION_IDLE;
+	}
+}
+
 export interface TextStyle {
 	fontSize: number;
 	fontWeight: number;
@@ -97,6 +176,10 @@ export function resolveTextPreset(preset: TextPreset, brand: BrandKit): TextStyl
 				textShadow: "0 6px 28px rgba(0,0,0,0.65)",
 				maxWidth: "86%",
 				textAlign: "center",
+				// Bottom-anchored so the block's vertical center lands near y≈1180 (lower-middle
+				// third), not the screen's geometric middle — keeps it clear of the header safe
+				// area above and the caption band below.
+				bottom: 580,
 			};
 		case "cta_label":
 			return {
@@ -116,7 +199,9 @@ export function resolveTextPreset(preset: TextPreset, brand: BrandKit): TextStyl
 				textShadow: "0 4px 18px rgba(0,0,0,0.7)",
 				maxWidth: "80%",
 				textAlign: "center",
-				bottom: 260,
+				// Base of the block ~420px from the bottom (y≈1500), just above the platform's
+				// caption/description/button safe area.
+				bottom: 420,
 			};
 		case "sub":
 		default:
@@ -128,6 +213,8 @@ export function resolveTextPreset(preset: TextPreset, brand: BrandKit): TextStyl
 				textShadow: "0 4px 18px rgba(0,0,0,0.55)",
 				maxWidth: "82%",
 				textAlign: "center",
+				// Same low caption band as `caption` — this is a legend/sub preset too.
+				bottom: 420,
 			};
 	}
 }

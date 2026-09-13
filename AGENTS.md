@@ -41,8 +41,8 @@ Isso extrai frames nos cortes reais + áudio em `references/<nome>/` e escreve u
 4. Preencha o `CreativeSpec` com o conteúdo do app, respeitando o `DirectorProfile`.
 5. Mostre o blueprint ao usuário antes de renderizar.
 
-Limites: você não ouve o áudio da referência — se o hook parece falado, pergunte o que é dito.
-Views/curtidas não vêm da ingestão.
+Fala da referência: `python tools/transcribe.py references/<nome>/audio.wav --lang pt` dá o texto
+falado (sem tom, música ou efeitos). Views/curtidas não vêm da ingestão.
 
 ## Contexto do app
 
@@ -120,10 +120,33 @@ Arquivos do app ficam em `render/public/app/<app>/`. Na layer `app_screen_record
 imagem (`.png/.jpg`). Sem material do app, não use essa layer: faça o criativo com b-roll +
 texto + CTA. Nunca gere a tela do app com modelo generativo.
 
-## Relação com a plataforma
+## Material anexado (`entrada/` ou Google Drive)
 
-**Toda a IA roda no agente** — escrita/ajuste do spec, b-roll e diagnóstico de métricas. O
-servidor não usa `ANTHROPIC_API_KEY` nem credencial do Higgsfield; os endpoints de IA dele
-(`/creatives/generate`, `/creatives/:id/adjust`, `/creatives/:id/broll`,
-`/apps/:id/metrics/diagnose`) ficam inertes (`503`) de propósito. A plataforma serve para
-guardar specs/versões, editar, renderizar e subir CSV. Detalhes em `docs/ATIVACAO-IA.md`.
+O usuário anexa arquivos na pasta `entrada/` (fora do git) ou pelo Drive para computador, que
+aparece como unidade (`G:\My Drive`, `G:\Shared drives`) — trate os dois como pasta local. Para o
+que é falado num vídeo/áudio, `python tools/transcribe.py <arquivo>`. Para pular o começo de um
+vídeo sem cortar, `startFromMs` na layer (`generative_video` e `app_screen_recording`). Analise imagens direto e vídeos com `tools/ingest-reference.mjs`. Nunca referencie
+`G:\` no spec: copie só o trecho usado para `render/public/app/<slug>/` (tela do app, ou imagem em
+tela cheia com `device: "none"`) ou `render/public/broll/` (vídeo real em tela cheia, layer
+`generative_video` com `src` + `prompt` descritivo). Como base para o Higgsfield: `kling3_0
+--start-image/--end-image <arquivo>` ou `seedance_2_0 --image-references/--video-references
+<arquivo>` — custo e ok antes. Rosto real só com autorização; sem música de terceiros.
+
+## Locução e legenda sincronizada (karaokê)
+
+1. Locução: áudio do usuário em `render/public/audio/`, ou gere no Higgsfield (custo e ok antes):
+   `text2speech_v2 --prompt "..." --variant elevenlabs --voice_id <id de hf voices list> --voice_type preset`
+   ou `inworld_text_to_speech --prompt "..." --voice "Maitê (pt)"`.
+2. Spec: `audio.voiceover` com `src`, `atMs`, `durationMs`, `script`; uma layer `karaoke` por cena com
+   o trecho falado.
+3. `python tools/transcribe.py render/public/audio/<arquivo> --lang pt`
+4. `node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/public/audio/<arquivo>.words.json --fit-scenes`
+   → preenche `wordEndsMs` e ajusta as cenas ao ritmo da voz; depois `check` (clipes ainda cobrem as cenas).
+5. Stills em momentos da fala para conferir a palavra destacada.
+
+## Escopo: 100% local
+
+O fluxo oficial é **local**: Claude Code (ou outro agente) + Higgsfield CLI + Remotion, sem API key.
+A plataforma web (`web/`, `server/`, `DEPLOY.md`, `docs/ATIVACAO-IA.md`) está **fora de uso** — não
+sugira nem use. Antes de entregar qualquer criativo: `node tools/spec-tool.mjs check` e
+`node tools/review.mjs` no MP4 (ver skill `criativo`, seção "Validar antes de entregar").

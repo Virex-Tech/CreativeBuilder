@@ -14,7 +14,7 @@ export const AudioTracks: React.FC<{ audio?: SpecAudio }> = ({ audio }) => {
 	const { fps } = useVideoConfig();
 	if (!audio) return null;
 
-	const { voiceover, music } = audio;
+	const { voiceover, music, sfx } = audio;
 
 	const voFrom = voiceover ? msToFrames(voiceover.atMs, fps) : 0;
 	const voEnd = voiceover?.durationMs ? voFrom + msToFrames(voiceover.durationMs, fps) : null;
@@ -60,6 +60,14 @@ export const AudioTracks: React.FC<{ audio?: SpecAudio }> = ({ audio }) => {
 					volume={musicVolume}
 				/>
 			) : null}
+
+			{sfx?.map((fx, i) => (
+				// One-shot effects sit at absolute timeline positions, independent of scenes — a
+				// whoosh belongs to the cut, not to either scene it sits between.
+				<Sequence key={`sfx-${String(i)}`} from={msToFrames(fx.atMs, fps)}>
+					<Audio src={resolveSrc(fx.src)} volume={fx.volume} />
+				</Sequence>
+			))}
 		</>
 	);
 };

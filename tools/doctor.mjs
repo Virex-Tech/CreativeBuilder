@@ -60,6 +60,23 @@ check(
 	"cd render && npm ci",
 );
 
+// Python + faster-whisper (legenda sincronizada com a fala e transcrição de referências)
+{
+	const py = run("python", ["--version"]);
+	if (!py.ok) {
+		check("Python 3", false, "não encontrado", "winget install Python.Python.3.13  (depois feche e abra o terminal)");
+	} else {
+		check("Python 3", true, py.out, "");
+		const fw = run("python", ["-c", '"import faster_whisper; print(faster_whisper.__version__)"']);
+		check(
+			"faster-whisper (legenda sincronizada)",
+			fw.ok,
+			fw.ok ? `versão ${fw.out}` : "não instalado",
+			"python -m pip install faster-whisper",
+		);
+	}
+}
+
 // Higgsfield CLI + login
 {
 	const v = run("higgsfield", ["--version"]);

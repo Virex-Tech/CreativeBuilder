@@ -1,0 +1,177 @@
+{
+	"specVersion": "1",
+	"creativeId": "app-demo",
+	"appId": "app_modelo",
+	"locale": "pt-BR",
+	"lineage": {
+		"mutation": "seed_modelo"
+	},
+	"output": {
+		"kind": "video"
+	},
+	"format": {
+		"w": 1080,
+		"h": 1920,
+		"fps": 30
+	},
+	"brandKit": {
+		"bg": "#0B0B0F",
+		"fg": "#FFFFFF",
+		"accent": "#6C5CE7",
+		"fontFamily": "Inter, system-ui, sans-serif"
+	},
+	"scenes": [
+		{
+			"id": "hook",
+			"role": "HOOK",
+			"startMs": 0,
+			"durationMs": 2400,
+			"timing": "locked",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "[b-roll: pessoa segurando o celular com expressão de dúvida, tentando usar outro app, ambiente do dia a dia]",
+					"provider": "higgsfield",
+					"fit": "cover",
+					"anim": "handheld_subtle"
+				},
+				{
+					"type": "karaoke",
+					"text": "Cansado de aplicativos complicados que você nunca usa?",
+					"anim": "none"
+				}
+			]
+		},
+		{
+			"id": "demo1",
+			"role": "DEMO",
+			"startMs": 2400,
+			"durationMs": 3200,
+			"timing": "flex",
+			"layers": [
+				{
+					"type": "app_screen_recording",
+					"assetId": "[gravação: tela principal do app / onboarding]",
+					"device": "iphone15_mock",
+					"anim": "tilt_scroll"
+				},
+				{
+					"type": "karaoke",
+					"text": "Aqui é simples: você abre e já vê o que fazer.",
+					"anim": "none"
+				}
+			],
+			"transitionIn": "whip",
+			"transitionMs": 250
+		},
+		{
+			"id": "demo2",
+			"role": "DEMO",
+			"startMs": 5600,
+			"durationMs": 3200,
+			"timing": "flex",
+			"layers": [
+				{
+					"type": "app_screen_recording",
+					"assetId": "[gravação: tela de uma função-chave em uso, ex.: registrando algo ou navegando]",
+					"device": "iphone15_mock",
+					"anim": "punch_in"
+				},
+				{
+					"type": "karaoke",
+					"text": "Em poucos toques, tudo se ajusta do seu jeito.",
+					"anim": "none"
+				}
+			],
+			"transitionIn": "zoom",
+			"transitionMs": 250
+		},
+		{
+			"id": "beneficio",
+			"role": "POINT",
+			"startMs": 8800,
+			"durationMs": 3200,
+			"timing": "flex",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "[b-roll: pessoa satisfeita usando o celular no sofá ou na rua, expressão tranquila e confiante]",
+					"provider": "higgsfield",
+					"fit": "cover",
+					"anim": "handheld_subtle"
+				},
+				{
+					"type": "karaoke",
+					"text": "Isso economiza seu tempo e tira você do zero todo dia.",
+					"anim": "none"
+				}
+			],
+			"transitionIn": "slide_up",
+			"transitionMs": 250
+		},
+		{
+			"id": "cta",
+			"role": "CTA",
+			"startMs": 12000,
+			"durationMs": 3600,
+			"timing": "locked",
+			"layers": [
+				{
+					"type": "app_screen_recording",
+					"assetId": "[gravação: tela principal do app em tela cheia, sem moldura de celular]",
+					"device": "none",
+					"anim": "punch_in"
+				},
+				{
+					"type": "text",
+					"content": "[Nome do App] — baixe grátis",
+					"preset": "cta_label",
+					"anim": "slide_up"
+				},
+				{
+					"type": "karaoke",
+					"text": "Baixe agora e veja como é fácil começar.",
+					"anim": "none"
+				}
+			],
+			"transitionIn": "flash",
+			"transitionMs": 200
+		}
+	],
+	"audio": {
+		"voiceover": {
+			"src": "audio/app-demo-vo.mp3",
+			"volume": 1,
+			"atMs": 0,
+			"durationMs": 15600,
+			"script": "Cansado de aplicativos complicados que você nunca usa? Aqui é simples: você abre e já vê o que fazer. Em poucos toques, tudo se ajusta do seu jeito. Isso economiza seu tempo e tira você do zero todo dia. Baixe agora e veja como é fácil começar."
+		},
+		"sfx": [
+			{
+				"src": "sfx/whoosh.mp3",
+				"atMs": 2280,
+				"volume": 0.45
+			},
+			{
+				"src": "sfx/whoosh.mp3",
+				"atMs": 5480,
+				"volume": 0.45
+			},
+			{
+				"src": "sfx/whoosh.mp3",
+				"atMs": 8680,
+				"volume": 0.45
+			},
+			{
+				"src": "sfx/rise.mp3",
+				"atMs": 11300,
+				"volume": 0.45
+			},
+			{
+				"src": "sfx/pop.mp3",
+				"atMs": 12000,
+				"volume": 0.5
+			}
+		]
+	}
+}

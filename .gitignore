@@ -24,3 +24,7 @@ render/public/test-*.mp3
 *.log
 .DS_Store
 .playwright-mcp/
+
+# material bruto anexado (vídeos/imagens) — o Claude copia para render/public só o que usar
+entrada/*
+!entrada/LEIA-ME.md

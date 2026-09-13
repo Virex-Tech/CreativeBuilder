@@ -1,5 +1,9 @@
 # Deploy no VPS
 
+> **Fora de uso por enquanto.** O fluxo oficial do CreativeBuilder é **100% local**: Claude Code +
+> Higgsfield CLI + Remotion, sem plataforma web e sem API key. Comece por
+> [`COMECE-AQUI.md`](COMECE-AQUI.md). Este documento fica só como referência para o futuro.
+
 Ferramenta interna, sem billing e sem cadastro aberto: um admin cria as contas.
 
 ## 1. Pré-requisitos no VPS

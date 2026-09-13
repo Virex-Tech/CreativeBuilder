@@ -51,8 +51,24 @@ Layers de mídia sem asset resolvido renderizam um **placeholder com o prompt**,
 preview continuar legível em vez de sair preto. É o estado esperado enquanto o spec é
 rascunho.
 
+## Edição: transições, sfx, Ken Burns
+
+- `scene.transitionIn` (`"cut" | "fade" | "zoom" | "whip" | "slide_up" | "flash"`, padrão
+  `"cut"`) e `scene.transitionMs` (80–600ms, padrão 250) — efeito aplicado só nos primeiros
+  frames da cena que **entra**, sem alterar `startMs`/duração de nada (legenda e locução
+  continuam sincronizadas). A primeira cena sempre corta em `"cut"`, mesmo se o spec pedir
+  outra coisa. Implementado em `SpecRenderer.tsx` (`SceneEnter`) + `presets/anims.ts`
+  (`resolveTransition`) — nunca com `TransitionSeries` (isso encurtaria o vídeo).
+- `audio.sfx` — array de `{ src, atMs, volume }` (volume padrão 0.6), tocado em posição
+  absoluta da timeline, independente de cena. Biblioteca mínima em `public/sfx/` (gerada com
+  ffmpeg, sem baixar nada — veja `public/sfx/LEIA-ME.md`): `whoosh.mp3`, `pop.mp3`,
+  `click.mp3`, `rise.mp3`.
+- Ken Burns automático: `app_screen_recording` cujo `src` é imagem (não vídeo) e `anim` é
+  `"none"` ganha um zoom lento 1.0→1.08 ao longo da layer, para uma screenshot estática não
+  ficar congelada. Vídeo e `anim` explícito não são afetados.
+
 ## Ainda não existe
 
 Alinhamento palavra a palavra da legenda (hoje o karaokê divide o tempo igualmente entre as
-palavras — passe `wordEndsMs` quando tiver os tempos reais), transições entre cenas, saída
-`image`/`carousel`, e o servidor HTTP (`POST /render`). Hoje é CLI.
+palavras — passe `wordEndsMs` quando tiver os tempos reais), saída `image`/`carousel`, e o
+servidor HTTP (`POST /render`). Hoje é CLI.

@@ -1,9 +1,9 @@
 import React from "react";
-import { AbsoluteFill, Img, OffthreadVideo, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Img, interpolate, OffthreadVideo, useCurrentFrame, useVideoConfig } from "remotion";
 
 import { resolveAnim, resolveTextPreset } from "../presets/anims";
 import { resolveSrc } from "../resolveSrc";
-import type { BrandKit, Layer } from "../spec";
+import { msToFrames, type BrandKit, type Layer } from "../spec";
 
 interface Props {
 	layer: Layer;
@@ -70,6 +70,7 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 				<AbsoluteFill style={{ opacity: anim.opacity, transform }}>
 					<OffthreadVideo
 						src={resolveSrc(layer.src)}
+						trimBefore={layer.startFromMs ? msToFrames(layer.startFromMs, fps) : undefined}
 						style={{ width: "100%", height: "100%", objectFit: layer.fit }}
 					/>
 				</AbsoluteFill>
@@ -82,7 +83,15 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 				/>
 			);
 
-		case "app_screen_recording":
+		case "app_screen_recording": {
+			const isImage = !!layer.src && !isVideoSrc(layer.src);
+			// A static screenshot with no explicit anim otherwise sits dead on screen — give it
+			// an automatic, subtle Ken Burns push so it reads as "alive" without a spec change.
+			const kenBurnsScale =
+				isImage && layer.anim === "none"
+					? interpolate(frame, [0, durationInFrames], [1, 1.08], { extrapolateRight: "clamp" })
+					: 1;
+
 			return (
 				<AbsoluteFill style={{ justifyContent: "center", alignItems: "center", transform }}>
 					<DeviceFrame enabled={layer.device !== "none"} brand={brand}>
@@ -90,14 +99,23 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 							// Screen recordings carry UI sounds and mic noise; the spec's audio track owns sound.
 							<OffthreadVideo
 								src={resolveSrc(layer.src)}
+								trimBefore={layer.startFromMs ? msToFrames(layer.startFromMs, fps) : undefined}
 								muted
 								style={{ width: "100%", height: "100%", objectFit: "cover" }}
 							/>
 						) : layer.src ? (
-							<Img
-								src={resolveSrc(layer.src)}
-								style={{ width: "100%", height: "100%", objectFit: "cover" }}
-							/>
+							// Clip the Ken Burns overscan so it never peeks outside the frame/device.
+							<div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
+								<Img
+									src={resolveSrc(layer.src)}
+									style={{
+										width: "100%",
+										height: "100%",
+										objectFit: "cover",
+										transform: `scale(${kenBurnsScale})`,
+									}}
+								/>
+							</div>
 						) : (
 							<PlaceholderLayer
 								brand={brand}
@@ -109,11 +127,12 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 					</DeviceFrame>
 				</AbsoluteFill>
 			);
+		}
 
 		case "badge":
 			return (
 				<AbsoluteFill
-					style={{ justifyContent: "flex-start", alignItems: "center", paddingTop: 150 }}
+					style={{ justifyContent: "flex-start", alignItems: "center", paddingTop: 230 }}
 				>
 					<div
 						style={{
@@ -160,7 +179,7 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 		case "disclaimer":
 			return (
 				<AbsoluteFill
-					style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 48 }}
+					style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 350 }}
 				>
 					<div
 						style={{
@@ -206,7 +225,7 @@ const Karaoke: React.FC<{
 
 	return (
 		<AbsoluteFill
-			style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 300 }}
+			style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 420 }}
 		>
 			<div
 				style={{
@@ -250,8 +269,8 @@ const PlaceholderLayer: React.FC<{
 			// placeholder that collides with the hook makes a preview useless for judging it.
 			justifyContent: "flex-start",
 			alignItems: "center",
-			// Below the badge zone (which owns the top ~330px) and above the caption band.
-			paddingTop: 380,
+			// Below the badge zone (which now owns the top ~400px) and above the caption band.
+			paddingTop: 420,
 			paddingLeft: 60,
 			paddingRight: 60,
 			border: `2px dashed ${brand.accent}`,

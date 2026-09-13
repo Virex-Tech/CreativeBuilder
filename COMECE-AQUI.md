@@ -13,9 +13,11 @@ Você pede, por exemplo, *"faz um criativo de 20s pro TapFit sobre não saber o 
 e o Claude Code:
 
 1. escreve o roteiro do vídeo (cenas, textos, tempos);
-2. gera as imagens em movimento com IA no **Higgsfield** (pessoas, academia, ambientes);
+2. gera as cenas com IA no **Higgsfield** (pessoas reais, ambientes do dia a dia) e a **voz**;
 3. coloca a **tela real do app** dentro de um celular, se você tiver a gravação;
-4. monta tudo e exporta o **MP4** com o **Remotion**.
+4. edita tudo com o **Remotion** — legenda que acompanha a voz palavra por palavra, transições,
+   efeitos sonoros — e exporta o **MP4**;
+5. **confere o vídeo** antes de te entregar (cenas vazias, legenda fora de sincronia, texto ilegível).
 
 Tudo roda **no seu computador**. Não existe chave de API para configurar.
 
@@ -43,6 +45,7 @@ winget install Git.Git
 winget install OpenJS.NodeJS.LTS
 winget install Gyan.FFmpeg
 winget install yt-dlp.yt-dlp
+winget install Python.Python.3.13
 winget install Microsoft.VisualStudioCode
 winget install Anthropic.ClaudeCode
 ```
@@ -52,11 +55,15 @@ Se aparecer uma pergunta sobre termos, digite `Y` e Enter.
 > **Importante:** depois disso, **feche o PowerShell e abra de novo**. Sem isso o Windows não
 > "enxerga" os programas novos.
 
-### 3.2 Ferramenta do Higgsfield
+### 3.2 Ferramenta do Higgsfield e da legenda sincronizada
 
 ```powershell
 npm i -g @higgsfield/cli
+python -m pip install faster-whisper
 ```
+
+A primeira legenda sincronizada baixa um arquivo de ~460 MB (modelo de transcrição) — é uma vez só.
+Se aparecer um aviso amarelo sobre *symlinks* ou *Developer Mode*, pode ignorar.
 
 ### 3.3 Baixar o projeto
 
@@ -140,7 +147,20 @@ atualizar o projeto — veja a seção 9.
 
 ## 5. Usando no dia a dia
 
-Você só conversa. Alguns pedidos prontos para copiar e adaptar:
+Você só conversa. Alguns pedidos prontos para copiar e adaptar.
+
+### Escolha o tipo de vídeo
+
+| Tipo | Quando usar | Como pedir |
+|---|---|---|
+| **100% IA** | não tem gravação do app | *"cria um criativo do OzemPro 100% com IA"* |
+| **Com o app** | tem gravação de tela do app | *"cria um criativo do OzemPro com a gravação entrada/ozempro/home.mp4"* |
+| **Imagem no final** | quer terminar com um print ou oferta | *"cria um criativo do OzemPro terminando com a imagem entrada/ozempro/loja.png"* |
+
+Se você não disser, ele pergunta. Em todos: vídeo em todas as cenas, voz humana, legenda
+embaixo destacando cada palavra falada.
+
+### Pedidos prontos
 
 **Criativo a partir de uma referência** (vídeo que você viu e quer usar de modelo)
 > faz um criativo pro TapFit usando esta referência: https://www.instagram.com/reel/...
@@ -157,6 +177,43 @@ Pode também arrastar o arquivo de vídeo para a pasta do projeto e dizer o nome
 3. Peça:
 > usa a gravação treino-sorteado.mp4 na cena de demo
 
+**Anexando seus vídeos e imagens**
+
+1. Arraste os arquivos para a pasta **`entrada`** do projeto (dá para fazer pelo VS Code: arraste
+   para a pasta `entrada` na lista de arquivos da esquerda). Crie uma subpasta por app se quiser.
+2. Peça dizendo o nome do arquivo e o que fazer com ele:
+> usa o vídeo entrada/ozempro/uso-do-app.mp4 na cena 2, do segundo 12 ao 18
+
+> analisa as fotos em entrada/ozempro e me diz quais servem pra gerar o b-roll
+
+> coloca a imagem entrada/ozempro/tela-relatorio.png em tela cheia na cena final
+
+O Claude corta o trecho, coloca no vídeo e mostra o preview. A pasta `entrada` **não vai para o
+GitHub** (é material bruto); só o trecho usado vai.
+
+**Usando vídeos e imagens do Google Drive**
+
+Instale o **Google Drive para computador** (`winget install Google.GoogleDrive`), entre com a conta
+da empresa e espere aparecer a unidade **G:** no Explorador de Arquivos. Depois é só dizer o
+caminho da pasta:
+> analisa os vídeos em G:\Shared drives\Marketing\OzemPro\UGC e me diz quais servem pro criativo
+
+> usa as fotos de G:\My Drive\OzemPro\fotos como base pra gerar o b-roll da cena 2
+
+O que dá para fazer com o material do Drive:
+- **Analisar** vídeos (cortes e cenas) e imagens.
+- **Usar na edição:** vídeo real em tela cheia, gravação/print do app com ou sem o celular em volta.
+- **Gerar no Higgsfield a partir dele:** uma foto vira o começo ou o fim do clipe gerado, ou serve
+  de referência de cenário/estilo. Gasta créditos — ele pergunta antes.
+
+Cuidados:
+- Na primeira vez ele pede permissão para ler a pasta do Drive: clique em **Allow**.
+- Arquivo que está "só online" no Drive baixa na hora — vídeo grande demora.
+- O Claude copia para o projeto só o trecho que usar; o material bruto fica no Drive.
+- **Rosto de pessoa real** (em referência ou no vídeo) só com autorização dela.
+- Vídeo com **música de outra pessoa/artista** não pode ir para o anúncio.
+- As regras de cada app continuam valendo (ex: no OzemPro, nada de close no corpo).
+
 **Variações** (para testar o que funciona melhor)
 > gera 3 variações do hook do criativo tapfit-treino-aleatorio
 
@@ -164,12 +221,26 @@ Pode também arrastar o arquivo de vídeo para a pasta do projeto e dizer o nome
 
 > faz uma versão 4:5 de 15 segundos
 
+**Outros idiomas**
+> faz a versão em inglês e em espanhol do criativo ozempro-doses, com voz nativa em cada idioma
+
+Ele traduz adaptando (não ao pé da letra), gera a voz no idioma e sincroniza a legenda de novo.
+
 **Ajustes**
 > encurta o hook pra 1.8 segundos
 
 > deixa a legenda maior
 
 > troca o b-roll da cena 1 por um homem correndo na esteira
+
+**Locução e legenda palavra por palavra** (a palavra falada fica destacada na cor do app)
+> cria uma locução em português pro criativo tapfit-5-semanas e sincroniza a legenda com a voz
+
+> usa a minha gravação entrada/ozempro/narracao.m4a como locução e deixa a legenda destacando
+> palavra por palavra
+
+Gerar a locução no Higgsfield custa pouco (de 0,3 a 2 créditos) — ele pergunta antes. A legenda
+sincronizada é feita no seu computador, sem custo.
 
 **Análise de resultado** (depois que o anúncio rodou)
 1. No Gerenciador de Anúncios da Meta, exporte o relatório em CSV.
@@ -181,7 +252,10 @@ Pode também arrastar o arquivo de vídeo para a pasta do projeto e dizer o nome
 1. Ele mostra o **roteiro** antes de começar — confira e responda "ok" ou peça mudanças.
 2. Antes de gerar vídeo de IA, ele mostra **quanto custa em créditos** e pede seu ok.
 3. Ele mostra **imagens de preview** antes do vídeo final.
-4. O MP4 final fica em `C:\Projects\creativebuilder\render\out\`.
+4. Depois do vídeo pronto, ele **confere o vídeo inteiro** (uma folha com vários quadros e o
+   volume do áudio) e corrige o que estiver errado antes de te mostrar. Na primeira voz de um app,
+   **ouça você** — ele não escuta áudio.
+5. O MP4 final fica em `C:\Projects\creativebuilder\render\out\`.
 
 Quando ele pedir permissão para rodar algum comando, leia e clique em **Allow**. Os comandos
 normais da ferramenta já estão liberados; ele só pergunta o que é diferente — e **sempre**
@@ -193,7 +267,7 @@ Quanto mais contexto, melhor o resultado. Um pedido completo diz:
 
 - **App:** o nome basta. O contexto de cada app (o que faz, público, dores, oferta, marca e
   regras de anúncio) fica em `apps/<app>/contexto.md` e o Claude lê sozinho. Apps prontos:
-  `apps/ozempro/`. Para um app novo, peça: *"cria o contexto do app X"* — ele usa o modelo
+  `apps/ozempro/` (o TapFit dos exemplos é só demonstração e ainda não tem contexto). Para um app novo, peça: *"cria o contexto do app X"* — ele usa o modelo
   `apps/_modelo/` e te pergunta o que faltar.
 - **Ideia ou referência:** o ângulo do vídeo, ou o link/arquivo que serve de modelo.
 - **Formato:** duração (ex: 20s), formato (9:16 padrão, ou 4:5), idioma.
@@ -207,8 +281,8 @@ Quanto mais contexto, melhor o resultado. Um pedido completo diz:
 
 ### Limites de hoje
 
-- **O áudio da referência não é ouvido.** O Claude analisa as imagens de cada cena; se o hook
-  da referência é **falado** (sem texto na tela), ele não pega. Descreva no pedido o que é dito.
+- **Da referência, o Claude pega as imagens e o texto falado** (transcrição), mas não o tom de voz,
+  a música ou os efeitos sonoros. Se forem importantes, descreva no pedido.
 - **Views e curtidas não são lidas automaticamente.** Se a referência performou bem, diga os
   números no pedido.
 - **Referências analisadas ficam só no seu computador** (pasta `references/`, não vai pro
@@ -218,7 +292,7 @@ Quanto mais contexto, melhor o resultado. Um pedido completo diz:
 
 ## 6. Regras da equipe
 
-- **Créditos do Higgsfield são limitados.** Um clipe de 5s custa ~6 créditos. Só aprove
+- **Créditos do Higgsfield são limitados.** Um clipe de 5s custa ~6,25 créditos. Só aprove
   geração quando o roteiro já estiver certo. Reaproveite clipes nas variações (é automático).
 - **A tela do app nunca é gerada por IA.** Sempre gravação ou print real. IA erra letras e
   mostra coisas que o app não tem.
@@ -233,7 +307,8 @@ Quanto mais contexto, melhor o resultado. Um pedido completo diz:
 Tudo o que você cria (roteiros, clipes gerados, material do app) fica no repositório.
 
 - **Antes de começar o dia**, peça: *"atualiza o projeto com o que a equipe enviou"*.
-- **Quando terminar algo bom**, peça: *"salva e envia pro GitHub o criativo que fizemos"*.
+- **Quando terminar algo bom**, peça: *"salva e envia pro GitHub o criativo que fizemos"*. Na
+  hora de enviar, ele pede sua permissão — confira e clique em **Allow**.
 
 Os MP4 finais (`render/out/`) **não** vão para o GitHub — mande pelo canal da equipe.
 
@@ -253,7 +328,7 @@ Os MP4 finais (`render/out/`) **não** vão para o GitHub — mande pelo canal d
 | `tools/` | ferramentas que o Claude usa (inclui `doctor.mjs`) |
 | `.claude/` | instruções e permissões do Claude Code para este projeto — não mexa |
 | `docs/` | documentação detalhada |
-| `web/`, `server/` | plataforma web (opcional, ver `docs/COMO-USAR.md`) |
+| `render/specs/_modelos/` | **modelos de vídeo** prontos (100% IA, com app, imagem no final) |
 
 ---
 
@@ -266,6 +341,7 @@ Os MP4 finais (`render/out/`) **não** vão para o GitHub — mande pelo canal d
 | Higgsfield diz `free plan` | Entrou na conta errada. Veja o passo 3.4 (logout + login em janela anônima). |
 | Higgsfield dá erro `workspace_membership_required` | Rode `higgsfield workspace list` e `higgsfield workspace set <ID do plano pago>`. |
 | Acabaram os créditos | Avise o responsável. Enquanto isso, dá para fazer variações de texto/ritmo reaproveitando clipes já gerados. |
+| A palavra destacada na legenda não acompanha a voz | Peça: *"ressincroniza a legenda com a locução"*. Se continuar, o texto da legenda está diferente do que é falado — peça para igualar. |
 | No vídeo aparece um quadro escrito **B-ROLL** ou **APP SCREEN** | No exemplo do primeiro teste: peça *"atualiza o projeto"* (o clipe vem do GitHub). Em criativo novo: falta o clipe ou a gravação daquela cena. Peça para gerar o b-roll ou coloque a gravação em `render/public/app/<app>/`. |
 | Referência por link não baixa | Rode `winget upgrade yt-dlp.yt-dlp` e tente de novo. Se não der, baixe o vídeo e coloque o arquivo na pasta do projeto. |
 | O Claude Code não entende o que é "criativo" | Confirme que o VS Code abriu a pasta `C:\Projects\creativebuilder` (não uma subpasta). |
@@ -274,7 +350,7 @@ Os MP4 finais (`render/out/`) **não** vão para o GitHub — mande pelo canal d
 
 ## 10. Para saber mais
 
-- `docs/COMO-USAR.md` — comandos detalhados e plataforma web
-- `docs/ATIVACAO-IA.md` — por que a IA roda local e não no servidor
+- `docs/COMO-USAR.md` — referência técnica dos comandos
+- `render/specs/_modelos/LEIA-ME.md` — os modelos de vídeo
 - `AGENTS.md` — instruções que o Claude Code segue
 - `render/src/spec.ts` — todos os campos de um roteiro
