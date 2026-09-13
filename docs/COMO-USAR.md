@@ -1,5 +1,8 @@
 # Como usar — passo a passo
 
+> **Primeira vez?** Comece por [`COMECE-AQUI.md`](../COMECE-AQUI.md) (instalação e uso sem
+> jargão). Este documento é a referência detalhada.
+
 Duas formas de trabalhar, com o **mesmo** modelo (tudo é um `CreativeSpec` JSON renderizado
 pelo Remotion): pela **plataforma** (web, no VPS) e **local** (agente de IA — Claude Code ou
 Codex). Dá pra misturar: ingerir a referência na plataforma e escrever o spec local, ou o

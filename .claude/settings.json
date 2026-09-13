@@ -1,0 +1,42 @@
+{
+	"permissions": {
+		"allow": [
+			"Bash(node tools/spec-tool.mjs *)",
+			"Bash(node tools/ingest-reference.mjs *)",
+			"Bash(node tools/doctor.mjs)",
+			"Bash(npx remotion still *)",
+			"Bash(npx remotion render *)",
+			"Bash(yt-dlp *)",
+			"Bash(ffmpeg *)",
+			"Bash(ffprobe *)",
+			"Bash(higgsfield account status*)",
+			"Bash(higgsfield model *)",
+			"Bash(higgsfield generate cost *)",
+			"Bash(higgsfield generate get *)",
+			"Bash(higgsfield generate list*)",
+			"Bash(higgsfield generate wait *)",
+			"Bash(higgsfield workspace list*)",
+			"Bash(higgsfield workspace status*)",
+			"PowerShell(node tools/spec-tool.mjs *)",
+			"PowerShell(node tools/ingest-reference.mjs *)",
+			"PowerShell(node tools/doctor.mjs)",
+			"PowerShell(npx remotion still *)",
+			"PowerShell(npx remotion render *)",
+			"PowerShell(yt-dlp *)",
+			"PowerShell(ffmpeg *)",
+			"PowerShell(ffprobe *)",
+			"PowerShell(higgsfield account status*)",
+			"PowerShell(higgsfield model *)",
+			"PowerShell(higgsfield generate cost *)",
+			"PowerShell(higgsfield generate get *)",
+			"PowerShell(higgsfield generate list*)",
+			"PowerShell(higgsfield generate wait *)",
+			"PowerShell(higgsfield workspace list*)",
+			"PowerShell(higgsfield workspace status*)"
+		],
+		"ask": [
+			"Bash(higgsfield generate create *)",
+			"PowerShell(higgsfield generate create *)"
+		]
+	}
+}

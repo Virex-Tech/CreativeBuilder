@@ -9,7 +9,8 @@ Produz criativos de vídeo para marketing de apps. O criativo é descrito por um
 **`CreativeSpec`** (JSON) e renderizado pelo Remotion. Você nunca "edita vídeo": você
 escreve e reescreve o spec.
 
-**Raiz do projeto**: `C:\Projects\creativebuilder`
+**Raiz do projeto**: a pasta onde o repositório foi clonado (rode os comandos a partir dela).
+Se algo falhar por ferramenta ausente, rode `node tools/doctor.mjs` e siga o que ele indicar.
 **Renderer**: `render/` · **Ferramentas**: `tools/` · **Specs**: `render/specs/`
 **Contrato do spec**: leia `render/src/spec.ts` antes de escrever um spec — é a
 fonte da verdade dos campos, presets e tipos de layer aceitos.
