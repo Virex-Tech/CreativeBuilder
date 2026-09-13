@@ -123,6 +123,17 @@ free tem 10 créditos — dá ~1 clipe.
 Fluxo: você pede o criativo → o agente escreve o spec → mostra o custo e pede ok → gera o
 b-roll → baixa para `render/public/broll/` → preenche `src`/`assetId` na layer → renderiza.
 
+### Material do app (gravação de tela e prints)
+
+Coloque os arquivos em `render/public/app/<app>/` (ex: `render/public/app/tapfit/`) e peça
+ao agente para usar. Na layer `app_screen_recording`, `"src": "app/tapfit/<arquivo>"` aceita
+**vídeo** (`.mp4/.mov/.m4v/.webm`, toca mudo dentro do mockup de iPhone) ou **imagem**
+(`.png/.jpg`); `"device": "none"` tira o mockup.
+
+- **Com material do app:** as cenas de demo mostram a tela real.
+- **Sem material do app:** o criativo sai com b-roll + texto + CTA, sem tela do app. A UI do
+  app **nunca** é gerada por IA.
+
 ---
 
 ## C) Passar para outros usarem

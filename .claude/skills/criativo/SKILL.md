@@ -153,6 +153,21 @@ renderizam um placeholder com o prompt — é o esperado enquanto o spec é rasc
 Se houver arquivo local de vídeo ou screen recording, use `src` na layer — vale mais que
 gerar.
 
+## Material do app (gravação de tela e prints)
+
+O usuário coloca os arquivos em `render/public/app/<app>/` (ex: `render/public/app/tapfit/`).
+Na layer `app_screen_recording`, `src` aponta para o caminho relativo a `public/`
+(ex: `"src": "app/tapfit/treino-aleatorio.mp4"`). Aceita **vídeo** (`.mp4/.mov/.m4v/.webm`,
+toca mudo dentro do mockup) ou **imagem** (`.png/.jpg`). `device: "none"` tira o mockup.
+
+Dois modos, escolha pelo que existe na pasta:
+
+- **Com material do app** → cenas de demo com `app_screen_recording` + `src`. Corte a
+  gravação para o trecho da cena (ffmpeg) se ela for longa.
+- **Sem material do app** → não use `app_screen_recording` (renderiza placeholder). Monte
+  o criativo com b-roll gerado + texto + CTA (problema → promessa → CTA). **Nunca gere a tela
+  do app com modelo generativo** — UI inventada erra letra e mente sobre o produto.
+
 ## B-roll com o Higgsfield (CLI / MCP, aqui no Claude Code)
 
 A geração roda **nesta máquina**, pela conta Higgsfield logada (OAuth) — sem API key e sem

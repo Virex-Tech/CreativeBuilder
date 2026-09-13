@@ -86,7 +86,14 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 			return (
 				<AbsoluteFill style={{ justifyContent: "center", alignItems: "center", transform }}>
 					<DeviceFrame enabled={layer.device !== "none"} brand={brand}>
-						{layer.src ? (
+						{layer.src && isVideoSrc(layer.src) ? (
+							// Screen recordings carry UI sounds and mic noise; the spec's audio track owns sound.
+							<OffthreadVideo
+								src={resolveSrc(layer.src)}
+								muted
+								style={{ width: "100%", height: "100%", objectFit: "cover" }}
+							/>
+						) : layer.src ? (
 							<Img
 								src={resolveSrc(layer.src)}
 								style={{ width: "100%", height: "100%", objectFit: "cover" }}
@@ -264,6 +271,8 @@ const PlaceholderLayer: React.FC<{
 		</div>
 	</AbsoluteFill>
 );
+
+const isVideoSrc = (src: string): boolean => /\.(mp4|mov|m4v|webm)(\?|#|$)/i.test(src);
 
 const DeviceFrame: React.FC<{
 	enabled: boolean;

@@ -34,7 +34,9 @@
 						"prompt": "mulher jovem parada no meio da academia olhando o celular, sem saber o que treinar, luz natural da manhã, câmera na mão",
 						"provider": "higgsfield",
 						"fit": "cover",
-						"anim": "handheld_subtle"
+						"anim": "handheld_subtle",
+						"src": "broll/tapfit-treino-aleatorio-hook.mp4",
+						"assetId": "77dedb1d-4d0c-42af-bc05-419609e5eb2d"
 					},
 					{
 						"type": "text",

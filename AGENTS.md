@@ -103,6 +103,13 @@ vem do Remotion. Baixe o resultado para
 `assetId` (job id) e `provider: "higgsfield"`. Não deixe a URL do provedor no `src`: expira em
 ~7 dias.
 
+## Material do app (gravação de tela e prints)
+
+Arquivos do app ficam em `render/public/app/<app>/`. Na layer `app_screen_recording`, use
+`"src": "app/<app>/<arquivo>"` — vídeo (`.mp4/.mov/.m4v/.webm`, toca mudo no mockup) ou
+imagem (`.png/.jpg`). Sem material do app, não use essa layer: faça o criativo com b-roll +
+texto + CTA. Nunca gere a tela do app com modelo generativo.
+
 ## Relação com a plataforma
 
 **Toda a IA roda no agente** — escrita/ajuste do spec, b-roll e diagnóstico de métricas. O
