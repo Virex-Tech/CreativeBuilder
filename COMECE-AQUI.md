@@ -38,6 +38,21 @@ Tudo roda **no seu computador**. Não existe chave de API para configurar.
 Tudo abaixo é no **Windows**. Abra o **PowerShell**: tecla Windows → digite `PowerShell` →
 Enter. Copie cada bloco, cole no PowerShell e aperte Enter. Espere terminar antes do próximo.
 
+### 3.0 Preparar o Windows
+
+Rode estes dois comandos:
+
+```powershell
+winget --version
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+```
+
+- O primeiro tem que mostrar um número de versão (ex: `v1.9...`). Se aparecer *"não é
+  reconhecido"*, abra a **Microsoft Store**, procure **Instalador de Aplicativo** (App Installer),
+  clique em **Instalar/Atualizar**, feche e abra o PowerShell e tente de novo.
+- O segundo libera o Windows a rodar as ferramentas que vamos instalar. Se perguntar algo, digite
+  `S` (ou `Y`) e Enter.
+
 ### 3.1 Programas básicos
 
 ```powershell
@@ -337,6 +352,8 @@ Os MP4 finais (`render/out/`) **não** vão para o GitHub — mande pelo canal d
 | Problema | Solução |
 |---|---|
 | O `doctor.mjs` mostra **✘** num programa que você acabou de instalar | O terminal ainda não enxerga o programa novo. Feche o PowerShell **e o VS Code** e abra de novo. |
+| `a execução de scripts foi desabilitada neste sistema` (ao rodar `npm` ou `higgsfield`) | Rode `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`, responda `S` e tente de novo. |
+| Digitar `python` abre a Microsoft Store ou diz que não encontrou | Menu Iniciar → **Configurações** → **Aplicativos** → **Configurações avançadas de aplicativos** → **Aliases de execução de aplicativo** → desligue **python.exe** e **python3.exe**. Feche e abra o PowerShell. |
 | `... não é reconhecido como nome de cmdlet` | Feche e abra o PowerShell/VS Code. Se continuar, rode `node tools/doctor.mjs` e siga o que ele disser. |
 | Higgsfield diz `free plan` | Entrou na conta errada. Veja o passo 3.4 (logout + login em janela anônima). |
 | Higgsfield dá erro `workspace_membership_required` | Rode `higgsfield workspace list` e `higgsfield workspace set <ID do plano pago>`. |
