@@ -351,7 +351,7 @@ Os MP4 finais (`render/out/`) **não** vão para o GitHub — mande pelo canal d
 
 | Problema | Solução |
 |---|---|
-| O `doctor.mjs` mostra **✘** num programa que você acabou de instalar | O terminal ainda não enxerga o programa novo. Feche o PowerShell **e o VS Code** e abra de novo. |
+| O `doctor.mjs` mostra **✘** num programa que você acabou de instalar, ou aparece *"o termo 'git' (ou node, python...) não é reconhecido"* | O terminal ainda não enxerga o programa novo. Feche **todas** as janelas do PowerShell **e do VS Code** e abra de novo. Para resolver sem fechar, cole no PowerShell: `$env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')` |
 | `a execução de scripts foi desabilitada neste sistema` (ao rodar `npm` ou `higgsfield`) | Rode `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`, responda `S` e tente de novo. |
 | Digitar `python` abre a Microsoft Store ou diz que não encontrou | Menu Iniciar → **Configurações** → **Aplicativos** → **Configurações avançadas de aplicativos** → **Aliases de execução de aplicativo** → desligue **python.exe** e **python3.exe**. Feche e abra o PowerShell. |
 | `... não é reconhecido como nome de cmdlet` | Feche e abra o PowerShell/VS Code. Se continuar, rode `node tools/doctor.mjs` e siga o que ele disser. |
