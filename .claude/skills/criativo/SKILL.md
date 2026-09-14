@@ -202,6 +202,9 @@ anúncio por esse servidor, mesmo que a ferramenta exista — a não ser que o u
 4. **Ficha:** grave `referencias/<slug>/<ad_id>.md` (versionado): data, métricas, hook (texto e visual
    dos 3s), estrutura por cena, formato (UGC/criadora, demo de app, texto na tela), CTA, transcrição
    resumida, **por que funcionou** (hipótese ligada às métricas) e o que variar. Sem vídeo no git.
+   Use o modelo `referencias/_modelo-ficha.md` e **atualize o índice** `referencias/<slug>/README.md`
+   (ranking + padrões que se repetem). Antes de criar do zero, leia esse índice: ele diz o que já
+   funciona para o app.
 5. **Variar:** use a ficha como referência (Fluxo 1) e crie variações de **uma dimensão** cada.
    Confira o compliance de `apps/<slug>/contexto.md` — um anúncio que roda não é prova de que está
    dentro das regras; se o vencedor viola o contexto, avise o usuário antes de copiar o ângulo.

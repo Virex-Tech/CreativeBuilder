@@ -357,6 +357,7 @@ Os MP4 finais (`render/out/`) **não** vão para o GitHub — mande pelo canal d
 | Pasta | O que tem |
 |---|---|
 | `apps/<app>/contexto.md` | **contexto de cada app** (produto, público, oferta, marca, regras de anúncio) |
+| `referencias/<app>/` | **criativos que deram certo**: ranking (`README.md`) e uma ficha por anúncio |
 | `render/specs/` | os roteiros dos criativos (arquivos `.json`) |
 | `render/public/app/<app>/` | **você coloca** gravações de tela e prints do app |
 | `render/public/broll/` | clipes gerados no Higgsfield |

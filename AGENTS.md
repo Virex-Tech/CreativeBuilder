@@ -159,5 +159,7 @@ automatizada), sem métricas.
 
 O fluxo oficial é **local**: Claude Code (ou outro agente) + Higgsfield CLI + Remotion, sem API key.
 A plataforma web (`web/`, `server/`, `DEPLOY.md`, `docs/ATIVACAO-IA.md`) está **fora de uso** — não
-sugira nem use. Antes de entregar qualquer criativo: `node tools/spec-tool.mjs check` e
+sugira nem use como caminho padrão. Exceção documentada como **opção futura**: coleta automática
+de criativos vencedores no servidor (`docs/COMO-USAR.md`, seção 11) — só se o usuário pedir.
+Antes de entregar qualquer criativo: `node tools/spec-tool.mjs check` e
 `node tools/review.mjs` no MP4 (ver skill `criativo`, seção "Validar antes de entregar").

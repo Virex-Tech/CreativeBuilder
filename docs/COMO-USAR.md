@@ -185,9 +185,22 @@ Fluxo: ranking com volume mínimo → vídeo do criativo → `ingest-reference` 
 `referencias/<slug>/<ad_id>.md` → variações. A doc da Meta não garante métricas de vídeo nem URL do
 vídeo em todas as ferramentas — se faltar, usar o arquivo original.
 
-**Biblioteca de Anúncios** (`facebook.com/ads/library`): só anúncios ativos, sem métricas (sinais:
-tempo no ar, "N ads use this creative"). Termos da Meta proíbem coleta automatizada — consulta pontual.
-**TikTok Creative Center** (Top Ads): aberto sem login, sem API.
+### Opções para descobrir o que deu certo
+
+| Opção | O que traz | Login/chave | Custo | Quando usar |
+|---|---|---|---|---|
+| **Meta Ads MCP oficial** (padrão) | métricas reais por anúncio (gasto, impressões, CTR, conversões) e detalhes do criativo | OAuth de cada pessoa via `/mcp` | grátis | anúncios da empresa no Facebook/Instagram |
+| **Windsor.ai MCP** | Meta Ads, **TikTok Ads**, **Instagram e TikTok orgânicos**, quartis de vídeo; sem URL do vídeo | OAuth na conta Windsor (conector "Windsor.ai" nas configurações do claude.ai) | plano grátis (1 fonte, 30 dias) ou pago a partir de ~US$19/mês | precisar de TikTok ou orgânico junto |
+| **CSV do Gerenciador de Anúncios** | as colunas que você exportar | nenhum | grátis | sem conexão, análise pontual (seção "Análise de performance" da skill) |
+| **`yt-dlp` em posts orgânicos** | views, likes, data e o vídeo de TikTok/YouTube | nenhum (Instagram costuma exigir cookies do navegador e falha com frequência) | grátis | ver o que bombou no orgânico |
+| **Biblioteca de Anúncios da Meta** | anúncios **ativos** de qualquer página + vídeo; sem métricas (sinais: tempo no ar, "N ads use this creative") | nenhum | grátis | olhar concorrentes — só consulta pontual: os termos da Meta proíbem coleta automatizada |
+| **TikTok Creative Center** (Top Ads) | anúncios em alta no TikTok por nicho | nenhum | grátis | referência de mercado; sem API |
+| **Plataforma web (futuro)** | ranking automático diário, vídeos vencedores baixados e analisados no servidor, time vê na web e o Claude local puxa as fichas | **token de leitura da Meta (System User, `ads_read`) guardado só no servidor** | VPS + manutenção | quando o volume pedir ranking automático sem ninguém pedir |
+
+**Sobre a plataforma:** o servidor já tem módulos de métricas e ingestão de referência (`server/`),
+mas está fora de uso. Um servidor não usa o login OAuth do MCP (que é por pessoa), por isso a
+coleta automática exige o token server-side. O formato das fichas (`referencias/<slug>/<ad_id>.md`)
+é o mesmo nos dois caminhos — dá para começar local e migrar sem perder nada.
 
 ## 12. Compartilhar
 

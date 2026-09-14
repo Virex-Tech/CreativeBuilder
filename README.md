@@ -28,6 +28,7 @@ node tools/doctor.mjs
 
 ```
 apps/        contexto de produto de cada app (apps/<slug>/contexto.md) — o Claude lê antes de criar
+referencias/ criativos que deram certo: ranking e fichas por app (referencias/<slug>/)
 directors/   regras de edição por app (ritmo, legendas, o que nunca fazer)
 render/      Remotion — renderer, specs (render/specs), modelos (render/specs/_modelos),
              material do app (public/app), b-roll (public/broll), voz (public/audio), sfx (public/sfx)
@@ -41,4 +42,5 @@ entrada/     material bruto anexado (fora do git)
 
 A plataforma web — `web/`, `server/`, [DEPLOY.md](DEPLOY.md), [docs/ATIVACAO-IA.md](docs/ATIVACAO-IA.md),
 [docs/architecture.md](docs/architecture.md) (arquitetura da plataforma) —
-está pausada. O fluxo oficial é o local acima.
+está pausada. O fluxo oficial é o local acima. Ela fica como **opção futura** para coletar
+automaticamente os criativos que deram certo (ver `docs/COMO-USAR.md`, seção 11).
