@@ -121,31 +121,16 @@ nunca as `locked`.
 
 ### 6. Análise de performance
 
-Enquanto não houver integração com a Meta, o usuário exporta CSV do Gerenciador de
-Anúncios. Cruze com os specs pelo `creativeId`.
+**Use só as regras e métricas de `analise/regras-meta-ads.md`** (Fase Zero, kill-switch,
+validação, escala, modelagem e as 10 métricas). Nenhuma outra regra de performance vale.
 
-Calcule e **diagnostique por posição**:
+Dados: MCP `meta-ads` (`ads_get_ad_entities`, nível anúncio) ou CSV exportado do Gerenciador.
+Cruze com os specs pelo código no nome do anúncio (ex: `105-VIRAL`).
 
-- **Hook rate** = `video_continuous_2_sec_watched_actions` ÷ `impressions` → os 2s iniciais
-- **Hold rate** = `video_p75_watched_actions` ÷ `video_play_actions` → corpo e ritmo
-- **CTR outbound** → oferta e CTA
-- Quartis `p25→p50→p75→p95` → em qual trecho o público cai
+**Somente análise:** recomende cortar, escalar ou modelar em texto — a equipe executa. Nunca
+crie, edite, pause nem mexa em orçamento sem autorização explícita.
 
-Regra de leitura:
-
-| Sintoma | Diagnóstico | Mutação |
-|---|---|---|
-| hook rate baixo | ninguém passa dos 2s | `hook_rewrite` (4 ângulos) |
-| hook ok, cai no p25–p50 | ritmo/corpo | `pacing` |
-| chega ao p75 e não clica | oferta | `cta` |
-| frequência alta + CPM subindo | fadiga | `hook_visual` |
-
-**Nunca decida por CPA/instalação por criativo**: no iOS a Meta só atribui instalação no
-nível de campanha. Use CPA da campanha como trava, nunca como critério de matar/escalar um
-criativo.
-
-Antes de qualquer conclusão, exija volume mínimo: ~2.000 impressões, ~$20 de gasto e 24h.
-Abaixo disso, diga que ainda não dá para concluir.
+Criativo em "Modelar" → variações de gancho e roteiro sobre ele (fluxo 4).
 
 ## DirectorProfile
 

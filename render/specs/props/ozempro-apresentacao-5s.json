@@ -1,0 +1,123 @@
+{
+	"spec": {
+		"specVersion": "1",
+		"creativeId": "ozempro-apresentacao-5s",
+		"appId": "ozempro",
+		"locale": "pt-BR",
+		"lineage": {
+			"parentId": "imagem-final",
+			"mutation": "seed_modelo"
+		},
+		"output": {
+			"kind": "video"
+		},
+		"format": {
+			"w": 1080,
+			"h": 1920,
+			"fps": 30
+		},
+		"brandKit": {
+			"bg": "#12091F",
+			"fg": "#FFFFFF",
+			"accent": "#8630E4",
+			"fontFamily": "'Plus Jakarta Sans', Inter, system-ui, sans-serif"
+		},
+		"scenes": [
+			{
+				"id": "hook",
+				"role": "HOOK",
+				"startMs": 0,
+				"durationMs": 1800,
+				"timing": "locked",
+				"layers": [
+					{
+						"type": "generative_video",
+						"prompt": "Handheld iPhone footage, natural window light, ordinary Brazilian woman in her early 40s wearing a plain casual t-shirt, sitting at a simple home kitchen table, flipping through a paper notebook full of handwritten notes, looking a bit tired, then she puts the notebook aside, picks up her smartphone and looks at it with a small relieved smile, phone screen facing away from camera, slight hand shake, focus gently breathing, realistic skin texture, muted natural colors, no text, no logos, no medication, no needles",
+						"provider": "higgsfield",
+						"src": "broll/ozempro-apresentacao-5s-hook.mp4",
+						"assetId": "99cbd6b7-6ee5-40ff-bff6-7e3a079158dc",
+						"fit": "cover",
+						"anim": "handheld_subtle"
+					},
+					{
+						"type": "text",
+						"content": "Dose, sintomas e refeições no papel?",
+						"preset": "hook_stroke",
+						"anim": "pop_in"
+					}
+				]
+			},
+			{
+				"id": "promessa",
+				"role": "POINT",
+				"startMs": 1800,
+				"durationMs": 1800,
+				"timing": "flex",
+				"transitionIn": "cut",
+				"layers": [
+					{
+						"type": "generative_video",
+						"prompt": "Same continuous shot as the hook scene (single 5s clip)",
+						"provider": "higgsfield",
+						"src": "broll/ozempro-apresentacao-5s-hook.mp4",
+						"assetId": "99cbd6b7-6ee5-40ff-bff6-7e3a079158dc",
+						"fit": "cover",
+						"startFromMs": 1800,
+						"anim": "handheld_subtle"
+					},
+					{
+						"type": "text",
+						"content": "Tratamento com GLP-1 organizado num app só.",
+						"preset": "sub",
+						"anim": "slide_up"
+					}
+				]
+			},
+			{
+				"id": "cta",
+				"role": "CTA",
+				"startMs": 3600,
+				"durationMs": 1400,
+				"timing": "locked",
+				"transitionIn": "cut",
+				"layers": [
+					{
+						"type": "generative_video",
+						"prompt": "Same continuous shot as the hook scene (single 5s clip)",
+						"provider": "higgsfield",
+						"src": "broll/ozempro-apresentacao-5s-hook.mp4",
+						"assetId": "99cbd6b7-6ee5-40ff-bff6-7e3a079158dc",
+						"fit": "cover",
+						"startFromMs": 3600,
+						"anim": "handheld_subtle"
+					},
+					{
+						"type": "text",
+						"content": "OzemPro — baixe o app",
+						"preset": "cta_label",
+						"anim": "slide_up"
+					}
+				]
+			}
+		],
+		"audio": {
+			"sfx": [
+				{
+					"src": "sfx/pop.mp3",
+					"atMs": 0,
+					"volume": 0.4
+				},
+				{
+					"src": "sfx/whoosh.mp3",
+					"atMs": 1720,
+					"volume": 0.4
+				},
+				{
+					"src": "sfx/pop.mp3",
+					"atMs": 3600,
+					"volume": 0.5
+				}
+			]
+		}
+	}
+}

@@ -41,17 +41,39 @@ em um só app"*.
 
 ## Promessa e funcionalidades
 
-| Funcionalidade (nome no app) | O que resolve | Tem gravação/print? |
-|---|---|---|
-| **Registrar Aplicação** (dose, local, dor) + **Próxima dose** (contagem regressiva) | nunca perder dose | não — gravar |
-| **Nível de medicação** (estimado) e linha do tempo na aba **Tratamento** | ver o tratamento de forma clara | não — gravar |
-| **Registrar Refeição** — Escanear (foto), Falar, Digitar, Refeições salvas → revisão de macros | registrar comida sem esforço | não — gravar |
-| **Registrar Efeito Colateral** | ter o histórico para o médico | não — gravar |
-| **Gerar Relatório Médico** (PDF) | levar tudo pronto para a consulta | não — gravar |
-| **Registrar Peso**, **Registrar Foto Pessoal**, **Jornada** (gráfico) | acompanhar evolução | não — **ver compliance** antes de mostrar |
-| **Chat com IA** (com o panda) | tirar dúvidas de uso do app | não — gravar |
-| **Comunidade** (grupos, ranking) | não passar por isso sozinha | não — gravar |
-| Registrar Atividade, Suplementos, água, streak, Sincronização de Saúde (Apple Saúde / Health Connect), Widgets e Live Activity | hábito diário | não — gravar |
+Descrição oficial (loja, enviada pela equipe em 14/09/2026): *"Todo o seu tratamento GLP-1 em um
+app só: aplicações, dose, efeitos colaterais, peso, alimentação e progresso. O OzemPro é o diário
+digital de quem está na canetinha. Cada dia e semana registrada, organizada e pronta para você
+consultar e levar ao seu médico."*
+
+Lista completa de recursos (21, texto da loja). Todos podem aparecer no criativo — restrição só
+entra aqui quando a equipe definir.
+
+| Recurso | O que faz |
+|---|---|
+| **Aplicações e canetas** (**Registrar Aplicação**) | dia, dose, local da aplicação e rodízio, com histórico de cada semana |
+| **Lembretes de aplicação** (**Próxima dose**) | alerta na hora certa, para não pular a dose semanal |
+| **Meu estoque** | quantas doses ainda restam na caneta em uso e aviso quando estiver acabando |
+| **Nível do medicamento** (aba **Tratamento**) | concentração estimada no corpo ao longo da semana, até a próxima dose |
+| **Calculadora de doses** | quantas UI puxar na seringa para a dose, com tabela para consultar e compartilhar |
+| **Efeitos colaterais** (**Registrar Efeito Colateral**) | náusea, constipação, refluxo etc., com orientação educativa do que costuma ajudar |
+| **Peso, IMC e composição corporal** (**Jornada**) | gráficos da curva, não só o número de hoje |
+| **Projeção da meta** | quanto falta e quando a meta chega, no ritmo atual |
+| **Plano personalizado** | metas de calorias, macros, peso e água a partir do perfil e objetivo |
+| **Refeições por foto, voz ou texto** (**Registrar Refeição**) | calorias, proteínas, carboidratos, gorduras, fibras |
+| **Cardápio personalizado** | refeições calculadas para as metas, com opção de trocar cada prato |
+| **Receitas** | ingredientes e passo a passo de cada prato do cardápio |
+| **Suplementos, vitaminas e medicamentos** | checklist diário do que toma além da medicação, com lembretes |
+| **Água e passos do dia** | hábitos entre uma aplicação e outra |
+| **Cartão da jornada** | fotos de progresso, medidas e conquistas ao longo do tratamento |
+| **Comunidade** | grupos públicos ou por código de convite, posts, comentários, ranking de sequência e progresso |
+| **Notícias e artigos de saúde** | conteúdo de saúde no app |
+| **Chat com IA** (com o panda) | dúvidas sobre a rotina do tratamento, com as fontes de cada resposta à vista |
+| **Widget e Live Activity** | dose e metas do dia na tela de início |
+| **Apple Saúde** (e Health Connect) | sincroniza movimento e atividade física |
+| **Relatórios** (**Gerar Relatório Médico**) | PDF e Excel com o histórico completo para a consulta |
+
+Gravações e prints de cada recurso: ver **Material disponível**.
 
 **Telas que funcionam em vídeo:** Home com cards (medicação, calorias, água, atividade, streak,
 panda) · câmera escaneando refeição → macros · aba Tratamento com próxima dose · relatório médico
@@ -92,6 +114,8 @@ nem o emagrecimento.
 | Refeição em 1 foto | "Tirou foto, registrou a refeição." | hook → câmera escaneando → macros → CTA |
 | Tudo num lugar só | "Dose, sintomas e refeições num app só." | montagem rápida das abas → Home → CTA |
 | Companhia | "Tratamento é melhor acompanhado." | panda/chat → comunidade → CTA |
+| Estoque sob controle | "Quantas doses ainda restam?" | hook → Meu estoque → aviso de reposição → CTA |
+| O que comer hoje | "Cardápio pronto, receita passo a passo." | hook → cardápio personalizado → troca de prato → receita → CTA |
 
 ## Marca (para o `brandKit` do spec)
 
@@ -136,8 +160,6 @@ levantadas em 13/09/2026 (Meta, TikTok, ANVISA, CONAR) — **na dúvida, não us
 **Sempre:**
 
 - Público **18+** na campanha (Meta e TikTok para saúde/peso).
-- Quando o vídeo falar de tratamento, feche com o aviso curto na tela:
-  *"O OzemPro não substitui orientação médica."*
 - Mostrar o app como **diário/organizador**.
 
 > **Risco do negócio, não do criativo:** o próprio nome "OzemPro" e as keywords da loja citam
@@ -147,6 +169,9 @@ levantadas em 13/09/2026 (Meta, TikTok, ANVISA, CONAR) — **na dúvida, não us
 ## Material disponível
 
 - `render/public/app/ozempro/icone.png` — ícone do app.
-- **Faltam gravações de tela.** Prioridade: Home, Registrar Aplicação + Próxima dose, escanear
-  refeição, Gerar Relatório Médico, chat com o panda. Use conta de teste (sem dados reais de
-  pessoas) e evite mostrar peso/foto corporal.
+- `render/public/broll/ozempro-apresentacao-5s-hook.mp4` — b-roll gerado (mulher na cozinha com
+  caderno → celular).
+- **Gravações de tela e prints:** a equipe coloca em `entrada/ozempro/gravacoes/` e
+  `entrada/ozempro/prints/`, com o nome no padrão de `entrada/LEIA-ME.md`
+  (`<recurso>_<o-que-mostra>_<idioma>_<plataforma>`). O Claude copia o trecho usado para
+  `render/public/app/ozempro/`. Ainda não há nenhuma.

@@ -21,9 +21,8 @@ Estimativa de créditos Higgsfield: **nº de cenas com b-roll gerado × ~6,25 cr
   completo (concatenação das falas) — só falta gravar a locução e o alinhamento de palavras.
 - `src` das layers de vídeo gerado fica ausente de propósito: o Remotion mostra o `prompt`
   como placeholder até o clipe existir. `app_screen_recording` usa `assetId` descritivo.
-- Nenhum modelo inclui `disclaimer`. Apps de saúde/fitness/finanças em geral são obrigados a
-  ter uma linha de aviso legal ("Dramatização. Resultados variam de pessoa para pessoa.") —
-  adicione a layer `disclaimer` em cada cena ao usar o modelo para esse tipo de app.
+- Nenhum modelo inclui `disclaimer` (linha de aviso legal). Só adicione a layer quando o usuário
+  pedir.
 - `brandKit` está nos valores neutros padrão do schema; troque pelas cores/fonte do app.
 
 ## Antes de usar um modelo

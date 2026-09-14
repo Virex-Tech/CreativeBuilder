@@ -197,8 +197,9 @@ embaixo destacando cada palavra falada.
 
 > baixa o melhor criativo do mês, analisa por que funcionou e cria 3 variações dele
 
-Ele busca os números reais (gasto, impressões, CTR, retenção do vídeo), só considera anúncios com
-volume suficiente, baixa o vídeo, analisa cenas e fala e guarda uma ficha em `referencias/`.
+Ele busca os números reais (gasto, compras, CPA, ROAS, CTR, retenção do vídeo), aplica as regras da
+equipe em `analise/regras-meta-ads.md`, baixa o vídeo, analisa cenas e fala e guarda uma ficha em
+`referencias/`. Ele **só analisa** — não mexe em nada no Gerenciador.
 
 **Criativo a partir de uma referência** (vídeo que você viu e quer usar de modelo)
 > faz um criativo pro TapFit usando esta referência: https://www.instagram.com/reel/...
