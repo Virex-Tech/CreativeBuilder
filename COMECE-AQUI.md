@@ -158,6 +158,21 @@ academia com o texto *"Chega na academia e não sabe o que treinar?"*. Se aparec
 tudo funcionando. Se aparecer um fundo escuro escrito **B-ROLL** no lugar da mulher, falta
 atualizar o projeto — veja a seção 9.
 
+### 4.1 (Opcional) Conectar o Meta Ads
+
+Só para quem vai analisar os anúncios da empresa (quais criativos deram certo). Precisa ter acesso
+à conta de anúncios no Gerenciador de Anúncios. Não tem chave nem senha para configurar.
+
+1. No painel do Claude Code (o mesmo do teste acima), escreva `/mcp` e aperte Enter.
+2. Se aparecer um aviso para aprovar o servidor **meta-ads**, clique em aprovar.
+3. Selecione **meta-ads** → **Authenticate**. Abre o navegador na tela do Facebook: entre com a
+   conta que tem acesso aos anúncios, escolha o portfólio e as contas de anúncio e confirme.
+4. Volte ao Claude Code e peça: *"lista minhas contas de anúncio do Meta"*. Se aparecerem, está conectado.
+
+> **Segurança (faça uma vez, quem administra o Business):** no **Meta Business Suite** →
+> **Configurações** → **Integrações** → **Ads MCP server**, bloqueie **Criar campanhas** e
+> **Editar ou definir orçamento**. Assim a IA só consegue **ler** os resultados.
+
 ---
 
 ## 5. Usando no dia a dia
@@ -176,6 +191,14 @@ Se você não disser, ele pergunta. Em todos: vídeo em todas as cenas, voz huma
 embaixo destacando cada palavra falada.
 
 ### Pedidos prontos
+
+**Criativos que deram certo (Meta Ads)** — precisa da seção 4.1
+> quais foram nossos 5 melhores criativos de vídeo do OzemPro nos últimos 30 dias?
+
+> baixa o melhor criativo do mês, analisa por que funcionou e cria 3 variações dele
+
+Ele busca os números reais (gasto, impressões, CTR, retenção do vídeo), só considera anúncios com
+volume suficiente, baixa o vídeo, analisa cenas e fala e guarda uma ficha em `referencias/`.
 
 **Criativo a partir de uma referência** (vídeo que você viu e quer usar de modelo)
 > faz um criativo pro TapFit usando esta referência: https://www.instagram.com/reel/...

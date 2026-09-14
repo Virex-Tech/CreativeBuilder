@@ -181,6 +181,36 @@ Dois modos, escolha pelo que existe na pasta:
   o criativo com b-roll gerado + texto + CTA (problema → promessa → CTA). **Nunca gere a tela
   do app com modelo generativo** — UI inventada erra letra e mente sobre o produto.
 
+## Criativos que deram certo (Meta Ads MCP oficial)
+
+Servidor `meta-ads` (`.mcp.json`, `https://mcp.facebook.com/ads`), login OAuth de cada usuário via
+`/mcp`. Se as ferramentas `mcp__meta-ads__*` não estiverem disponíveis, peça ao usuário para seguir
+a seção 4.1 do `COMECE-AQUI.md`. **Só leitura:** nunca crie, edite, pause ou mude orçamento de
+anúncio por esse servidor, mesmo que a ferramenta exista — a não ser que o usuário peça explicitamente.
+
+1. **Ranking:** `ads_get_ad_entities` no nível de anúncio, período pedido (padrão: últimos 30 dias),
+   com gasto, impressões, CTR, CPC e as métricas de vídeo disponíveis (plays de 3s, p25/p50/p75/p100,
+   ThruPlay). Calcule **hook rate** (plays 3s ÷ impressões) e **hold** (p75 ÷ plays). Descarte
+   anúncios com menos de ~2.000 impressões, ~US$20 de gasto ou 24h no ar. Nunca ranqueie por CPA de
+   anúncio individual no iOS (seção "Análise de performance"). Mostre a tabela ao usuário.
+2. **Vídeo do vencedor:** busque os detalhes do criativo do anúncio (ferramenta de detalhes de
+   criativo do servidor → `video_id` → URL do arquivo). Baixe para `entrada/<slug>/meta-ads/<ad_id>.mp4`.
+   Se o servidor não entregar a URL, peça o arquivo original ao usuário (Drive) ou use a Biblioteca
+   de Anúncios pontualmente (abaixo).
+3. **Analisar:** `node tools/ingest-reference.mjs <mp4> --out references/<slug>-<ad_id>` +
+   `python tools/transcribe.py <mp4> --lang pt`. Leia frames e fala.
+4. **Ficha:** grave `referencias/<slug>/<ad_id>.md` (versionado): data, métricas, hook (texto e visual
+   dos 3s), estrutura por cena, formato (UGC/criadora, demo de app, texto na tela), CTA, transcrição
+   resumida, **por que funcionou** (hipótese ligada às métricas) e o que variar. Sem vídeo no git.
+5. **Variar:** use a ficha como referência (Fluxo 1) e crie variações de **uma dimensão** cada.
+   Confira o compliance de `apps/<slug>/contexto.md` — um anúncio que roda não é prova de que está
+   dentro das regras; se o vencedor viola o contexto, avise o usuário antes de copiar o ângulo.
+
+**Biblioteca de Anúncios da Meta** (facebook.com/ads/library): mostra só anúncios **ativos**, sem
+métricas; sinais indiretos = tempo no ar e "N ads use this creative". Os termos da Meta proíbem coleta
+automatizada sem autorização — use apenas consulta **pontual pedida pelo usuário** (ex.: ver um
+concorrente), nunca rotina em lote. Para anúncios próprios, prefira sempre o Meta Ads MCP.
+
 ## Material anexado (pasta `entrada/` ou Google Drive)
 
 O usuário anexa vídeos e imagens de dois jeitos:

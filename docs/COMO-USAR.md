@@ -169,7 +169,27 @@ workflow `dubbing` (`target_language`: por, spa, eng, fra, deu, ita...).
 | `spec-tool check` | **errors:** cena sem vídeo/imagem, layer sem `src`, arquivo inexistente · **warnings:** clipe mais curto que a cena, legenda não sincronizada com a voz, voz além do fim do vídeo, vídeo sem legenda |
 | `tools/review.mjs <mp4>` | folha de contato (quadros com tempo) + volume médio/pico e silêncios do áudio |
 
-## 11. Compartilhar
+## 11. Criativos que deram certo (Meta Ads)
+
+Servidor MCP **oficial** da Meta, já configurado em `.mcp.json`:
+
+| Item | Valor |
+|---|---|
+| URL | `https://mcp.facebook.com/ads` (HTTP) |
+| Login | OAuth (Facebook Login for Business) com registro automático de cliente — sem app Meta próprio nem token |
+| Conectar | no Claude Code: `/mcp` → `meta-ads` → Authenticate (ou `claude mcp login meta-ads`) |
+| Relatório | `ads_get_ad_entities` (campanha/conjunto/anúncio, gasto, impressões, CTR, CPC, CPM, conversões, período, breakdowns), `ads_insights_performance_trend` |
+| Segurança | Meta Business Suite → Configurações → Integrações → Ads MCP server: bloquear criar campanhas e editar orçamento |
+
+Fluxo: ranking com volume mínimo → vídeo do criativo → `ingest-reference` + `transcribe.py` → ficha em
+`referencias/<slug>/<ad_id>.md` → variações. A doc da Meta não garante métricas de vídeo nem URL do
+vídeo em todas as ferramentas — se faltar, usar o arquivo original.
+
+**Biblioteca de Anúncios** (`facebook.com/ads/library`): só anúncios ativos, sem métricas (sinais:
+tempo no ar, "N ads use this creative"). Termos da Meta proíbem coleta automatizada — consulta pontual.
+**TikTok Creative Center** (Top Ads): aberto sem login, sem API.
+
+## 12. Compartilhar
 
 Specs, contextos, clipes (`render/public/`) vão para o GitHub. Não vão: `entrada/`,
 `references/`, `render/out/` (MP4 finais — mande pelo canal da equipe).

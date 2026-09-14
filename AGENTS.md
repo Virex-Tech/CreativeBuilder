@@ -144,6 +144,17 @@ tela cheia com `device: "none"`) ou `render/public/broll/` (vídeo real em tela 
    → preenche `wordEndsMs` e ajusta as cenas ao ritmo da voz; depois `check` (clipes ainda cobrem as cenas).
 5. Stills em momentos da fala para conferir a palavra destacada.
 
+## Criativos que deram certo (Meta Ads MCP oficial)
+
+Servidor `meta-ads` em `.mcp.json` (`https://mcp.facebook.com/ads`, OAuth por usuário via `/mcp`,
+sem app nem chave). **Somente leitura** — nunca criar/editar/pausar anúncios sem pedido explícito.
+Fluxo: `ads_get_ad_entities` (nível anúncio, gasto, impressões, CTR, métricas de vídeo) → hook rate e
+hold com volume mínimo (~2.000 impressões, ~US$20, 24h) → detalhes do criativo → baixar o vídeo para
+`entrada/<slug>/meta-ads/` → `ingest-reference` + `transcribe.py` → ficha em
+`referencias/<slug>/<ad_id>.md` → variações de uma dimensão, respeitando o compliance do app.
+Biblioteca de Anúncios da Meta: só consulta pontual pedida pelo usuário (termos proíbem coleta
+automatizada), sem métricas.
+
 ## Escopo: 100% local
 
 O fluxo oficial é **local**: Claude Code (ou outro agente) + Higgsfield CLI + Remotion, sem API key.
