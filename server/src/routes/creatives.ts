@@ -12,7 +12,7 @@ import {
 	validateSpec,
 	type Spec,
 } from "@/lib/spec";
-import { adjustSpec, agentEnabled, authorSpec } from "@/lib/specAuthor";
+import { adjustSpec, agentDisabledMessage, agentEnabled, authorSpec } from "@/lib/specAuthor";
 
 const createSchema = z.object({
 	appId: z.string().uuid(),
@@ -141,7 +141,7 @@ export async function creativeRoutes(app: FastifyInstance): Promise<void> {
 	 */
 	app.post("/creatives/generate", async (request, reply) => {
 		if (!agentEnabled()) {
-			return reply.code(503).send({ error: "geração por IA indisponível: configure ANTHROPIC_API_KEY no servidor" });
+			return reply.code(503).send({ error: agentDisabledMessage("geração") });
 		}
 		const parsed = generateSchema.safeParse(request.body);
 		if (!parsed.success) return reply.code(400).send({ error: parsed.error.format() });
@@ -205,7 +205,7 @@ export async function creativeRoutes(app: FastifyInstance): Promise<void> {
 	/** Ajusta um criativo existente em linguagem natural (Fase 2), gravando nova versão. */
 	app.post<{ Params: { id: string } }>("/creatives/:id/adjust", async (request, reply) => {
 		if (!agentEnabled()) {
-			return reply.code(503).send({ error: "ajuste por IA indisponível: configure ANTHROPIC_API_KEY no servidor" });
+			return reply.code(503).send({ error: agentDisabledMessage("ajuste") });
 		}
 		const parsed = adjustSchema.safeParse(request.body);
 		if (!parsed.success) return reply.code(400).send({ error: parsed.error.format() });

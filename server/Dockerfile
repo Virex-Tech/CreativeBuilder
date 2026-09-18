@@ -7,6 +7,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	&& pip3 install --no-cache-dir --break-system-packages yt-dlp \
 	&& rm -rf /var/lib/apt/lists/*
 
+# Codex CLI: provider de IA quando AI_PROVIDER=codex. Autentica por OAuth via CODEX_HOME
+# montado no container (ver docker-compose). Sem isso, a geração por IA responde 503.
+RUN npm i -g @openai/codex
+
 WORKDIR /app
 
 COPY package*.json ./

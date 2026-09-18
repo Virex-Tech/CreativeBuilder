@@ -28,3 +28,6 @@ render/public/test-*.mp3
 # material bruto anexado (vídeos/imagens) — o Claude copia para render/public só o que usar
 entrada/*
 !entrada/LEIA-ME.md
+
+# OAuth do Codex (server-side) — NUNCA versionar
+.codex-server/

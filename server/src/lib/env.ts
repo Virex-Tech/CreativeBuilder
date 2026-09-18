@@ -22,10 +22,24 @@ const envSchema = z.object({
 	// alcançam. Vazio = mantém a URL do provedor no spec (que expira ~7 dias).
 	PUBLIC_API_BASE: z.string().default(""),
 	HIGGSFIELD_WORKSPACE_ID: z.string().optional(),
+	// Provider da IA que escreve/ajusta o spec e diagnostica métricas.
+	//   "codex"     → Codex CLI (`codex exec`) logado por OAuth (assinatura ChatGPT). Sem
+	//                 API key no servidor; o login vive em CODEX_HOME/auth.json.
+	//   "anthropic" → SDK da Anthropic com ANTHROPIC_API_KEY (comportamento legado).
+	AI_PROVIDER: z.enum(["codex", "anthropic"]).default("codex"),
 	// Fase 2 — a IA escreve/edita o CreativeSpec. Sem a chave, os endpoints de geração
 	// respondem 503 com instrução; o resto da API funciona normal.
 	ANTHROPIC_API_KEY: z.string().optional(),
 	ANTHROPIC_MODEL: z.string().default("claude-opus-4-8"),
+	// Onde o Codex acha o login OAuth (auth.json) e o config.toml — igual ao CODEX_HOME do
+	// CLI. Vazio = ~/.codex. No container, monte o dir do `codex login` do host aqui.
+	CODEX_HOME: z.string().default(""),
+	// Binário do Codex (default assume no PATH).
+	CODEX_BIN: z.string().default("codex"),
+	// Modelo do Codex. Vazio = usa o default do próprio Codex / config.toml.
+	CODEX_MODEL: z.string().default(""),
+	// Teto de tempo (ms) de uma chamada do Codex antes de abortar.
+	CODEX_TIMEOUT_MS: z.coerce.number().int().positive().default(300000),
 	// Fase 3 — geração de b-roll no Higgsfield (api.higgsfield.ai). Credenciais server-side
 	// criadas em cloud.higgsfield.ai. Sem elas, os endpoints de b-roll respondem 503.
 	// O path do modelo de vídeo é configurável porque varia por modelo (Seedance/Kling/...);

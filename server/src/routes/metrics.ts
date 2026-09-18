@@ -9,7 +9,7 @@ import { z } from "zod";
 
 import { computeMetrics, parseCsv, rowIdentifier, type ComputedMetrics } from "@/lib/metrics";
 import { prisma } from "@/lib/prisma";
-import { agentEnabled, diagnoseMetrics } from "@/lib/specAuthor";
+import { agentDisabledMessage, agentEnabled, diagnoseMetrics } from "@/lib/specAuthor";
 
 const csvSchema = z.object({ csv: z.string().min(1) });
 
@@ -120,7 +120,7 @@ export async function metricsRoutes(app: FastifyInstance): Promise<void> {
 	/** A 2ª IA: diagnostica o que deu certo e o que variar. Gated na ANTHROPIC_API_KEY. */
 	app.post<{ Params: { id: string } }>("/apps/:id/metrics/diagnose", async (request, reply) => {
 		if (!agentEnabled()) {
-			return reply.code(503).send({ error: "análise por IA indisponível: configure ANTHROPIC_API_KEY no servidor" });
+			return reply.code(503).send({ error: agentDisabledMessage("análise") });
 		}
 		const creatives = await prisma.creative.findMany({
 			where: { appId: request.params.id },
