@@ -1,0 +1,41 @@
+# Agente da plataforma: "a máquina local, num container".
+#
+# Traz o toolchain inteiro do fluxo local — tools/ (spec-tool, ingest, transcribe, review,
+# doctor), o render Remotion, a CLI do Higgsfield, whisper e yt-dlp — mais o Codex, para o
+# Codex orquestrar EXATAMENTE o fluxo do AGENTS.md que roda na máquina local. Não há chave de
+# IA: Codex e Higgsfield autenticam por OAuth (montados via CODEX_HOME / HIGGSFIELD).
+#
+# Build context = raiz do repo (ver docker-compose: service `agent`).
+FROM node:22-bookworm-slim
+
+# ffmpeg/yt-dlp: ingestão e download de referência. python+faster-whisper: legenda
+# sincronizada. libs Xorg/nss: Chrome headless do Remotion. git: o Codex espera um repo.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+		ffmpeg python3 python3-pip python-is-python3 git ca-certificates \
+		libnss3 libdbus-1-3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
+		libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
+		libgbm1 libasound2 libpango-1.0-0 libcairo2 fonts-liberation \
+	&& pip3 install --no-cache-dir --break-system-packages yt-dlp faster-whisper \
+	&& rm -rf /var/lib/apt/lists/*
+
+# CLIs de agente e de b-roll/voz — as mesmas do COMECE-AQUI.md local.
+RUN npm i -g @openai/codex @higgsfield/cli
+
+WORKDIR /work
+
+# Deps do Remotion primeiro, para cachear a camada pesada.
+COPY render/package*.json render/
+RUN cd render && npm ci
+
+# O repo inteiro (tools/, apps/, directors/, referencias/, render/, AGENTS.md, .mcp.json).
+# .dockerignore mantém .env/.codex-server/server/web de fora.
+COPY . .
+
+# Baixa o Chrome headless do Remotion agora, para não pagar isso no primeiro render.
+RUN cd render && npx remotion browser ensure || true
+
+ENV CODEX_HOME=/codex-home
+ENV NODE_ENV=production
+
+# Fica de pé; os jobs chegam via runner (codex exec) ou execução direta dos tools.
+CMD ["sleep", "infinity"]

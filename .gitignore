@@ -31,3 +31,6 @@ entrada/*
 
 # OAuth do Codex (server-side) — NUNCA versionar
 .codex-server/
+
+# OAuth do Higgsfield (server-side) — NUNCA versionar
+.higgsfield-server/

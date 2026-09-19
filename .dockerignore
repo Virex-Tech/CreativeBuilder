@@ -1,0 +1,16 @@
+# Segredos — NUNCA entram em imagem
+.env
+.env.*
+.codex-server
+
+# Pesados / não usados pela imagem do agente
+.git
+**/node_modules
+render/out
+references
+entrada
+server
+web
+deploy
+docker-compose*.yml
+*.orig
