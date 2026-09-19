@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { CodexConnect } from "@/components/CodexConnect";
 import { api } from "@/lib/api";
 import { starterSpec } from "@/lib/starterSpec";
 import type { AppRow, CreativeRow } from "@/lib/types";
@@ -117,6 +118,8 @@ export default function AppsPage() {
 				</button>
 			</div>
 			{error ? <p style={{ color: "var(--danger)" }}>{error}</p> : null}
+
+			<CodexConnect />
 
 			{showApp ? (
 				<form onSubmit={createApp} className="panel stack" style={{ padding: 16, marginTop: 16, maxWidth: 460 }}>

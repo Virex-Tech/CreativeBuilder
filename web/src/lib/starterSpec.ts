@@ -29,6 +29,8 @@ export function starterSpec(appId: string, locale: string): CreativeSpec {
 				startMs: 0,
 				durationMs: 2500,
 				timing: "flex",
+				transitionIn: "cut",
+				transitionMs: 250,
 				layers: [{ type: "text", content: "Seu gancho aqui", preset: "hook_stroke", anim: "pop_in" }],
 			},
 			{
@@ -37,6 +39,8 @@ export function starterSpec(appId: string, locale: string): CreativeSpec {
 				startMs: 2500,
 				durationMs: 3000,
 				timing: "flex",
+				transitionIn: "fade",
+				transitionMs: 250,
 				layers: [{ type: "text", content: "Baixe o app", preset: "cta_label", anim: "fade_in" }],
 			},
 		],

@@ -7,6 +7,7 @@ import { env } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
 import { appRoutes } from "@/routes/apps";
 import { authRoutes } from "@/routes/auth";
+import { codexRoutes } from "@/routes/codex";
 import { creativeRoutes } from "@/routes/creatives";
 import { higgsfieldRoutes } from "@/routes/higgsfield";
 import { mediaRoutes } from "@/routes/media";
@@ -67,6 +68,7 @@ export function buildServer() {
 	});
 
 	void app.register(authRoutes);
+	void app.register(codexRoutes);
 	void app.register(appRoutes);
 	void app.register(creativeRoutes);
 	void app.register(renderRoutes);
