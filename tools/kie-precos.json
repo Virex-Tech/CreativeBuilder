@@ -1,0 +1,56 @@
+{
+  "fonte": "https://kie.ai/pricing (tabela lida em 2026-09-21). 1 crédito Kie = US$ 0,005. Preços mudam — confira em kie.ai/pricing se algo parecer fora.",
+  "creditoUsd": 0.005,
+  "modelos": {
+    "kling3": {
+      "nome": "Kling 3.0",
+      "uso": "b-roll realista (ações, ambientes, pessoas sem fala); com ou sem som ambiente",
+      "cobranca": "por_segundo",
+      "duracoes": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+      "resolucoes": ["720p", "1080p"],
+      "creditosPorSegundo": {
+        "720p": { "semAudio": 14, "comAudio": 20 },
+        "1080p": { "semAudio": 18, "comAudio": 27 }
+      }
+    },
+    "kling3-turbo": {
+      "nome": "Kling 3.0 Turbo",
+      "uso": "b-roll mais rápido, sem som",
+      "cobranca": "por_segundo",
+      "duracoes": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+      "resolucoes": ["720p", "1080p"],
+      "creditosPorSegundo": {
+        "720p": { "semAudio": 18 },
+        "1080p": { "semAudio": 22.5 }
+      }
+    },
+    "veo3-fast": {
+      "nome": "Google Veo 3.1 Fast",
+      "uso": "pessoa falando para a câmera (fala e som nativos) — padrão para UGC",
+      "cobranca": "por_video",
+      "duracoes": [8],
+      "resolucoes": ["720p", "1080p"],
+      "creditosPorVideo": { "720p": 60, "1080p": 65 }
+    },
+    "veo3-lite": {
+      "nome": "Google Veo 3.1 Lite",
+      "uso": "pessoa falando, mais barato, qualidade menor",
+      "cobranca": "por_video",
+      "duracoes": [8],
+      "resolucoes": ["720p", "1080p"],
+      "creditosPorVideo": { "720p": 30, "1080p": 35 }
+    },
+    "veo3-quality": {
+      "nome": "Google Veo 3.1 Quality",
+      "uso": "plano principal de altíssima qualidade (caro — só com pedido explícito)",
+      "cobranca": "por_video",
+      "duracoes": [8],
+      "resolucoes": ["720p", "1080p"],
+      "creditosPorVideo": { "720p": 250, "1080p": 255 }
+    }
+  },
+  "observacoes": [
+    "Veo 3.1 Fast 720p: preço inferido (tabela mostra 1080p = 65 créditos); o custo real aparece no saldo depois da geração.",
+    "Voz (ElevenLabs multilingual v2 via Kie): preço não publicado na tabela; o script mostra o saldo antes e depois."
+  ]
+}

@@ -3,10 +3,16 @@
 > **Primeira vez?** Comece por [`COMECE-AQUI.md`](../COMECE-AQUI.md) (instalação e uso sem jargão).
 > Este documento é a referência dos comandos e campos — útil para quem quer entender ou rodar à mão.
 
-Tudo roda **local**: Claude Code (ou Codex) + **Higgsfield CLI** (vídeo, voz) + **Remotion**
-(edição e render). Sem plataforma web e sem API key. O criativo é um **`CreativeSpec`** (JSON) —
-o agente nunca "edita vídeo", ele escreve e reescreve o spec. Contrato dos campos:
-[`render/src/spec.ts`](../render/src/spec.ts).
+Tudo roda **local**: Claude Code (ou Codex) + **Kie.ai** (vídeo, voz, pré-paga, sob demanda) +
+**Remotion** (edição e render). Sem plataforma web. A chave da Kie.ai fica só no computador de
+cada pessoa (variável de ambiente `KIE_API_KEY`) — nunca no repositório. O criativo é um
+**`CreativeSpec`** (JSON) — o agente nunca "edita vídeo", ele escreve e reescreve o spec.
+Contrato dos campos: [`render/src/spec.ts`](../render/src/spec.ts).
+
+O **Higgsfield** continua disponível como alternativa guardada (mensalidade fixa com créditos
+que zeram) — ver seção 5, "Alternativa: Higgsfield". A Kie.ai é o padrão porque cobra só o que
+for gerado e o crédito não expira, o que combina melhor com um volume incerto (até ~130
+clipes/mês, com meses sem uso).
 
 Instruções que o agente segue: [`.claude/skills/criativo/SKILL.md`](../.claude/skills/criativo/SKILL.md)
 (Claude Code) e [`AGENTS.md`](../AGENTS.md) (Codex e outros).
@@ -17,9 +23,12 @@ Instruções que o agente segue: [`.claude/skills/criativo/SKILL.md`](../.claude
 
 - Node 22+, Git, `ffmpeg`/`ffprobe`, `yt-dlp` (referência por link)
 - Python 3 + `python -m pip install faster-whisper` (legenda sincronizada e transcrição)
-- `npm i -g @higgsfield/cli` + `higgsfield auth login` + `higgsfield workspace set <id do plano pago>`
+- Conta na Kie.ai com créditos + chave em https://kie.ai/api-key, exportada como
+  `KIE_API_KEY` (`setx KIE_API_KEY "..."` no PowerShell, depois reabrir o terminal)
 - `cd render && npm ci` uma vez
-- Conferir tudo: `node tools/doctor.mjs`
+- Conferir tudo: `node tools/doctor.mjs` (checa a chave/saldo da Kie.ai; Higgsfield aparece como
+  opcional — `npm i -g @higgsfield/cli` + `higgsfield auth login` + `higgsfield workspace set <id do plano pago>`
+  só é necessário para quem usar a alternativa)
 
 ## 2. Fluxo completo
 
@@ -31,7 +40,7 @@ python tools/transcribe.py references/<nome>/audio.wav --lang pt   # o que é fa
 
 # 2. spec: copie um modelo de render/specs/_modelos/ e preencha (contexto em apps/<slug>/contexto.md)
 
-# 3. material: b-roll e voz no Higgsfield (seções 5 e 6), gravações do app, anexos (seção 7)
+# 3. material: b-roll e voz na Kie.ai (seções 5 e 6), gravações do app, anexos (seção 7)
 
 # 4. legenda sincronizada com a voz (seção 6)
 python tools/transcribe.py render/public/audio/<spec>-vo.mp3 --lang pt
@@ -65,17 +74,53 @@ legenda embaixo, acima da interface das redes).
   **compliance**. Modelo em `apps/_modelo/`.
 - `directors/<slug>.yaml` — ritmo, legenda, câmera, bloco `never` (vence brief e referência).
 
-## 5. Vídeo com o Higgsfield
+## 5. Vídeo com a Kie.ai
 
-Sempre `generate cost` antes e `create` só com ok (gasta créditos). Prompt em inglês, estilo UGC
-real (iPhone na mão, luz natural, pessoa comum), nunca texto/logo/tela de app no prompt.
+Ferramenta: [`tools/kie.mjs`](../tools/kie.mjs) (preços em [`tools/kie-precos.json`](../tools/kie-precos.json),
+1 crédito = US$ 0,005). `gerar` só gasta saldo com `--sim`; sem essa flag mostra o custo e sai —
+rode primeiro sem `--sim`, mostre o custo ao usuário, peça ok e só então repita com `--sim`.
+
+```bash
+node tools/kie.mjs saldo
+node tools/kie.mjs modelos
+node tools/kie.mjs custo   kling3 --duracao 5 --resolucao 720p
+node tools/kie.mjs gerar   kling3 --prompt "..." --saida render/public/broll/<spec>-<cena>.mp4 \
+  --duracao 5 --resolucao 720p --proporcao 9:16 --sim
+# baixa o arquivo na hora (o link da Kie expira em 24h) e grava <arquivo>.kie.json
+# layer generative_video: src = caminho relativo a render/public/, assetId = taskId, provider: "kie"
+```
+
+| Uso | Modelo | Custo aprox. (9:16, 720p, sem som) |
+|---|---|---|
+| b-roll de ação/ambiente (padrão) | `kling3` | 5s ≈ US$ 0,35 (com som ≈ US$ 0,50; 1080p sem som ≈ US$ 0,45) |
+| b-roll mais rápido, sem som | `kling3-turbo` | 5s ≈ US$ 0,45 |
+| pessoa falando para a câmera (fala/som nativos, padrão UGC) | `veo3-fast` (8s) | ≈ US$ 0,30–0,33 |
+| mais barato, qualidade menor | `veo3-lite` (8s) | ≈ US$ 0,15 |
+| plano principal de altíssima qualidade (só com pedido explícito) | `veo3-quality` (8s) | ≈ US$ 1,25 |
+| animar uma foto real | `--imagem <arquivo>` em qualquer modelo (Kling: 1º quadro; Veo: 1º/último) | preço do modelo escolhido |
+
+Prompt em inglês, estilo UGC real (iPhone na mão, luz natural, pessoa comum), nunca texto/logo/tela
+de app no prompt. Veo entrega 720p; 1080p no Veo exige uma etapa extra ainda não automatizada.
+
+**Limitação de áudio:** um clipe gerado com som (Kling `--audio` ou fala do Veo) toca em volume
+cheio no vídeo final — ainda não há mixagem que abaixe esse som sob locução/música. Por isso: cena
+com clipe de som próprio não leva locução (`karaoke`) nem música por cima; cenas com locução usam
+clipe sem som (`kling3` sem `--audio`, ou `kling3-turbo`).
+
+Não deixe a URL da Kie no `src` (expira em 24h) — o script já baixa sozinho.
+
+### Alternativa: Higgsfield
+
+Guardado para quem preferir mensalidade fixa (créditos zeram todo mês) em vez de pré-pago.
+`npm i -g @higgsfield/cli` + `higgsfield auth login` + `higgsfield workspace set <id do plano pago>`.
+Sempre `generate cost` antes e `create` só com ok (gasta créditos).
 
 ```bash
 higgsfield account status
 higgsfield model get kling3_0
 higgsfield generate cost   kling3_0 --prompt "..." --aspect_ratio 9:16 --duration 5 --sound off
 higgsfield generate create kling3_0 --prompt "..." --aspect_ratio 9:16 --duration 5 --sound off --wait --json
-# baixe o result_url para render/public/broll/<spec>-<cena>.mp4 → layer generative_video: src, assetId, provider
+# baixe o result_url para render/public/broll/<spec>-<cena>.mp4 → layer generative_video: src, assetId, provider: "higgsfield"
 ```
 
 | Uso | Modelo | Custo aprox. (9:16) |
@@ -93,10 +138,9 @@ Não deixe a URL do Higgsfield no `src` (expira em ~7 dias) — sempre baixe.
 
 ```bash
 # voz (se não houver gravação própria)
-higgsfield voices list
-higgsfield generate cost text2speech_v2 --prompt "<roteiro falado>" --variant elevenlabs --voice_id <id> --voice_type preset   # ~0,3 cr
-higgsfield generate cost inworld_text_to_speech --prompt "<roteiro>" --voice "Maitê (pt)"                                  # ~2 cr (ou "Heitor (pt)")
-# create com os mesmos flags --wait --json → render/public/audio/<spec>-vo.mp3
+node tools/kie.mjs vozes
+node tools/kie.mjs voz --texto "<roteiro falado>" --saida render/public/audio/<spec>-vo.mp3 \
+  --voz "Ana Rita" --sim   # custo baixo (centavos de dólar); o script mostra o saldo antes/depois
 
 # tempos por palavra (local, grátis; 1ª vez baixa ~460 MB)
 python tools/transcribe.py render/public/audio/<spec>-vo.mp3 --lang pt
@@ -105,12 +149,18 @@ python tools/transcribe.py render/public/audio/<spec>-vo.mp3 --lang pt
 node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/public/audio/<spec>-vo.words.json --fit-scenes
 ```
 
+**Alternativa: Higgsfield** — `higgsfield voices list`,
+`higgsfield generate cost text2speech_v2 --prompt "<roteiro>" --variant elevenlabs --voice_id <id> --voice_type preset`
+(~0,3 cr) ou `higgsfield generate cost inworld_text_to_speech --prompt "<roteiro>" --voice "Maitê (pt)"`
+(~2 cr, ou "Heitor (pt)"); `create` com os mesmos flags `--wait --json` → `render/public/audio/<spec>-vo.mp3`.
+
 - `audio.voiceover`: `src`, `atMs` (quando começa), `durationMs` (duração do arquivo), `script`.
 - `sync-captions` preenche `wordEndsMs` (fim de cada palavra) casando legenda e fala em ordem.
 - `--fit-scenes` ajusta a duração das cenas faladas para cortar no ritmo da voz (entre a última
   palavra de uma cena e a primeira da próxima). Sem ele, `warnings` aponta fala fora da cena.
 - `audio.music` com `duckingDb` abaixa a música enquanto a voz fala. Sem música de terceiros.
-- Trocar a voz de um vídeo pronto: workflow `voice_change`.
+- Trocar a voz de um vídeo pronto: só pela alternativa Higgsfield, workflow `voice_change`
+  (a Kie.ai ainda não tem esse recurso).
 
 ## 7. Material próprio: app, anexos, Google Drive
 
@@ -133,7 +183,8 @@ O spec **nunca** aponta para `entrada/` ou `G:\` — copie o arquivo usado para 
 | `prompt` | `generative_video` | obrigatório — em vídeo real, descreva o clipe |
 
 Analisar anexo: `node tools/ingest-reference.mjs <vídeo>` (imagens) e `python tools/transcribe.py <vídeo>`
-(fala). Gerar a partir de foto: `kling3_0 --start-image <arquivo>`. Rosto real só com autorização.
+(fala). Gerar a partir de foto: `node tools/kie.mjs gerar kling3 --imagem <arquivo> ...` (alternativa
+Higgsfield: `kling3_0 --start-image <arquivo>`). Rosto real só com autorização.
 
 ## 8. Edição
 
@@ -158,8 +209,9 @@ Uma dimensão por variação: `hook_rewrite`, `hook_visual`, `pacing`, `cta`, `v
 `format`, `locale_swap`. O patch traz só as cenas que mudam; clipes são reaproveitados.
 
 Outro idioma: `locale_swap` com textos e karaokê adaptados → voz nova no idioma →
-`transcribe.py --lang <en|es|...>` → `sync-captions --fit-scenes`. Vídeo com pessoa falando:
-workflow `dubbing` (`target_language`: por, spa, eng, fra, deu, ita...).
+`transcribe.py --lang <en|es|...>` → `sync-captions --fit-scenes`. Vídeo com pessoa falando: gere de
+novo no idioma com `veo3-fast` (fala nativa); só na alternativa Higgsfield há o workflow `dubbing`
+pronto (`target_language`: por, spa, eng, fra, deu, ita...).
 
 ## 10. Validação
 

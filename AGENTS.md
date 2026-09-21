@@ -94,11 +94,37 @@ O patch contém só as cenas que mudam (casadas por id); `variant` refaz o `star
 | "faz em espanhol" | `locale_swap` |
 | "versão 4:5 de 15s" | mutação `format` |
 
-## Geração de b-roll — Higgsfield (CLI ou MCP) no agente
+## Geração de b-roll e voz — Kie.ai (padrão) no agente
 
-O b-roll de IA (camadas `generative_video`) é gerado **por este agente**, pela conta
-Higgsfield logada (OAuth, sem API key). Setup uma vez: `npm i -g @higgsfield/cli && higgsfield
-auth login`; o MCP (`https://mcp.higgsfield.ai/mcp`) é opcional — o CLI basta.
+O b-roll de IA (camadas `generative_video`) e a voz são gerados **por este agente**, pela chave
+`KIE_API_KEY` do computador de quem está usando (pré-paga, sob demanda — cada pessoa cria a
+própria conta e chave em https://kie.ai, nunca no repositório). Ferramenta: `node tools/kie.mjs`
+(leia o topo do arquivo e `tools/kie-precos.json` antes de escrever).
+
+```bash
+node tools/kie.mjs saldo
+node tools/kie.mjs modelos
+node tools/kie.mjs custo   kling3 --duracao 5 --resolucao 720p
+node tools/kie.mjs gerar   kling3 --prompt "..." --saida render/public/broll/<spec>-<scene-id>.mp4 \
+  --duracao 5 --resolucao 720p --proporcao 9:16 --sim
+```
+
+Modelos: `kling3` (b-roll, com/sem som via `--audio`), `kling3-turbo` (b-roll rápido, sem som),
+`veo3-fast` (pessoa falando — padrão UGC, 8s, fala/som nativos), `veo3-lite` (mais barato),
+`veo3-quality` (caro, só com pedido explícito). `gerar`/`voz` só gastam saldo com `--sim` — rode
+primeiro sem, mostre o custo em dólares ao usuário, peça ok e só então repita com `--sim`. O
+script baixa o arquivo na hora (o link da Kie expira em 24h) e grava `<arquivo>.kie.json`. Na
+layer: `src` (caminho relativo a `render/public/`), `assetId` (taskId), `provider: "kie"`.
+
+**Limitação de áudio:** clipe gerado com som (Kling `--audio` ou fala do Veo) toca em volume
+cheio — sem mixagem ainda. Cena com clipe de som próprio não leva locução nem música por cima;
+cenas com locução usam clipe sem som.
+
+### Alternativa: Higgsfield
+
+Guardado para quem preferir mensalidade fixa com créditos (zeram todo mês) em vez do pré-pago da
+Kie.ai. Setup uma vez: `npm i -g @higgsfield/cli && higgsfield auth login`; o MCP
+(`https://mcp.higgsfield.ai/mcp`) é opcional — o CLI basta.
 
 ```bash
 higgsfield account status                                  # login + créditos
@@ -107,8 +133,8 @@ higgsfield generate cost   kling3_0 --prompt "..." --aspect_ratio 9:16 --duratio
 higgsfield generate create kling3_0 --prompt "..." --aspect_ratio 9:16 --duration 5 --sound off --wait --json
 ```
 
-Mostre o custo e peça ok antes do `create` (gasta créditos). `--sound off` sempre: o áudio
-vem do Remotion. Baixe o resultado para
+Mostre o custo e peça ok antes do `create` (gasta créditos). `--sound off` por padrão; com
+som só quando a cena pede (ver a limitação de áudio acima). Baixe o resultado para
 `render/public/broll/<spec>-<scene-id>.mp4` e preencha a layer com `src` (esse caminho),
 `assetId` (job id) e `provider: "higgsfield"`. Não deixe a URL do provedor no `src`: expira em
 ~7 dias.
@@ -128,15 +154,18 @@ que é falado num vídeo/áudio, `python tools/transcribe.py <arquivo>`. Para pu
 vídeo sem cortar, `startFromMs` na layer (`generative_video` e `app_screen_recording`). Analise imagens direto e vídeos com `tools/ingest-reference.mjs`. Nunca referencie
 `G:\` no spec: copie só o trecho usado para `render/public/app/<slug>/` (tela do app, ou imagem em
 tela cheia com `device: "none"`) ou `render/public/broll/` (vídeo real em tela cheia, layer
-`generative_video` com `src` + `prompt` descritivo). Como base para o Higgsfield: `kling3_0
---start-image/--end-image <arquivo>` ou `seedance_2_0 --image-references/--video-references
-<arquivo>` — custo e ok antes. Rosto real só com autorização; sem música de terceiros.
+`generative_video` com `src` + `prompt` descritivo). Como base para a Kie.ai: `--imagem <arquivo>`
+em `node tools/kie.mjs gerar <modelo> ...` (Kling: primeiro quadro; Veo: primeiro/último) —
+alternativa Higgsfield: `kling3_0 --start-image/--end-image <arquivo>` ou `seedance_2_0
+--image-references/--video-references <arquivo>` — custo e ok antes. Rosto real só com
+autorização; sem música de terceiros.
 
 ## Locução e legenda sincronizada (karaokê)
 
-1. Locução: áudio do usuário em `render/public/audio/`, ou gere no Higgsfield (custo e ok antes):
-   `text2speech_v2 --prompt "..." --variant elevenlabs --voice_id <id de hf voices list> --voice_type preset`
-   ou `inworld_text_to_speech --prompt "..." --voice "Maitê (pt)"`.
+1. Locução: áudio do usuário em `render/public/audio/`, ou gere na Kie.ai (custo e ok antes):
+   `node tools/kie.mjs voz --texto "..." --saida render/public/audio/<spec>-vo.mp3 --voz "Ana Rita" --sim`
+   (alternativa Higgsfield: `text2speech_v2 --prompt "..." --variant elevenlabs --voice_id <id de hf voices list> --voice_type preset`
+   ou `inworld_text_to_speech --prompt "..." --voice "Maitê (pt)"`).
 2. Spec: `audio.voiceover` com `src`, `atMs`, `durationMs`, `script`; uma layer `karaoke` por cena com
    o trecho falado.
 3. `python tools/transcribe.py render/public/audio/<arquivo> --lang pt`
@@ -159,9 +188,10 @@ automatizada), sem métricas.
 
 ## Escopo: 100% local
 
-O fluxo oficial é **local**: Claude Code (ou outro agente) + Higgsfield CLI + Remotion, sem API key.
-A plataforma web (`web/`, `server/`, `DEPLOY.md`, `docs/ATIVACAO-IA.md`) está **fora de uso** — não
-sugira nem use como caminho padrão. Exceção documentada como **opção futura**: coleta automática
-de criativos vencedores no servidor (`docs/COMO-USAR.md`, seção 11) — só se o usuário pedir.
+O fluxo oficial é **local**: Claude Code (ou outro agente) + Kie.ai (vídeo e voz, chave só no
+computador de cada pessoa) + Remotion. A plataforma web (`web/`, `server/`, `DEPLOY.md`,
+`docs/ATIVACAO-IA.md`) está **fora de uso** — não sugira nem use como caminho padrão. Exceção
+documentada como **opção futura**: coleta automática de criativos vencedores no servidor
+(`docs/COMO-USAR.md`, seção 11) — só se o usuário pedir.
 Antes de entregar qualquer criativo: `node tools/spec-tool.mjs check` e
 `node tools/review.mjs` no MP4 (ver skill `criativo`, seção "Validar antes de entregar").

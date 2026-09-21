@@ -61,13 +61,27 @@
 			"mcp__meta-ads__ads_insights_anomaly_signal",
 			"mcp__meta-ads__ads_insights_auction_ranking_benchmarks",
 			"mcp__meta-ads__ads_insights_industry_benchmark",
-			"mcp__meta-ads__ads_insights_performance_trend"
+			"mcp__meta-ads__ads_insights_performance_trend",
+			"Bash(node tools/kie.mjs saldo*)",
+			"Bash(node tools/kie.mjs custo *)",
+			"Bash(node tools/kie.mjs status *)",
+			"Bash(node tools/kie.mjs modelos*)",
+			"PowerShell(node tools/kie.mjs saldo*)",
+			"PowerShell(node tools/kie.mjs custo *)",
+			"PowerShell(node tools/kie.mjs status *)",
+			"PowerShell(node tools/kie.mjs modelos*)",
+			"Bash(node tools/kie.mjs vozes*)",
+			"PowerShell(node tools/kie.mjs vozes*)"
 		],
 		"ask": [
 			"Bash(higgsfield generate create *)",
 			"PowerShell(higgsfield generate create *)",
 			"Bash(git push*)",
-			"PowerShell(git push*)"
+			"PowerShell(git push*)",
+			"Bash(node tools/kie.mjs gerar *)",
+			"Bash(node tools/kie.mjs voz *)",
+			"PowerShell(node tools/kie.mjs gerar *)",
+			"PowerShell(node tools/kie.mjs voz *)"
 		],
 		"deny": [
 			"mcp__meta-ads__ads_activate_entity",

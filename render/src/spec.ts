@@ -45,11 +45,11 @@ export const textLayer = baseLayer.extend({
 	preset: textPreset.default("sub"),
 });
 
-/** Generated b-roll (Higgsfield / fal). `assetId` is filled once the asset exists. */
+/** Generated b-roll (Kie / Higgsfield / fal). `assetId` is the provider task id once the asset exists. */
 export const generativeVideoLayer = baseLayer.extend({
 	type: z.literal("generative_video"),
 	prompt: z.string().min(1),
-	provider: z.enum(["higgsfield", "fal"]).default("fal"),
+	provider: z.enum(["kie", "higgsfield", "fal"]).default("kie"),
 	assetId: z.string().optional(),
 	src: z.string().optional(),
 	fit: z.enum(["cover", "contain"]).default("cover"),
@@ -159,7 +159,7 @@ export const specAudio = z.object({
 			/** The script, kept for regeneration and for caption alignment. */
 			script: z.string().optional(),
 			voiceId: z.string().optional(),
-			provider: z.enum(["higgsfield", "elevenlabs"]).optional(),
+			provider: z.enum(["kie", "higgsfield", "elevenlabs"]).optional(),
 			/** When the voiceover starts on the timeline. */
 			atMs: z.number().int().min(0).default(0),
 			/**

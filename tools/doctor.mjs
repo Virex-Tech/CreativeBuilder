@@ -21,8 +21,8 @@ function run(cmd, args) {
 	return { ok: r.status === 0, out: `${r.stdout ?? ""}${r.stderr ?? ""}`.trim() };
 }
 
-function check(name, ok, detail, fix) {
-	results.push({ name, ok, detail, fix });
+function check(name, ok, detail, fix, optional = false) {
+	results.push({ name, ok, detail, fix, optional });
 }
 
 // Node
@@ -77,33 +77,69 @@ check(
 	}
 }
 
-// Higgsfield CLI + login
+// Kie.ai — plataforma padrão de geração (vídeo e voz). A chave fica só neste computador.
+{
+	const key = process.env.KIE_API_KEY?.trim();
+	if (!key) {
+		check(
+			"Kie.ai (chave)",
+			false,
+			"KIE_API_KEY não definida",
+			'crie a chave em https://kie.ai/api-key e rode: setx KIE_API_KEY "cole-a-chave"  (depois feche e abra o terminal)',
+		);
+	} else {
+		try {
+			const res = await fetch("https://api.kie.ai/api/v1/chat/credit", {
+				headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+				signal: AbortSignal.timeout(20_000),
+			});
+			const json = await res.json();
+			if (Number(json.code) === 200) {
+				const creditos = Number(json.data);
+				check(
+					"Kie.ai (chave e saldo)",
+					creditos > 0,
+					`${creditos} créditos ≈ US$ ${(creditos * 0.005).toFixed(2)}`,
+					"saldo zerado — recarregue em https://kie.ai (menu Billing)",
+				);
+			} else {
+				check("Kie.ai (chave e saldo)", false, `Kie respondeu ${json.code}: ${json.msg}`, "confira a chave em https://kie.ai/api-key e rode setx KIE_API_KEY de novo");
+			}
+		} catch (e) {
+			check("Kie.ai (chave e saldo)", false, `sem conexão com a Kie: ${e.message}`, "confira a internet e tente de novo");
+		}
+	}
+}
+
+// Higgsfield CLI + login (alternativa guardada — opcional)
 {
 	const v = run("higgsfield", ["--version"]);
 	if (!v.ok) {
-		check("Higgsfield CLI", false, "não encontrado", "npm i -g @higgsfield/cli");
+		check("Higgsfield CLI (opcional)", false, "não encontrado", "só se for usar a alternativa: npm i -g @higgsfield/cli", true);
 	} else {
-		check("Higgsfield CLI", true, v.out.split(" ").slice(0, 2).join(" "), "");
+		check("Higgsfield CLI (opcional)", true, v.out.split(" ").slice(0, 2).join(" "), "", true);
 		const s = run("higgsfield", ["account", "status"]);
 		if (!s.ok) {
 			const workspaceIssue = /workspace/i.test(s.out);
 			check(
-				"Higgsfield logado",
+				"Higgsfield logado (opcional)",
 				false,
 				s.out || "sem login",
 				workspaceIssue
 					? "higgsfield workspace list  →  higgsfield workspace set <ID do workspace com plano pago>"
 					: "higgsfield auth login  (entre com a conta da equipe; use janela anônima se cair na conta errada)",
+				true,
 			);
 		} else {
 			const free = /free plan/i.test(s.out);
 			check(
-				"Higgsfield logado",
+				"Higgsfield logado (opcional)",
 				!free,
 				s.out,
 				free
 					? "conta free — faça  higgsfield auth logout  e  higgsfield auth login  com a conta paga da equipe"
 					: "",
+				true,
 			);
 		}
 	}
@@ -112,10 +148,11 @@ check(
 let missing = 0;
 console.log("\nCreativeBuilder — checagem do ambiente\n");
 for (const r of results) {
-	console.log(`${r.ok ? "✔" : "✘"} ${r.name}: ${r.detail}`);
+	const icone = r.ok ? "✔" : r.optional ? "⚠" : "✘";
+	console.log(`${icone} ${r.name}: ${r.detail}`);
 	if (!r.ok) {
-		missing++;
-		console.log(`    → resolver: ${r.fix}`);
+		if (!r.optional) missing++;
+		console.log(`    → ${r.optional ? "se precisar" : "resolver"}: ${r.fix}`);
 	}
 }
 console.log(

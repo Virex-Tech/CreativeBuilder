@@ -13,13 +13,14 @@ Você pede, por exemplo, *"faz um criativo de 20s pro TapFit sobre não saber o 
 e o Claude Code:
 
 1. escreve o roteiro do vídeo (cenas, textos, tempos);
-2. gera as cenas com IA no **Higgsfield** (pessoas reais, ambientes do dia a dia) e a **voz**;
+2. gera as cenas com IA na **Kie.ai** (pessoas reais, ambientes do dia a dia) e a **voz**;
 3. coloca a **tela real do app** dentro de um celular, se você tiver a gravação;
 4. edita tudo com o **Remotion** — legenda que acompanha a voz palavra por palavra, transições,
    efeitos sonoros — e exporta o **MP4**;
 5. **confere o vídeo** antes de te entregar (cenas vazias, legenda fora de sincronia, texto ilegível).
 
-Tudo roda **no seu computador**. Não existe chave de API para configurar.
+Tudo roda **no seu computador**. A chave da Kie.ai fica só no seu computador (configurada uma
+vez, na instalação) — nada de chave guardada no projeto ou no GitHub.
 
 ---
 
@@ -29,7 +30,8 @@ Tudo roda **no seu computador**. Não existe chave de API para configurar.
 |---|---|---|
 | **GitHub** com acesso ao repositório `Virex-Tech/CreativeBuilder` | baixar o projeto e compartilhar o que você fizer | peça o convite ao responsável |
 | **Claude** (plano Pro, Max ou Team) | usar o Claude Code | peça o acesso ao responsável ou use o seu |
-| **Higgsfield** da equipe (plano pago) | gerar os vídeos de IA | peça o login ao responsável — **não use conta free** |
+| **Kie.ai** (pré-paga) | gerar os vídeos e a voz de IA | você mesmo cria em https://kie.ai e coloca créditos (ex.: US$ 5 para começar) — passo 3.2 |
+| **Higgsfield** da equipe (opcional — só para a alternativa guardada) | gerar vídeos de IA pelo Higgsfield em vez da Kie.ai | peça o login ao responsável — **não use conta free** — veja "Alternativa: Higgsfield" (3.5) |
 
 ---
 
@@ -70,17 +72,35 @@ Se aparecer uma pergunta sobre termos, digite `Y` e Enter.
 > **Importante:** depois disso, **feche o PowerShell e abra de novo**. Sem isso o Windows não
 > "enxerga" os programas novos.
 
-### 3.2 Ferramenta do Higgsfield e da legenda sincronizada
+### 3.2 Configurar a Kie.ai (chave)
+
+A Kie.ai é a plataforma **padrão** para gerar vídeo e voz por IA: pré-paga, você só paga o que
+gerar e o crédito não expira.
+
+1. Crie a conta em https://kie.ai.
+2. Coloque créditos (ex.: US$ 5 para começar).
+3. Gere a chave em https://kie.ai/api-key.
+4. No PowerShell:
+
+   ```powershell
+   setx KIE_API_KEY "cole-a-chave-aqui"
+   ```
+
+5. **Feche e abra o PowerShell/VS Code** de novo — sem isso o comando não enxerga a chave nova.
+
+A chave fica só no seu computador (variável de ambiente do Windows) — **nunca** vai para o
+GitHub nem para nenhum arquivo do projeto. Cada pessoa da equipe cria a sua.
+
+### 3.3 Ferramenta da legenda sincronizada
 
 ```powershell
-npm i -g @higgsfield/cli
 python -m pip install faster-whisper
 ```
 
 A primeira legenda sincronizada baixa um arquivo de ~460 MB (modelo de transcrição) — é uma vez só.
 Se aparecer um aviso amarelo sobre *symlinks* ou *Developer Mode*, pode ignorar.
 
-### 3.3 Baixar o projeto
+### 3.4 Baixar o projeto
 
 ```powershell
 git clone https://github.com/Virex-Tech/CreativeBuilder.git C:\Projects\creativebuilder
@@ -92,9 +112,15 @@ cd ..
 O `git clone` pode abrir uma janela pedindo login no GitHub — entre com a sua conta. O
 `npm ci` demora alguns minutos.
 
-### 3.4 Entrar no Higgsfield
+### 3.5 Alternativa: Higgsfield (opcional)
+
+O Higgsfield continua funcionando como alternativa guardada, mas não é mais o passo padrão: ele
+cobra mensalidade fixa com créditos que zeram todo mês, e o volume da equipe é incerto (até
+~130 clipes/mês, com meses sem uso nenhum) — a Kie.ai cobra só o que for gerado. Pule esta seção
+se for usar só a Kie.ai.
 
 ```powershell
+npm i -g @higgsfield/cli
 higgsfield auth login
 ```
 
@@ -118,7 +144,7 @@ copie o valor da primeira coluna, `ID` — é um código longo parecido com
 higgsfield workspace set COLE_O_ID_AQUI
 ```
 
-### 3.5 Conferir se está tudo certo
+### 3.6 Conferir se está tudo certo
 
 Continue no mesmo PowerShell:
 
@@ -127,7 +153,9 @@ cd C:\Projects\creativebuilder
 node tools/doctor.mjs
 ```
 
-Tem que aparecer **✔** em tudo e a frase *"Tudo pronto"*.
+Tem que aparecer **✔** em tudo e a frase *"Tudo pronto"*. A chave e o saldo da Kie.ai são
+obrigatórios; o Higgsfield aparece como opcional (só entra na checagem se você configurou a
+alternativa).
 
 Na primeira vez é normal aparecer um ou mais **✘** e a frase *"N item(ns) para resolver"*.
 Embaixo de cada **✘** vem o comando que resolve. Para cada um: rode o comando, **feche e abra o
@@ -242,8 +270,8 @@ caminho da pasta:
 O que dá para fazer com o material do Drive:
 - **Analisar** vídeos (cortes e cenas) e imagens.
 - **Usar na edição:** vídeo real em tela cheia, gravação/print do app com ou sem o celular em volta.
-- **Gerar no Higgsfield a partir dele:** uma foto vira o começo ou o fim do clipe gerado, ou serve
-  de referência de cenário/estilo. Gasta créditos — ele pergunta antes.
+- **Gerar na Kie.ai a partir dele:** uma foto vira o primeiro quadro do clipe (Kling) ou o
+  primeiro/último quadro (Veo). Gasta saldo — ele mostra o custo em dólares e pergunta antes.
 
 Cuidados:
 - Na primeira vez ele pede permissão para ler a pasta do Drive: clique em **Allow**.
@@ -278,8 +306,8 @@ Ele traduz adaptando (não ao pé da letra), gera a voz no idioma e sincroniza a
 > usa a minha gravação entrada/ozempro/narracao.m4a como locução e deixa a legenda destacando
 > palavra por palavra
 
-Gerar a locução no Higgsfield custa pouco (de 0,3 a 2 créditos) — ele pergunta antes. A legenda
-sincronizada é feita no seu computador, sem custo.
+Gerar a locução na Kie.ai custa poucos centavos de dólar — ele mostra o custo e pergunta antes.
+A legenda sincronizada é feita no seu computador, sem custo.
 
 **Análise de resultado** (depois que o anúncio rodou)
 1. No Gerenciador de Anúncios da Meta, exporte o relatório em CSV.
@@ -289,7 +317,7 @@ sincronizada é feita no seu computador, sem custo.
 ### O que esperar em cada pedido
 
 1. Ele mostra o **roteiro** antes de começar — confira e responda "ok" ou peça mudanças.
-2. Antes de gerar vídeo de IA, ele mostra **quanto custa em créditos** e pede seu ok.
+2. Antes de gerar vídeo de IA, ele mostra **quanto custa em dólares** e pede seu ok.
 3. Ele mostra **imagens de preview** antes do vídeo final.
 4. Depois do vídeo pronto, ele **confere o vídeo inteiro** (uma folha com vários quadros e o
    volume do áudio) e corrige o que estiver errado antes de te mostrar. Na primeira voz de um app,
@@ -298,7 +326,7 @@ sincronizada é feita no seu computador, sem custo.
 
 Quando ele pedir permissão para rodar algum comando, leia e clique em **Allow**. Os comandos
 normais da ferramenta já estão liberados; ele só pergunta o que é diferente — e **sempre**
-pergunta antes de gastar créditos do Higgsfield.
+pergunta antes de gastar saldo da Kie.ai (ou créditos, se você usar a alternativa Higgsfield).
 
 ### Como escrever um bom pedido
 
@@ -331,8 +359,9 @@ Quanto mais contexto, melhor o resultado. Um pedido completo diz:
 
 ## 6. Regras da equipe
 
-- **Créditos do Higgsfield são limitados.** Um clipe de 5s custa ~6,25 créditos. Só aprove
-  geração quando o roteiro já estiver certo. Reaproveite clipes nas variações (é automático).
+- **O saldo da Kie.ai é pré-pago e limitado ao que foi carregado.** Um clipe de 5s (Kling 3.0,
+  sem som, 720p) custa ~US$ 0,35. Só aprove geração quando o roteiro já estiver certo. Reaproveite
+  clipes nas variações (é automático).
 - **A tela do app nunca é gerada por IA.** Sempre gravação ou print real. IA erra letras e
   mostra coisas que o app não tem.
 - **Preview antes do vídeo final.** Sempre olhe as imagens de preview.
@@ -361,7 +390,7 @@ Os MP4 finais (`render/out/`) **não** vão para o GitHub — mande pelo canal d
 | `referencias/<app>/` | **criativos que deram certo**: ranking (`README.md`) e uma ficha por anúncio |
 | `render/specs/` | os roteiros dos criativos (arquivos `.json`) |
 | `render/public/app/<app>/` | **você coloca** gravações de tela e prints do app |
-| `render/public/broll/` | clipes gerados no Higgsfield |
+| `render/public/broll/` | clipes gerados na Kie.ai (ou no Higgsfield, se usar a alternativa) |
 | `render/out/` | **vídeos finais** (MP4) e previews |
 | `references/` | referências analisadas (frames e áudio) — fica só no seu computador |
 | `directors/` | regras de edição de cada app (ritmo, legendas) |
@@ -377,12 +406,13 @@ Os MP4 finais (`render/out/`) **não** vão para o GitHub — mande pelo canal d
 | Problema | Solução |
 |---|---|
 | O `doctor.mjs` mostra **✘** num programa que você acabou de instalar, ou aparece *"o termo 'git' (ou node, python...) não é reconhecido"* | O terminal ainda não enxerga o programa novo. Feche **todas** as janelas do PowerShell **e do VS Code** e abra de novo. Para resolver sem fechar, cole no PowerShell: `$env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')` |
-| `a execução de scripts foi desabilitada neste sistema` (ao rodar `npm` ou `higgsfield`) | Rode `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`, responda `S` e tente de novo. |
+| `a execução de scripts foi desabilitada neste sistema` (ao rodar `npm` ou, na alternativa, `higgsfield`) | Rode `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`, responda `S` e tente de novo. |
 | Digitar `python` abre a Microsoft Store ou diz que não encontrou | Menu Iniciar → **Configurações** → **Aplicativos** → **Configurações avançadas de aplicativos** → **Aliases de execução de aplicativo** → desligue **python.exe** e **python3.exe**. Feche e abra o PowerShell. |
 | `... não é reconhecido como nome de cmdlet` | Feche e abra o PowerShell/VS Code. Se continuar, rode `node tools/doctor.mjs` e siga o que ele disser. |
-| Higgsfield diz `free plan` | Entrou na conta errada. Veja o passo 3.4 (logout + login em janela anônima). |
-| Higgsfield dá erro `workspace_membership_required` | Rode `higgsfield workspace list` e `higgsfield workspace set <ID do plano pago>`. |
-| Acabaram os créditos | Avise o responsável. Enquanto isso, dá para fazer variações de texto/ritmo reaproveitando clipes já gerados. |
+| A Kie.ai avisa `KIE_API_KEY não está definida` ou "chave inválida" | Repita o passo 3.2 (gerar a chave e rodar o `setx`) e feche/abra o PowerShell. |
+| A Kie.ai avisa "créditos insuficientes" | Saldo acabou — recarregue em https://kie.ai. Enquanto isso, dá para fazer variações de texto/ritmo reaproveitando clipes já gerados. |
+| (Alternativa Higgsfield) Higgsfield diz `free plan` | Entrou na conta errada. Veja o passo 3.5 (logout + login em janela anônima). |
+| (Alternativa Higgsfield) Higgsfield dá erro `workspace_membership_required` | Rode `higgsfield workspace list` e `higgsfield workspace set <ID do plano pago>`. |
 | A palavra destacada na legenda não acompanha a voz | Peça: *"ressincroniza a legenda com a locução"*. Se continuar, o texto da legenda está diferente do que é falado — peça para igualar. |
 | No vídeo aparece um quadro escrito **B-ROLL** ou **APP SCREEN** | No exemplo do primeiro teste: peça *"atualiza o projeto"* (o clipe vem do GitHub). Em criativo novo: falta o clipe ou a gravação daquela cena. Peça para gerar o b-roll ou coloque a gravação em `render/public/app/<app>/`. |
 | Referência por link não baixa | Rode `winget upgrade yt-dlp.yt-dlp` e tente de novo. Se não der, baixe o vídeo e coloque o arquivo na pasta do projeto. |

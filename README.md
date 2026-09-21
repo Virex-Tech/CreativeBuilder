@@ -1,8 +1,10 @@
 # CreativeBuilder
 
 Cria vídeos de anúncio para apps a partir de uma referência ou de uma ideia. Você conversa com
-o **Claude Code**; ele escreve o roteiro (`CreativeSpec`), gera vídeo e voz no **Higgsfield** (CLI,
-sem API key) e edita o MP4 com o **Remotion** — tudo **local**, na máquina de quem usa.
+o **Claude Code**; ele escreve o roteiro (`CreativeSpec`), gera vídeo e voz na **Kie.ai**
+(`tools/kie.mjs`, pré-paga — a chave fica só no seu computador) e edita o MP4 com o **Remotion** —
+tudo **local**, na máquina de quem usa. O **Higgsfield** segue disponível como alternativa
+guardada (mensalidade fixa em vez de pré-paga).
 
 **Primeira vez? Leia [COMECE-AQUI.md](COMECE-AQUI.md).** Instalação, primeiro teste e pedidos
 prontos para copiar.
@@ -20,7 +22,7 @@ node tools/doctor.mjs
 | [COMECE-AQUI.md](COMECE-AQUI.md) | quem vai usar — passo a passo sem jargão |
 | [render/specs/_modelos/LEIA-ME.md](render/specs/_modelos/LEIA-ME.md) | os modelos de vídeo (100% IA, com app, imagem no final) |
 | [apps/](apps/) | contexto de cada app (produto, público, marca, regras de anúncio) |
-| [docs/COMO-USAR.md](docs/COMO-USAR.md) | referência técnica: comandos, campos do spec, Higgsfield, legenda |
+| [docs/COMO-USAR.md](docs/COMO-USAR.md) | referência técnica: comandos, campos do spec, Kie.ai (e alternativa Higgsfield), legenda |
 | [AGENTS.md](AGENTS.md) · [.claude/skills/criativo/SKILL.md](.claude/skills/criativo/SKILL.md) | instruções que o agente segue |
 | [render/README.md](render/README.md) | renderer Remotion (layers, edição, áudio) |
 
