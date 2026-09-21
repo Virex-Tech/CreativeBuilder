@@ -120,6 +120,19 @@ layer: `src` (caminho relativo a `render/public/`), `assetId` (taskId), `provide
 cheio — sem mixagem ainda. Cena com clipe de som próprio não leva locução nem música por cima;
 cenas com locução usam clipe sem som.
 
+**Testado em 21/09/2026 (conta real):**
+- **Veo 3.1 Fast** funcionou: 8s, 720×1280, com fala em português e áudio, ~2 min para gerar,
+  60 créditos (US$ 0,30) exatos — resultado de selfie UGC muito realista.
+- **Prompt com fala entre aspas:** grave o prompt num arquivo e use `--prompt-arquivo <arquivo.txt>`
+  (voz: `--texto-arquivo`). No PowerShell, aspas duplas no meio do argumento cortam o prompt — o
+  primeiro teste saiu com a fala inventada por isso. Rodar sem `--sim` mostra início, fim e
+  tamanho do prompt: confira antes de gastar.
+- **Voz ElevenLabs pela Kie** falhou 3 vezes com erro interno deles ("Internal Error", sem
+  cobrança). Até voltar: use a fala nativa do Veo (pessoa falando), gravação própria em
+  `render/public/audio/`, ou a alternativa Higgsfield (`text2speech_v2`). Tente de novo de vez em quando.
+- **Kling 3.0** ainda não foi gerado de verdade (usa o mesmo endpoint da voz, que respondeu
+  normalmente à criação da tarefa).
+
 ### Alternativa: Higgsfield
 
 Guardado para quem preferir mensalidade fixa com créditos (zeram todo mês) em vez do pré-pago da

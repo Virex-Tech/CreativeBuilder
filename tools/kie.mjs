@@ -13,6 +13,10 @@
  *   node tools/kie.mjs voz --texto "..." --saida render/public/audio/x.mp3 [--voz "Ana Rita"] [--velocidade 1] --sim
  *   node tools/kie.mjs status <taskId> [--veo]
  *
+ * Prompt ou texto longos (ou com aspas): use --prompt-arquivo / --texto-arquivo <arquivo.txt>. O
+ * PowerShell do Windows corta argumentos com aspas duplas no meio — foi assim que um teste de Veo
+ * saiu com a fala errada.
+ *
  * `gerar` e `voz` só gastam créditos com `--sim`; sem ele mostram o custo e saem. Isso é uma
  * trava deliberada: quem opera não é técnico, e uma geração errada custa dinheiro de verdade.
  */
@@ -249,13 +253,22 @@ async function saldo() {
 
 // ---------- comandos ----------
 
+async function lerArquivoSe(f, campo, flag) {
+	if (f[flag]) f[campo] = (await readFile(resolve(f[flag]), "utf8")).trim();
+}
+
+function previa(texto) {
+	return { inicio: texto.slice(0, 140) + (texto.length > 140 ? "…" : ""), fim: texto.length > 140 ? "…" + texto.slice(-80) : undefined, caracteres: texto.length };
+}
+
 async function cmdGerar(nome, f) {
-	if (!f.prompt) erro("falta --prompt");
+	await lerArquivoSe(f, "prompt", "prompt-arquivo");
+	if (!f.prompt) erro("falta --prompt (ou --prompt-arquivo arquivo.txt)");
 	if (!f.saida) erro("falta --saida (ex.: render/public/broll/app-cena.mp4)");
 	const est = estimar(nome, f);
 	const veo = nome.startsWith("veo3");
 	if (!f.sim) {
-		console.log(JSON.stringify({ ...est, aviso: "nada foi gerado — rode de novo com --sim para gastar os créditos" }, null, 2));
+		console.log(JSON.stringify({ ...est, prompt: previa(f.prompt), aviso: "nada foi gerado — confira se o prompt está inteiro e rode de novo com --sim" }, null, 2));
 		return;
 	}
 	const antes = await saldo();
@@ -327,14 +340,15 @@ async function cmdGerar(nome, f) {
 }
 
 async function cmdVoz(f) {
-	if (!f.texto) erro('falta --texto "roteiro falado"');
+	await lerArquivoSe(f, "texto", "texto-arquivo");
+	if (!f.texto) erro('falta --texto "roteiro falado" (ou --texto-arquivo arquivo.txt)');
 	if (!f.saida) erro("falta --saida (ex.: render/public/audio/app-vo.mp3)");
 	const nomeVoz = f.voz ?? VOZ_PADRAO;
 	const voice = VOZES[nomeVoz] ?? nomeVoz; // aceita nome da lista ou ID direto
 	if (!f.sim) {
 		console.log(
 			JSON.stringify(
-				{ voz: nomeVoz, caracteres: f.texto.length, aviso: "nada foi gerado — rode de novo com --sim (custo baixo; o saldo é mostrado depois)" },
+				{ voz: nomeVoz, texto: previa(f.texto), aviso: "nada foi gerado — rode de novo com --sim (custo baixo; o saldo é mostrado depois)" },
 				null,
 				2,
 			),
@@ -355,7 +369,15 @@ async function cmdVoz(f) {
 		input,
 	});
 	console.error(`tarefa de voz criada: ${taskId} (${nomeVoz})`);
-	const data = await esperar(taskId, false, { timeoutMin: 5, intervaloS: 3 });
+	let data;
+	try {
+		data = await esperar(taskId, false, { timeoutMin: 5, intervaloS: 3 });
+	} catch (e) {
+		throw new Error(
+			`${e.message}
+  A voz da Kie falhou do lado deles (não cobra). Tente de novo mais tarde; se continuar, use a voz nativa do Veo (pessoa falando) ou a alternativa Higgsfield (text2speech_v2).`,
+		);
+	}
 	const url = urlsResultado(data)[0];
 	if (!url) throw new Error(`a voz terminou mas não achei a URL: ${JSON.stringify(data).slice(0, 300)}`);
 	await baixar(url, f.saida);
