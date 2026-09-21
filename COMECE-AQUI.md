@@ -86,6 +86,10 @@ gerar e o crédito não expira.
    setx KIE_API_KEY "cole-a-chave-aqui"
    ```
 
+   Troque `cole-a-chave-aqui` pela chave que você copiou do site. **Mantenha as aspas** e **não
+   coloque ponto nem espaço no final**. Tem que aparecer *"ÊXITO: o valor especificado foi salvo"*
+   (ou *"SUCCESS: Specified value was saved"*).
+
 5. **Feche e abra o PowerShell/VS Code** de novo — sem isso o comando não enxerga a chave nova.
 
 A chave fica só no seu computador (variável de ambiente do Windows) — **nunca** vai para o
@@ -406,6 +410,7 @@ Os MP4 finais (`render/out/`) **não** vão para o GitHub — mande pelo canal d
 | Problema | Solução |
 |---|---|
 | O `doctor.mjs` mostra **✘** num programa que você acabou de instalar, ou aparece *"o termo 'git' (ou node, python...) não é reconhecido"* | O terminal ainda não enxerga o programa novo. Feche **todas** as janelas do PowerShell **e do VS Code** e abra de novo. Para resolver sem fechar, cole no PowerShell: `$env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')` |
+| `setx` mostra *"Invalid syntax. Default option is not allowed more than '2' time(s)"* | Sobrou algo depois das aspas (ponto, espaço, outra palavra). Rode de novo só `setx KIE_API_KEY "sua-chave"`, sem nada no final. |
 | `a execução de scripts foi desabilitada neste sistema` (ao rodar `npm` ou, na alternativa, `higgsfield`) | Rode `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`, responda `S` e tente de novo. |
 | Digitar `python` abre a Microsoft Store ou diz que não encontrou | Menu Iniciar → **Configurações** → **Aplicativos** → **Configurações avançadas de aplicativos** → **Aliases de execução de aplicativo** → desligue **python.exe** e **python3.exe**. Feche e abra o PowerShell. |
 | `... não é reconhecido como nome de cmdlet` | Feche e abra o PowerShell/VS Code. Se continuar, rode `node tools/doctor.mjs` e siga o que ele disser. |
