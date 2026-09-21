@@ -53,6 +53,10 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 							textShadow: style.textShadow,
 							maxWidth: style.maxWidth,
 							textAlign: style.textAlign,
+							background: style.background,
+							padding: style.padding,
+							borderRadius: style.borderRadius,
+							boxShadow: style.boxShadow,
 							// Long locales (PT/ES run 20-30% longer than EN) must shrink, not overflow.
 							overflowWrap: "break-word",
 						}}
@@ -235,9 +239,9 @@ const Karaoke: React.FC<{
 					gap: "0 18px",
 					maxWidth: "88%",
 					fontFamily: brand.fontFamily,
-					fontSize: 58,
+					fontSize: 66,
 					fontWeight: 800,
-					lineHeight: 1.15,
+					lineHeight: 1.25,
 					textAlign: "center",
 					textShadow: "0 4px 16px rgba(0,0,0,0.85)",
 				}}
@@ -245,7 +249,12 @@ const Karaoke: React.FC<{
 				{words.map((w, i) => (
 					<span
 						key={`${w}-${String(i)}`}
-						style={{ color: i === activeIndex ? brand.accent : brand.fg }}
+						// The spoken word gets a brand-colour box: coloured text alone vanishes over bright footage.
+						style={
+							i === activeIndex
+								? { color: brand.fg, background: brand.accent, borderRadius: 14, padding: "0 14px", textShadow: "none" }
+								: { color: brand.fg, padding: "0 2px" }
+						}
 					>
 						{w}
 					</span>

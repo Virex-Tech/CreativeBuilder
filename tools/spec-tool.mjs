@@ -12,7 +12,7 @@
  *   node tools/spec-tool.mjs check   <spec.json>
  *   node tools/spec-tool.mjs variant <spec.json> --mutation hook_rewrite --patch patch.json [--id cr_x]
  *   node tools/spec-tool.mjs diff    <a.json> <b.json>
- *   node tools/spec-tool.mjs sync-captions <spec.json> --words <voz.words.json> [--fit-scenes]
+ *   node tools/spec-tool.mjs sync-captions <spec.json> --words <voz.words.json> [--fit-scenes] [--chunk 4]
  */
 
 import { execFile } from "node:child_process";
@@ -441,6 +441,39 @@ async function cmdSyncCaptions(specPath, opts) {
 		layers.push({ scene: scene.id, words: tokens.length, matched, outOfWindow, applied: true });
 	}
 
+	if (opts.chunk > 0) {
+		// Feed-style captions: a few words at a time, each chunk on screen exactly while it is
+		// spoken. A whole sentence in three lines reads as a transcript, not as an ad.
+		for (const scene of spec.scenes) {
+			scene.layers = scene.layers.flatMap((layer) => {
+				if (layer.type !== "karaoke" || !layer.wordEndsMs) return [layer];
+				const words = layer.text.split(/\s+/).filter(Boolean);
+				const ends = layer.wordEndsMs;
+				const base = layer.startMs ?? 0;
+				const layerDur = layer.durationMs ?? scene.durationMs - base;
+				const groups = [];
+				let cur = [];
+				words.forEach((w, i) => {
+					cur.push(i);
+					if (cur.length >= opts.chunk || (/[.,!?;:]$/.test(w) && cur.length >= 2)) groups.push(cur), (cur = []);
+				});
+				if (cur.length) groups.push(cur);
+				return groups.map((g, gi) => {
+					const from = g[0] === 0 ? 0 : ends[g[0] - 1];
+					const to = gi === groups.length - 1 ? layerDur : ends[g.at(-1)];
+					return {
+						type: "karaoke",
+						anim: layer.anim,
+						text: g.map((i) => words[i]).join(" "),
+						startMs: base + from,
+						durationMs: Math.max(1, to - from),
+						wordEndsMs: g.map((i) => Math.max(1, ends[i] - from)),
+					};
+				});
+			});
+		}
+	}
+
 	const out = opts.out ?? specPath;
 	await writeJson(out, spec);
 	const warnings = layers
@@ -473,7 +506,7 @@ const commands = {
 			out: flag("out"),
 		}),
 	diff: () => cmdDiff(rest[0], rest[1]),
-	"sync-captions": () => cmdSyncCaptions(rest[0], { words: flag("words"), out: flag("out"), fitScenes: rest.includes("--fit-scenes") }),
+	"sync-captions": () => cmdSyncCaptions(rest[0], { words: flag("words"), out: flag("out"), fitScenes: rest.includes("--fit-scenes"), chunk: Number(flag("chunk") ?? 0) }),
 };
 
 if (!commands[cmd]) {

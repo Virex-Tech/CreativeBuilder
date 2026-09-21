@@ -44,7 +44,7 @@ python tools/transcribe.py references/<nome>/audio.wav --lang pt   # o que é fa
 
 # 4. legenda sincronizada com a voz (seção 6)
 python tools/transcribe.py render/public/audio/<spec>-vo.mp3 --lang pt
-node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/public/audio/<spec>-vo.words.json --fit-scenes
+node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/public/audio/<spec>-vo.words.json --fit-scenes --chunk 4
 
 # 5. validar, preview, render, revisar
 node tools/spec-tool.mjs check render/specs/<spec>.json
@@ -159,7 +159,7 @@ node tools/kie.mjs voz --texto "<roteiro falado>" --saida render/public/audio/<s
 python tools/transcribe.py render/public/audio/<spec>-vo.mp3 --lang pt
 
 # legenda: uma layer karaoke por cena com o trecho falado; depois:
-node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/public/audio/<spec>-vo.words.json --fit-scenes
+node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/public/audio/<spec>-vo.words.json --fit-scenes --chunk 4
 ```
 
 **Alternativa: Higgsfield** — `higgsfield voices list`,
@@ -169,6 +169,8 @@ node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/p
 
 - `audio.voiceover`: `src`, `atMs` (quando começa), `durationMs` (duração do arquivo), `script`.
 - `sync-captions` preenche `wordEndsMs` (fim de cada palavra) casando legenda e fala em ordem.
+- `--chunk 4` divide a legenda em blocos de até 4 palavras (quebra na pontuação), cada bloco na tela
+  só enquanto é falado — estilo Reels/TikTok. A palavra falada ganha um quadro na cor `accent`.
 - `--fit-scenes` ajusta a duração das cenas faladas para cortar no ritmo da voz (entre a última
   palavra de uma cena e a primeira da próxima). Sem ele, `warnings` aponta fala fora da cena.
 - `audio.music` com `duckingDb` abaixa a música enquanto a voz fala. Sem música de terceiros.
@@ -222,7 +224,7 @@ Uma dimensão por variação: `hook_rewrite`, `hook_visual`, `pacing`, `cta`, `v
 `format`, `locale_swap`. O patch traz só as cenas que mudam; clipes são reaproveitados.
 
 Outro idioma: `locale_swap` com textos e karaokê adaptados → voz nova no idioma →
-`transcribe.py --lang <en|es|...>` → `sync-captions --fit-scenes`. Vídeo com pessoa falando: gere de
+`transcribe.py --lang <en|es|...>` → `sync-captions --fit-scenes --chunk 4`. Vídeo com pessoa falando: gere de
 novo no idioma com `veo3-fast` (fala nativa); só na alternativa Higgsfield há o workflow `dubbing`
 pronto (`target_language`: por, spa, eng, fra, deu, ita...).
 

@@ -159,6 +159,11 @@ export interface TextStyle {
 	textAlign: "center" | "left";
 	bottom?: number;
 	top?: number;
+	/** Pill behind the text — for calls to action that must read as a button, not a caption. */
+	background?: string;
+	padding?: string;
+	borderRadius?: number;
+	boxShadow?: string;
 }
 
 /**
@@ -182,13 +187,20 @@ export function resolveTextPreset(preset: TextPreset, brand: BrandKit): TextStyl
 				bottom: 580,
 			};
 		case "cta_label":
+			// A CTA reads as a tappable pill in the brand colour, sitting above the caption band —
+			// loose white text over a face looks like a subtitle, not an offer.
 			return {
-				fontSize: 68,
+				fontSize: 60,
 				fontWeight: 800,
 				lineHeight: 1.1,
 				color: brand.fg,
 				maxWidth: "84%",
 				textAlign: "center",
+				bottom: 640,
+				background: brand.accent,
+				padding: "22px 48px",
+				borderRadius: 999,
+				boxShadow: "0 14px 40px rgba(0,0,0,0.35)",
 			};
 		case "caption":
 			return {

@@ -182,7 +182,7 @@ autorização; sem música de terceiros.
 2. Spec: `audio.voiceover` com `src`, `atMs`, `durationMs`, `script`; uma layer `karaoke` por cena com
    o trecho falado.
 3. `python tools/transcribe.py render/public/audio/<arquivo> --lang pt`
-4. `node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/public/audio/<arquivo>.words.json --fit-scenes`
+4. `node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/public/audio/<arquivo>.words.json --fit-scenes --chunk 4`
    → preenche `wordEndsMs` e ajusta as cenas ao ritmo da voz; depois `check` (clipes ainda cobrem as cenas).
 5. Stills em momentos da fala para conferir a palavra destacada.
 

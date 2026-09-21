@@ -347,7 +347,7 @@ A layer `karaoke` destaca a palavra falada na cor `accent`. Para o destaque segu
    `durationMs` (duração do arquivo — `ffprobe`) e `script`.
 3. **Legenda:** uma layer `karaoke` por cena com **exatamente o trecho falado** naquela cena.
 4. **Tempos:** `python tools/transcribe.py render/public/audio/<arquivo> --lang pt` → `<arquivo>.words.json`.
-5. **Sincronizar:** `node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/public/audio/<arquivo>.words.json --fit-scenes`
+5. **Sincronizar:** `node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/public/audio/<arquivo>.words.json --fit-scenes --chunk 4`
    → preenche `wordEndsMs` e, com `--fit-scenes`, ajusta a duração das cenas faladas para cortar no
    ritmo da voz (use sempre, salvo cena `locked` que precise manter tempo). Resultado sem `warnings`.
    Depois confira se os clipes ainda cobrem as cenas (`check`).

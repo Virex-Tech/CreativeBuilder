@@ -36,5 +36,5 @@ O Claude preenche nesta ordem e só entrega quando o `check` passar sem erros:
 
 1. copia o modelo para `render/specs/<app>-<nome>.json` e troca os textos pelo contexto do app;
 2. gera ou recebe os vídeos/imagens de cada cena (`src`);
-3. gera a voz, transcreve e roda `sync-captions --fit-scenes`;
+3. gera a voz, transcreve e roda `sync-captions --fit-scenes --chunk 4`;
 4. `check` → preview → MP4 → `review.mjs`.
