@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Cliente da Kie.ai para o CreativeBuilder: gera vídeo (Kling 3.0, Veo 3.1) e voz (ElevenLabs),
+ * Cliente da Kie.ai para o CreativeBuilder: gera vídeo (Kling 3.0, Seedance 1.5 Pro, Veo 3.1) e voz (ElevenLabs),
  * espera terminar e baixa o arquivo. A chave fica na variável de ambiente KIE_API_KEY do
  * computador de cada pessoa — nunca no repositório.
  *
@@ -291,6 +291,17 @@ async function cmdGerar(nome, f) {
 			body.generationType = "FIRST_AND_LAST_FRAMES_2_VIDEO";
 		}
 		taskId = (await api("POST", "/api/v1/veo/generate", body)).taskId;
+	} else if (nome === "seedance-1.5") {
+		const input = {
+			prompt: f.prompt,
+			aspect_ratio: proporcao,
+			resolution: est.resolucao,
+			duration: est.duracao,
+			fixed_lens: false,
+			generate_audio: Boolean(f.audio),
+		};
+		if (imagens.length) input.input_urls = imagens.slice(0, 2);
+		taskId = (await api("POST", "/api/v1/jobs/createTask", { model: "bytedance/seedance-1.5-pro", input })).taskId;
 	} else {
 		const turbo = nome === "kling3-turbo";
 		const input = turbo

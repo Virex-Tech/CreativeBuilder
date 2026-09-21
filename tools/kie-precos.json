@@ -24,6 +24,17 @@
         "1080p": { "semAudio": 22.5 }
       }
     },
+    "seedance-1.5": {
+      "nome": "Seedance 1.5 Pro",
+      "uso": "b-roll barato para cena curta de fundo (1-2s atrás da legenda); com ou sem som",
+      "cobranca": "por_segundo",
+      "duracoes": [4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "resolucoes": ["720p", "1080p"],
+      "creditosPorSegundo": {
+        "720p": { "semAudio": 3.5, "comAudio": 7 },
+        "1080p": { "semAudio": 7.5, "comAudio": 15 }
+      }
+    },
     "veo3-fast": {
       "nome": "Google Veo 3.1 Fast",
       "uso": "pessoa falando para a câmera (fala e som nativos) — padrão para UGC",
@@ -51,6 +62,7 @@
   },
   "observacoes": [
     "Veo 3.1 Fast 720p: preço inferido (tabela mostra 1080p = 65 créditos); o custo real aparece no saldo depois da geração.",
-    "Voz (ElevenLabs multilingual v2 via Kie): preço não publicado na tabela; o script mostra o saldo antes e depois."
+    "Voz (ElevenLabs multilingual v2 via Kie): preço não publicado na tabela; o script mostra o saldo antes e depois.",
+    "Seedance 1.5 Pro: 720p conferido pelo saldo em 21/09/2026 (5s = 17,5 créditos); 1080p sem áudio inferido."
   ]
 }

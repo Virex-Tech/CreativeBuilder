@@ -263,6 +263,7 @@ gravação do app) ou **imagem-final** (imagem estática no fim). Regras de todo
 |---|---|---|
 | b-roll de ação/ambiente (padrão) | `kling3` | 5s ≈ US$ 0,35 (com som ≈ US$ 0,50) |
 | b-roll mais rápido | `kling3-turbo` | 5s ≈ US$ 0,45 |
+| b-roll barato (cena curta de fundo) | `seedance-1.5` | 5s ≈ US$ 0,09 |
 | **pessoa falando para a câmera** (UGC) com fala/som nativos | `veo3-fast` (8s) | ≈ US$ 0,30–0,33 |
 | mais barato, qualidade menor | `veo3-lite` (8s) | ≈ US$ 0,15 |
 | plano principal de altíssima qualidade (só com pedido explícito) | `veo3-quality` (8s) | ≈ US$ 1,25 |
@@ -377,7 +378,7 @@ node tools/kie.mjs gerar kling3 --prompt "<prompt da layer>" \
   --saida render/public/broll/<spec>-<scene-id>.mp4 --duracao 5 --resolucao 720p --proporcao 9:16 --sim
 ```
 
-Modelos: `kling3` (b-roll, com ou sem som via `--audio`), `kling3-turbo` (b-roll rápido, sem som),
+Modelos: `kling3` (b-roll, com ou sem som via `--audio`), `kling3-turbo` (b-roll rápido, sem som), `seedance-1.5` (b-roll barato p/ cena curta de fundo, 4–12s),
 `veo3-fast` (pessoa falando — padrão UGC, 8s, fala/som nativos), `veo3-lite` (mais barato),
 `veo3-quality` (caro, só com pedido explícito). O script já baixa o arquivo (o link da Kie expira
 em 24h) e grava `<arquivo>.kie.json` com `taskId`, prompt e créditos gastos.
@@ -400,6 +401,9 @@ locução nem música por cima (ver "Limitação de áudio").
 - **Voz ElevenLabs pela Kie** falhou 3 vezes com erro interno deles ("Internal Error", sem
   cobrança). Até voltar: use a fala nativa do Veo (pessoa falando), gravação própria em
   `render/public/audio/`, ou a alternativa Higgsfield (`text2speech_v2`). Tente de novo de vez em quando.
+- **Seedance 1.5 Pro** funcionou: 5s, 720×1280, 42s para gerar, 17,5 créditos (US$ 0,09) exatos.
+  Luz e comida realistas, mas com defeitos de IA (mãos de duas pessoas, objeto fora do prompt):
+  use só como fundo de 1–2s, não como cena principal.
 - **Kling 3.0** ainda não foi gerado de verdade (usa o mesmo endpoint da voz, que respondeu
   normalmente à criação da tarefa).
 

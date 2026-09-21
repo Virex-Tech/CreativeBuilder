@@ -109,7 +109,7 @@ node tools/kie.mjs gerar   kling3 --prompt "..." --saida render/public/broll/<sp
   --duracao 5 --resolucao 720p --proporcao 9:16 --sim
 ```
 
-Modelos: `kling3` (b-roll, com/sem som via `--audio`), `kling3-turbo` (b-roll rápido, sem som),
+Modelos: `kling3` (b-roll, com/sem som via `--audio`), `kling3-turbo` (b-roll rápido, sem som), `seedance-1.5` (b-roll barato p/ cena curta de fundo, 4–12s),
 `veo3-fast` (pessoa falando — padrão UGC, 8s, fala/som nativos), `veo3-lite` (mais barato),
 `veo3-quality` (caro, só com pedido explícito). `gerar`/`voz` só gastam saldo com `--sim` — rode
 primeiro sem, mostre o custo em dólares ao usuário, peça ok e só então repita com `--sim`. O
@@ -130,6 +130,9 @@ cenas com locução usam clipe sem som.
 - **Voz ElevenLabs pela Kie** falhou 3 vezes com erro interno deles ("Internal Error", sem
   cobrança). Até voltar: use a fala nativa do Veo (pessoa falando), gravação própria em
   `render/public/audio/`, ou a alternativa Higgsfield (`text2speech_v2`). Tente de novo de vez em quando.
+- **Seedance 1.5 Pro** funcionou: 5s, 720×1280, 42s para gerar, 17,5 créditos (US$ 0,09) exatos.
+  Luz e comida realistas, mas com defeitos de IA (mãos de duas pessoas, objeto fora do prompt):
+  use só como fundo de 1–2s, não como cena principal.
 - **Kling 3.0** ainda não foi gerado de verdade (usa o mesmo endpoint da voz, que respondeu
   normalmente à criação da tarefa).
 
