@@ -27,6 +27,8 @@ export default function CreativePage() {
 	const [instruction, setInstruction] = useState("");
 	const [aiBusy, setAiBusy] = useState(false);
 	const [brollBusy, setBrollBusy] = useState(false);
+	const [providers, setProviders] = useState<{ id: string; enabled: boolean }[]>([]);
+	const [provider, setProvider] = useState<string>("");
 
 	const load = useCallback(async () => {
 		const data = await api<CreativeDetail>(`/creatives/${params.id}`);
@@ -39,6 +41,16 @@ export default function CreativePage() {
 			setError(err instanceof Error ? err.message : "falha ao carregar");
 		});
 	}, [load]);
+
+	// Provedores de b-roll habilitados no servidor — a plataforma escolhe qual usar.
+	useEffect(() => {
+		void api<{ providers: { id: string; enabled: boolean }[]; default: string | null }>("/broll/providers")
+			.then((res) => {
+				setProviders(res.providers);
+				setProvider(res.default ?? "");
+			})
+			.catch(() => setProviders([]));
+	}, []);
 
 	/**
 	 * The preview follows the DRAFT, not the saved version — so a typo shows up as a broken
@@ -131,7 +143,7 @@ export default function CreativePage() {
 		try {
 			const res = await api<{ generated?: number; unchanged?: boolean; message?: string }>(
 				`/creatives/${params.id}/broll`,
-				{ method: "POST", body: JSON.stringify({}) },
+				{ method: "POST", body: JSON.stringify(provider ? { provider } : {}) },
 			);
 			if (res.unchanged) setError(res.message ?? "nenhuma camada generative_video pendente");
 			await load();
@@ -183,7 +195,27 @@ export default function CreativePage() {
 					<button onClick={() => void render("STILL")} disabled={busy}>
 						still
 					</button>
-					<button onClick={() => void broll()} disabled={brollBusy}>
+					{providers.some((p) => p.enabled) ? (
+						<select
+							value={provider}
+							onChange={(e) => setProvider(e.target.value)}
+							disabled={brollBusy}
+							title="provedor de b-roll"
+						>
+							{providers
+								.filter((p) => p.enabled)
+								.map((p) => (
+									<option key={p.id} value={p.id}>
+										{p.id}
+									</option>
+								))}
+						</select>
+					) : null}
+					<button
+						onClick={() => void broll()}
+						disabled={brollBusy || !providers.some((p) => p.enabled)}
+						title={providers.some((p) => p.enabled) ? "" : "nenhum provedor de b-roll configurado no servidor"}
+					>
 						{brollBusy ? "gerando b-roll..." : "gerar b-roll"}
 					</button>
 				</div>

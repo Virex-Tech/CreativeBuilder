@@ -52,6 +52,22 @@ const envSchema = z.object({
 	HIGGSFIELD_VIDEO_PARAMS: z.string().default("{}"),
 	HIGGSFIELD_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(4000),
 	HIGGSFIELD_TIMEOUT_MS: z.coerce.number().int().positive().default(300000),
+	// Fase 3 — geração de b-roll no kie.ai (unified jobs API, api.kie.ai). Só precisa da key
+	// (criada em kie.ai) — o modelo (KIE_MODEL) tem default e vale pra todos. Sem a key, o
+	// provedor "kie" fica indisponível na plataforma.
+	KIE_API_KEY: z.string().optional(),
+	KIE_BASE_URL: z.string().url().default("https://api.kie.ai"),
+	// Modelo do unified jobs API (createTask). Default = Seedance 1.5 Pro, o b-roll barato —
+	// mesmos ids do tool local `tools/kie.mjs` (ex: bytedance/seedance-1.5-pro, kling/v3-*).
+	// Obs: os modelos Veo usam OUTRO endpoint (/api/v1/veo/*) e não passam por aqui.
+	KIE_MODEL: z.string().default("bytedance/seedance-1.5-pro"),
+	// JSON extra mesclado no `input` do createTask (ex: {"resolution":"1080p","duration":8}).
+	KIE_VIDEO_PARAMS: z.string().default("{}"),
+	KIE_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(4000),
+	KIE_TIMEOUT_MS: z.coerce.number().int().positive().default(300000),
+	// Provedor de b-roll default quando a plataforma não escolhe um. Se o escolhido não estiver
+	// configurado, o servidor cai no primeiro provedor habilitado.
+	BROLL_PROVIDER: z.enum(["higgsfield", "kie"]).default("kie"),
 });
 
 const parsed = envSchema.safeParse(process.env);

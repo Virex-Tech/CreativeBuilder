@@ -25,10 +25,31 @@ que alguém preencha o `.env`, elas não chegam. Isso é intencional neste setup
 | Endpoint | Precisaria de |
 |---|---|
 | `POST /creatives/generate` · `POST /creatives/:id/adjust` · `POST /apps/:id/metrics/diagnose` | `ANTHROPIC_API_KEY` |
-| `POST /creatives/:id/broll` · `POST /higgsfield/test` | `HIGGSFIELD_API_KEY_ID/SECRET` + `HIGGSFIELD_VIDEO_ENDPOINT` |
+| `POST /creatives/:id/broll` · `POST /broll/test` · `GET /broll/providers` | `KIE_API_KEY` (kie.ai) **ou** `HIGGSFIELD_API_KEY_ID/SECRET` + `HIGGSFIELD_VIDEO_ENDPOINT` |
 
 Na UI, o painel **"Gerar criativo com IA"** (página do app), a caixa **"Ajustar com IA"** e o
-botão **"gerar b-roll"** (página do criativo) chamam esses endpoints — hoje retornam o aviso.
+botão **"gerar b-roll"** (página do criativo) chamam esses endpoints.
+
+### B-roll na plataforma — provedor selecionável (kie.ai ou Higgsfield)
+
+O código do b-roll roda **na plataforma** (server-side, REST). A página do criativo tem um
+**seletor de provedor** ao lado do botão "gerar b-roll"; ele só mostra os provedores
+habilitados (via `GET /broll/providers`). O default é o `BROLL_PROVIDER`.
+
+> As variáveis precisam **chegar ao container `api`**. Como neste projeto o `docker-compose.yml`
+> versionado é genérico (o de produção é local, não-versionado), no deploy da VPS as linhas
+> `BROLL_PROVIDER` / `KIE_*` / `HIGGSFIELD_*` já estão no `environment:` do `api`. Num clone
+> novo, adicione-as ao `environment:` do serviço `api` (ver bloco de exemplo abaixo).
+
+- **kie.ai** (recomendado, mais simples): sete `KIE_API_KEY` no `.env`. Modelo em `KIE_MODEL`
+  (default `bytedance/seedance-1.5-pro`, o b-roll barato — mesmos ids do `tools/kie.mjs`); campos
+  extra do `input` em `KIE_VIDEO_PARAMS` (ex: `{"resolution":"720p","duration":5}`).
+  Usa o unified jobs API (`POST /api/v1/jobs/createTask` → poll `GET /api/v1/jobs/recordInfo`).
+  Os modelos **Veo** usam outro endpoint na kie e não passam por essa rota — pra Veo, use o `tools/kie.mjs` local.
+- **Higgsfield**: sete `HIGGSFIELD_API_KEY_ID/SECRET` + `HIGGSFIELD_VIDEO_ENDPOINT`.
+
+Dá pra habilitar os dois ao mesmo tempo — o seletor mostra ambos e a escolha vai por request.
+Depois de editar o `.env`: `docker compose up -d --build api web`.
 
 Se um dia a decisão mudar, é preciso: (1) adicionar as variáveis no `environment:` do
 serviço `api` no `docker-compose.yml`; (2) preencher no `.env`; (3) `docker compose up -d
