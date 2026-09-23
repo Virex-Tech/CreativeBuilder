@@ -77,6 +77,32 @@ check(
 	}
 }
 
+// TrendTrack — opcional: achar os anúncios vencedores dos concorrentes.
+{
+	const key = (process.env.TRENDTRACK_API_KEY ?? process.env.TT_API_KEY)?.trim();
+	if (!key) {
+		check(
+			"TrendTrack (chave)",
+			false,
+			"TRENDTRACK_API_KEY não definida",
+			'crie a chave no TrendTrack (workspace → API) e rode: setx TRENDTRACK_API_KEY "cole-a-chave"  (só p/ o pipeline de concorrentes)',
+			true,
+		);
+	} else {
+		try {
+			const res = await fetch("https://api.trendtrack.io/v1/usage", {
+				headers: { Authorization: `Bearer ${key}` },
+				signal: AbortSignal.timeout(20_000),
+			});
+			const json = await res.json();
+			if (res.ok) check("TrendTrack (chave e saldo)", true, `${json.credits?.totalRemaining ?? "?"} créditos`, "", true);
+			else check("TrendTrack (chave e saldo)", false, `TrendTrack respondeu ${json.error?.code ?? res.status}`, "confira a chave e se a Public API está habilitada no workspace", true);
+		} catch (e) {
+			check("TrendTrack (chave e saldo)", false, `sem conexão com o TrendTrack: ${e.message}`, "confira a internet e tente de novo", true);
+		}
+	}
+}
+
 // Kie.ai — plataforma padrão de geração (vídeo e voz). A chave fica só neste computador.
 {
 	const key = process.env.KIE_API_KEY?.trim();

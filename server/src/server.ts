@@ -4,11 +4,13 @@ import multipart from "@fastify/multipart";
 import Fastify, { type FastifyReply, type FastifyRequest } from "fastify";
 
 import { env } from "@/lib/env";
+import { startPipelineLoop } from "@/lib/pipeline";
 import { prisma } from "@/lib/prisma";
 import { appRoutes } from "@/routes/apps";
 import { authRoutes } from "@/routes/auth";
 import { brollRoutes } from "@/routes/broll";
 import { codexRoutes } from "@/routes/codex";
+import { competitorRoutes } from "@/routes/competitors";
 import { creativeRoutes } from "@/routes/creatives";
 import { mediaRoutes } from "@/routes/media";
 import { metricsRoutes } from "@/routes/metrics";
@@ -75,6 +77,7 @@ export function buildServer() {
 	void app.register(referenceRoutes);
 	void app.register(brollRoutes);
 	void app.register(metricsRoutes);
+	void app.register(competitorRoutes);
 	void app.register(mediaRoutes);
 
 	return app;
@@ -83,6 +86,8 @@ export function buildServer() {
 async function main(): Promise<void> {
 	const app = buildServer();
 	await app.listen({ port: env.PORT, host: "0.0.0.0" });
+	// Pipeline "Concorrentes": avança as etapas em segundo plano (estado no banco, seguro a restart).
+	startPipelineLoop(app.log);
 }
 
 if (require.main === module) {

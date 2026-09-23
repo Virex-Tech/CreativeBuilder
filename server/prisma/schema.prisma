@@ -45,13 +45,17 @@ model App {
   /// Stored as JSON so the team edits it in the UI without a migration.
   director  Json     @default("{}")
   brandKit  Json     @default("{}") @map("brand_kit")
+  /// Config do pipeline "Concorrentes": concorrentes (páginas do Facebook), termos de busca,
+  /// critério de vencedor e destino na Meta. JSON pra equipe editar sem migration.
+  pipeline  Json     @default("{}")
   createdAt DateTime @default(now()) @map("created_at")
 
-  owner      User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  creatives  Creative[]
-  templates  Template[]
-  references ReferenceAsset[]
-  assets     Asset[]
+  owner         User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  creatives     Creative[]
+  templates     Template[]
+  references    ReferenceAsset[]
+  assets        Asset[]
+  competitorAds CompetitorAd[]
 
   @@index([ownerId])
   @@map("apps")
@@ -73,9 +77,10 @@ model ReferenceAsset {
   error     String?
   createdAt DateTime  @default(now()) @map("created_at")
 
-  app       App        @relation(fields: [appId], references: [id], onDelete: Cascade)
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  templates Template[]
+  app           App            @relation(fields: [appId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  templates     Template[]
+  competitorAds CompetitorAd[]
 
   @@index([appId, createdAt(sort: Desc)])
   @@map("reference_assets")
@@ -102,13 +107,13 @@ model Template {
 }
 
 model Creative {
-  id         String     @id @default(uuid()) @db.Uuid
-  appId      String     @map("app_id") @db.Uuid
-  userId     String     @map("user_id") @db.Uuid
-  templateId String?    @map("template_id") @db.Uuid
+  id         String         @id @default(uuid()) @db.Uuid
+  appId      String         @map("app_id") @db.Uuid
+  userId     String         @map("user_id") @db.Uuid
+  templateId String?        @map("template_id") @db.Uuid
   name       String
-  locale     String     @default("pt-BR")
-  outputKind OutputKind @default(VIDEO) @map("output_kind")
+  locale     String         @default("pt-BR")
+  outputKind OutputKind     @default(VIDEO) @map("output_kind")
   status     CreativeStatus @default(DRAFT)
 
   /// Lineage. `mutation` names the ONE dimension that changed from the parent — this is
@@ -123,13 +128,14 @@ model Creative {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  app      App               @relation(fields: [appId], references: [id], onDelete: Cascade)
-  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  template Template?         @relation(fields: [templateId], references: [id], onDelete: SetNull)
-  parent   Creative?         @relation("Lineage", fields: [parentId], references: [id], onDelete: SetNull)
-  children Creative[]        @relation("Lineage")
-  versions CreativeVersion[]
-  renders  RenderJob[]
+  app           App               @relation(fields: [appId], references: [id], onDelete: Cascade)
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template      Template?         @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  parent        Creative?         @relation("Lineage", fields: [parentId], references: [id], onDelete: SetNull)
+  children      Creative[]        @relation("Lineage")
+  versions      CreativeVersion[]
+  renders       RenderJob[]
+  competitorAds CompetitorAd[]
 
   @@index([appId, createdAt(sort: Desc)])
   @@index([parentId])
@@ -172,23 +178,23 @@ model CreativeVersion {
 
 /// Any file we hold: generated clip, uploaded footage, voiceover, music, rendered output.
 model Asset {
-  id             String    @id @default(uuid()) @db.Uuid
-  appId          String    @map("app_id") @db.Uuid
-  kind           AssetKind
+  id                   String    @id @default(uuid()) @db.Uuid
+  appId                String    @map("app_id") @db.Uuid
+  kind                 AssetKind
   /// sha256 of prompt+params for generated assets — the cache key that stops us paying
   /// twice for the same b-roll.
-  contentHash    String?   @map("content_hash")
-  path           String
-  mimeType       String?   @map("mime_type")
-  sizeBytes      Int?      @map("size_bytes")
-  durationMs     Int?      @map("duration_ms")
-  prompt         String?
-  provider       String?
-  model          String?
-  creditsUsed    Float?    @map("credits_used")
+  contentHash          String?   @map("content_hash")
+  path                 String
+  mimeType             String?   @map("mime_type")
+  sizeBytes            Int?      @map("size_bytes")
+  durationMs           Int?      @map("duration_ms")
+  prompt               String?
+  provider             String?
+  model                String?
+  creditsUsed          Float?    @map("credits_used")
   /// Provider URLs expire (Higgsfield ~7 days); after this the local copy is the only one.
   providerUrlExpiresAt DateTime? @map("provider_url_expires_at")
-  createdAt      DateTime  @default(now()) @map("created_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
 
   app App @relation(fields: [appId], references: [id], onDelete: Cascade)
 
@@ -209,20 +215,20 @@ enum AssetKind {
 }
 
 model RenderJob {
-  id                String    @id @default(uuid()) @db.Uuid
-  creativeId        String    @map("creative_id") @db.Uuid
-  creativeVersionId String    @map("creative_version_id") @db.Uuid
+  id                String     @id @default(uuid()) @db.Uuid
+  creativeId        String     @map("creative_id") @db.Uuid
+  creativeVersionId String     @map("creative_version_id") @db.Uuid
   kind              RenderKind @default(VIDEO)
   frame             Int?
-  status            JobStatus @default(QUEUED)
-  progress          Int       @default(0)
+  status            JobStatus  @default(QUEUED)
+  progress          Int        @default(0)
   /// Job id inside render, for polling.
-  externalJobId     String?   @map("external_job_id")
-  outputPath        String?   @map("output_path")
+  externalJobId     String?    @map("external_job_id")
+  outputPath        String?    @map("output_path")
   error             String?
-  durationMs        Int?      @map("duration_ms")
-  createdAt         DateTime  @default(now()) @map("created_at")
-  finishedAt        DateTime? @map("finished_at")
+  durationMs        Int?       @map("duration_ms")
+  createdAt         DateTime   @default(now()) @map("created_at")
+  finishedAt        DateTime?  @map("finished_at")
 
   creative Creative        @relation(fields: [creativeId], references: [id], onDelete: Cascade)
   version  CreativeVersion @relation(fields: [creativeVersionId], references: [id], onDelete: Cascade)
@@ -257,4 +263,43 @@ model CreativeMetric {
 
   @@index([creativeId, capturedAt(sort: Desc)])
   @@map("creative_metrics")
+}
+
+/// Pipeline "Concorrentes" (TrendTrack → criativo próprio → rascunho na Meta). Uma linha por
+/// anúncio vencedor encontrado; `stage` diz em que etapa ele está. O anúncio do concorrente vira
+/// REFERÊNCIA (estrutura e ritmo) — nunca é reusado como footage nem tem a marca copiada.
+model CompetitorAd {
+  id           String   @id @default(uuid()) @db.Uuid
+  appId        String   @map("app_id") @db.Uuid
+  source       String   @default("trendtrack")
+  externalId   String   @map("external_id")
+  advertiser   String?
+  pageId       String?  @map("page_id")
+  mediaType    String?  @map("media_type")
+  thumbnailUrl String?  @map("thumbnail_url")
+  daysRunning  Int?     @map("days_running")
+  reach        Float?
+  /// Copy, transcrição, CTA e landing do anúncio original — vira o brief da IA.
+  content      Json     @default("{}")
+  /// Resposta crua do provedor, pra não precisar pagar de novo quando quisermos outro campo.
+  raw          Json     @default("{}")
+  /// SPOTTED → QUEUED → INGESTING → GENERATING → BROLL → RENDERING → READY
+  ///   → DRAFT_QUEUED → DRAFTED  (ou FAILED / DISMISSED). Ver lib/pipeline.ts.
+  stage        String   @default("SPOTTED")
+  error        String?
+  referenceId  String?  @map("reference_id") @db.Uuid
+  creativeId   String?  @map("creative_id") @db.Uuid
+  renderJobId  String?  @map("render_job_id") @db.Uuid
+  /// IDs do que foi criado na Meta (vídeo, criativo, anúncio PAUSED) + link pro Gerenciador.
+  meta         Json?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  app       App             @relation(fields: [appId], references: [id], onDelete: Cascade)
+  reference ReferenceAsset? @relation(fields: [referenceId], references: [id], onDelete: SetNull)
+  creative  Creative?       @relation(fields: [creativeId], references: [id], onDelete: SetNull)
+
+  @@unique([appId, source, externalId])
+  @@index([appId, stage])
+  @@map("competitor_ads")
 }

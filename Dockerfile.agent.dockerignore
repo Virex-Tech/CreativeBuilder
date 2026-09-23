@@ -1,3 +1,5 @@
+# Ignore da imagem `agent` (Dockerfile.agent). Cada Dockerfile com contexto na raiz tem o seu
+# <Dockerfile>.dockerignore — um .dockerignore na raiz valeria para todos e já tirou web/ do build da web.
 # Segredos — NUNCA entram em imagem
 .env
 .env.*

@@ -78,3 +78,84 @@ export interface LineageNode {
 	status: string;
 	children: LineageNode[];
 }
+
+export type PipelineStage =
+	| "SPOTTED"
+	| "QUEUED"
+	| "INGESTING"
+	| "GENERATING"
+	| "BROLL"
+	| "RENDERING"
+	| "READY"
+	| "DRAFT_QUEUED"
+	| "DRAFTED"
+	| "FAILED"
+	| "DISMISSED";
+
+export interface CompetitorAdRow {
+	id: string;
+	appId: string;
+	source: "trendtrack" | "meta_library" | "manual";
+	externalId: string;
+	advertiser: string | null;
+	pageId: string | null;
+	mediaType: string | null;
+	thumbnailUrl: string | null;
+	daysRunning: number | null;
+	reach: number | null;
+	content: {
+		title?: string | null;
+		body?: string | null;
+		transcript?: string | null;
+		callToAction?: string | null;
+		landingPageUrl?: string | null;
+		libraryUrl?: string | null;
+	};
+	stage: PipelineStage;
+	error: string | null;
+	referenceId: string | null;
+	creativeId: string | null;
+	renderJobId: string | null;
+	meta: { adId: string; creativeId: string; videoId: string; managerUrl: string } | null;
+	creative: { id: string; name: string } | null;
+	updatedAt: string;
+}
+
+export interface PipelineConfig {
+	competitors: { name: string; pageId: string }[];
+	keywords: string[];
+	countries: string[];
+	libraryCountries: string[];
+	sources: { trendtrack: boolean; metaLibrary: boolean };
+	minDaysRunning: number;
+	perSource: number;
+	locale: string;
+	brollProvider?: "kie" | "higgsfield";
+	autoRecreate: boolean;
+	autoDraft: boolean;
+	meta: {
+		adsetId?: string;
+		pageId?: string;
+		instagramUserId?: string;
+		link?: string;
+		message?: string;
+		callToAction: string;
+	};
+}
+
+export interface PipelineStatus {
+	trendtrack: { enabled: boolean; credits: number | null; error: string | null };
+	adLibrary: { enabled: boolean };
+	ai: { enabled: boolean };
+	broll: { providers: string[] };
+	meta: { enabled: boolean };
+}
+
+export interface LookupHit {
+	type: "brandtracker" | "advertiser" | "shop";
+	matchType: "exact" | "fuzzy";
+	score: number;
+	advertiser?: { id: string; name: string; facebookPageId?: string } | null;
+	brandtracker?: { id: string; name: string; facebookPageId?: string } | null;
+	shop?: { id: string; domain?: string; name?: string } | null;
+}

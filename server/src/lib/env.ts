@@ -68,6 +68,27 @@ const envSchema = z.object({
 	// Provedor de b-roll default quando a plataforma não escolhe um. Se o escolhido não estiver
 	// configurado, o servidor cai no primeiro provedor habilitado.
 	BROLL_PROVIDER: z.enum(["higgsfield", "kie"]).default("kie"),
+	// Pipeline "Concorrentes" — etapa 1: TrendTrack acha os anúncios vencedores dos concorrentes.
+	// Chave do workspace (tt_live_…), criada nas configurações do TrendTrack com a Public API
+	// habilitada pelo admin. Sem ela, a etapa de busca responde 503.
+	TRENDTRACK_API_KEY: z.string().optional(),
+	TRENDTRACK_BASE_URL: z.string().url().default("https://api.trendtrack.io"),
+	// Etapa 3: sobe o MP4 e cria o anúncio PAUSADO (rascunho) na Meta. Token de System User com
+	// ads_management. Sem token + conta, a etapa responde 503. Página/conjunto/IG são defaults —
+	// cada app pode sobrescrever na configuração do pipeline.
+	META_ACCESS_TOKEN: z.string().optional(),
+	META_AD_ACCOUNT_ID: z.string().optional(),
+	META_PAGE_ID: z.string().optional(),
+	META_INSTAGRAM_USER_ID: z.string().optional(),
+	META_ADSET_ID: z.string().optional(),
+	META_API_VERSION: z.string().default("v23.0"),
+	// Fonte grátis de vencedores: API oficial da Biblioteca de Anúncios (ads_archive). Token de
+	// usuário com acesso à Ad Library API (verificação de identidade). Vazio = usa META_ACCESS_TOKEN.
+	META_AD_LIBRARY_TOKEN: z.string().optional(),
+	// O pipeline avança sozinho (ingestão → IA → b-roll → render → Meta) num laço dentro da API.
+	// "false" desliga o laço (as etapas param onde estão até religar).
+	PIPELINE_ENABLED: z.enum(["true", "false"]).default("true"),
+	PIPELINE_TICK_MS: z.coerce.number().int().positive().default(8000),
 });
 
 const parsed = envSchema.safeParse(process.env);

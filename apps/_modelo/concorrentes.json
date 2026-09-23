@@ -1,0 +1,19 @@
+{
+	"competitors": [
+		{
+			"name": "Nome do concorrente",
+			"pageId": "id da página do Facebook (node tools/trendtrack.mjs buscar \"nome\")"
+		}
+	],
+	"keywords": [],
+	"countries": [
+		"BR"
+	],
+	"libraryCountries": [],
+	"sources": {
+		"trendtrack": true,
+		"metaLibrary": true
+	},
+	"minDaysRunning": 14,
+	"perSource": 5
+}

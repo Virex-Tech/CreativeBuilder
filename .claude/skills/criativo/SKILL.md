@@ -172,6 +172,7 @@ Servidor `meta-ads` (`.mcp.json`, `https://mcp.facebook.com/ads`), login OAuth d
 `/mcp`. Se as ferramentas `mcp__meta-ads__*` não estiverem disponíveis, peça ao usuário para seguir
 a seção 4.1 do `COMECE-AQUI.md`. **Só leitura:** nunca crie, edite, pause ou mude orçamento de
 anúncio por esse servidor, mesmo que a ferramenta exista — a não ser que o usuário peça explicitamente.
+Única escrita prevista: criar anúncio **pausado** (rascunho) na etapa 03 do pipeline de concorrentes (abaixo).
 
 1. **Ranking:** `ads_get_ad_entities` no nível de anúncio, período pedido (padrão: últimos 30 dias),
    com gasto, impressões, CTR, CPC e as métricas de vídeo disponíveis (plays de 3s, p25/p50/p75/p100,
@@ -198,6 +199,52 @@ anúncio por esse servidor, mesmo que a ferramenta exista — a não ser que o u
 métricas; sinais indiretos = tempo no ar e "N ads use this creative". Os termos da Meta proíbem coleta
 automatizada sem autorização — use apenas consulta **pontual pedida pelo usuário** (ex.: ver um
 concorrente), nunca rotina em lote. Para anúncios próprios, prefira sempre o Meta Ads MCP.
+
+## Concorrentes vencedores → criativo → rascunho na Meta
+
+Pipeline em 3 etapas: **01** achar os anúncios vencedores dos concorrentes →
+**02** recriar a estrutura para o app (Fluxo 1 + Kie.ai + render) → **03** subir o MP4 para a Meta
+como anúncio **pausado** (rascunho). Chave `TRENDTRACK_API_KEY` no computador de cada pessoa
+(TrendTrack → configurações do workspace → API; o admin precisa ter habilitado a Public API).
+O TrendTrack é um serviço pago com API própria — diferente de raspar a Biblioteca de Anúncios.
+
+**Três fontes para a etapa 01** (mesmo `concorrentes.json`; use a que estiver configurada):
+
+| Fonte | Comando | Cobre | Custo |
+|---|---|---|---|
+| Biblioteca da Meta **oficial** (API) | `node tools/biblioteca.mjs vencedores --app <slug>` | só anúncio comercial veiculado na **UE/UK** (limite da Meta); dias no ar + alcance UE | grátis — `META_AD_LIBRARY_TOKEN` (verificação em facebook.com/ID) |
+| **Manual** | `node tools/biblioteca.mjs baixar "<link do anúncio>" --app <slug>` | qualquer anúncio que o usuário escolher (inclusive só-Brasil) | grátis |
+| TrendTrack | `node tools/trendtrack.mjs vencedores --app <slug>` (abaixo) | tudo, inclusive Brasil; alcance, transcrição | pago, por anúncio devolvido |
+
+Nunca raspe o site da Biblioteca em lote (termos da Meta): só a API oficial e downloads pontuais
+de anúncios que o usuário escolheu. O id da página de um concorrente está na URL da Biblioteca
+(`view_all_page_id=`) ou sai do `trendtrack.mjs buscar`.
+
+```bash
+node tools/trendtrack.mjs saldo                                  # grátis
+node tools/trendtrack.mjs buscar "nome, domínio ou @instagram"   # grátis → id da página
+node tools/trendtrack.mjs vencedores --app <slug>                # gasta crédito POR anúncio devolvido
+node tools/trendtrack.mjs baixar <adId> --app <slug>             # → entrada/<slug>/trendtrack/<adId>.mp4
+```
+
+1. **Concorrentes:** `apps/<slug>/concorrentes.json` (modelo em `apps/_modelo/`): páginas
+   (`competitors[].pageId`, achadas com `buscar`), termos de copy (`keywords`), `countries`,
+   `minDaysRunning` (vencedor = ativo há ≥ N dias, padrão 14) e `perSource` (máx. por fonte,
+   padrão 5). Mesmo formato do pipeline "Concorrentes" da plataforma web.
+2. **Vencedores:** rode `vencedores`, mostre a tabela (dias no ar, alcance, copy) e peça ao usuário
+   quais recriar. Não baixe/recrie tudo por conta própria.
+3. **Referência:** `baixar` → `node tools/ingest-reference.mjs <mp4> --out references/<slug>-tt-<adId>`
+   → leia os frames. A fala vem em `entrada/<slug>/trendtrack/<adId>.json` (`ad.content.transcript`);
+   se estiver vazia, `python tools/transcribe.py <mp4>`. Grave a ficha em
+   `referencias/<slug>/tt-<adId>.md` (fonte: TrendTrack, sinais = dias no ar + alcance, sem métricas
+   de conversão).
+4. **Recriar:** Fluxo 1 — **só estrutura, ângulo do hook e ritmo**. Nunca a marca, o produto, o texto
+   literal, rostos ou imagens do concorrente. O compliance de `apps/<slug>/contexto.md` vence o ângulo
+   do concorrente. B-roll pela Kie.ai (custo e ok antes), render, `check` e `review.mjs`.
+5. **Rascunho na Meta** (só com pedido do usuário): pelo Meta Ads MCP — `ads_creative_upload_video`
+   → `ads_create_creative` → `ads_create_ad` com **status PAUSED** num conjunto que o usuário indicar
+   (cada chamada pede confirmação). Nunca ative, nunca crie campanha/conjunto, nunca mexa em
+   orçamento — publicar é sempre clique humano no Gerenciador. Informe o id do anúncio criado.
 
 ## Material anexado (pasta `entrada/` ou Google Drive)
 

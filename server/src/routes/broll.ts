@@ -1,21 +1,12 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 
-import { downloadAsset } from "@/lib/assets";
-import { BROLL_PROVIDERS, enabledProviders, generateVideo, resolveProvider } from "@/lib/broll";
+import { BROLL_PROVIDERS, enabledProviders, fillPendingBroll, generateVideo, resolveProvider } from "@/lib/broll";
 import { prisma } from "@/lib/prisma";
-import { reflow, specHash, type Spec } from "@/lib/spec";
 
 const providerSchema = z.enum(BROLL_PROVIDERS).optional();
 const testSchema = z.object({ prompt: z.string().min(1), provider: providerSchema });
 const brollSchema = z.object({ provider: providerSchema }).optional();
-
-interface GenerativeLayer {
-	type: string;
-	prompt?: string;
-	src?: string;
-	[key: string]: unknown;
-}
 
 const NO_PROVIDER =
 	"nenhum provedor de b-roll configurado: sete KIE_API_KEY (kie.ai) ou HIGGSFIELD_API_KEY_ID/SECRET + HIGGSFIELD_VIDEO_ENDPOINT";
@@ -72,63 +63,17 @@ export async function brollRoutes(app: FastifyInstance): Promise<void> {
 		const creative = await prisma.creative.findUnique({ where: { id: request.params.id } });
 		if (!creative) return reply.code(404).send({ error: "criativo não encontrado" });
 
-		const current = await prisma.creativeVersion.findFirst({
-			where: { creativeId: creative.id },
-			orderBy: { version: "desc" },
-		});
-		if (!current) return reply.code(409).send({ error: "criativo sem versão" });
-
-		const spec = current.spec as unknown as Spec;
-		const pending: GenerativeLayer[] = [];
-		for (const scene of spec.scenes) {
-			for (const raw of scene.layers) {
-				const layer = raw as GenerativeLayer;
-				if (layer.type === "generative_video" && layer.prompt && !layer.src) pending.push(layer);
-			}
-		}
-
-		if (pending.length === 0) {
-			return { unchanged: true, generated: 0, message: "nenhuma camada generative_video pendente" };
-		}
-		const MAX = 6;
-		const batch = pending.slice(0, MAX);
-
-		let generated = 0;
 		try {
-			for (const layer of batch) {
-				const out = await generateVideo(provider, layer.prompt as string);
-				// Baixa o asset pra /media e usa a URL local (não expira). Se o download ou o
-				// PUBLIC_API_BASE não estiverem disponíveis, cai na URL do provedor.
-				let src = out.url;
-				try {
-					const saved = await downloadAsset(out.url);
-					if (saved.publicUrl) src = saved.publicUrl;
-				} catch {
-					// mantém a URL do provedor
-				}
-				layer.src = src;
-				layer.provider = provider;
-				generated++;
+			const out = await fillPendingBroll(creative.id, provider);
+			if (out.unchanged) {
+				return { unchanged: true, generated: 0, message: "nenhuma camada generative_video pendente" };
 			}
+
+			return { version: out.version, provider, generated: out.generated, pending: out.pending, truncated: out.truncated };
 		} catch (err) {
-			// Se já geramos algumas, salva o progresso mesmo assim (créditos não se perdem).
-			if (generated === 0) {
-				return reply.code(502).send({ error: err instanceof Error ? err.message : "falha na geração" });
-			}
+			const message = err instanceof Error ? err.message : "falha na geração";
+
+			return reply.code(message === "criativo sem versão" ? 409 : 502).send({ error: message });
 		}
-
-		const next = reflow(spec);
-		const version = await prisma.creativeVersion.create({
-			data: {
-				creativeId: creative.id,
-				version: current.version + 1,
-				spec: next as object,
-				specHash: specHash(next),
-				createdBy: "ai",
-				note: `b-roll ${provider} (${generated}/${pending.length})`,
-			},
-		});
-
-		return { version, provider, generated, pending: pending.length, truncated: pending.length > MAX };
 	});
 }

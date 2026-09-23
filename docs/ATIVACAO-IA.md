@@ -74,3 +74,28 @@ upload de asset. Então:
 referência (local ou plataforma) → Claude Code escreve o spec → Higgsfield (CLI/MCP) gera o
 b-roll → Remotion renderiza o MP4 → variações (`spec-tool variant`) → CSV de métricas →
 Claude Code diagnostica e propõe a próxima variação.
+
+## Pipeline "Concorrentes" — TrendTrack → criativo → rascunho na Meta
+
+Tela `/apps/<id>/concorrentes` (link na página do app). Três etapas, estado na tabela
+`competitor_ads`, avançadas por um laço dentro do processo da API (`server/src/lib/pipeline.ts`,
+seguro a restart porque cada estágio é "a fazer"):
+
+| Etapa | O que faz | Precisa de |
+|---|---|---|
+| 01 varrer | anúncios **ativos** dos concorrentes (páginas do Facebook) e/ou por termo, ativos há ≥ N dias, por alcance | `TRENDTRACK_API_KEY` (pago, cobre Brasil) e/ou `META_AD_LIBRARY_TOKEN` (API oficial da Biblioteca, grátis, só anúncio veiculado na UE/UK) |
+| 01 manual | o time cola o link do anúncio (Biblioteca/Instagram/TikTok) ou sobe o vídeo → entra direto na 02 | nada (yt-dlp do servidor) |
+| 02 gerar | vídeo do vencedor → referência (worker ingere) → IA escreve o spec do app (só estrutura/ritmo) → b-roll → render | IA (Codex/Anthropic) + `KIE_API_KEY` ou Higgsfield |
+| 03 rascunho | sobe o MP4 e cria anúncio **PAUSED** no conjunto configurado; nunca ativa, nunca cria campanha/conjunto, nunca mexe em orçamento | `META_ACCESS_TOKEN` (System User, `ads_management`) + `META_AD_ACCOUNT_ID` |
+
+Por padrão nada gasta sozinho: vencedor para em "vencedor" até alguém clicar **recriar**, e o
+render pronto para em "pronto p/ revisão" até alguém clicar **enviar pra Meta**. Os checkboxes
+"recriar sozinho" / "enviar sozinho" na configuração do app ligam o modo automático.
+
+O TrendTrack cobra **por linha devolvida** — `perSource` (máx. por concorrente/termo) limita o
+custo de cada varredura. `lookup` (busca de concorrente) e saldo são grátis.
+
+Variáveis no `environment:` do serviço `api` (compose de produção):
+`TRENDTRACK_API_KEY`, `META_AD_LIBRARY_TOKEN`, `META_ACCESS_TOKEN`, `META_AD_ACCOUNT_ID` e, opcionais, `META_PAGE_ID`,
+`META_ADSET_ID`, `META_INSTAGRAM_USER_ID`, `META_API_VERSION`, `PIPELINE_ENABLED`,
+`PIPELINE_TICK_MS`. A migration `1_competitor_pipeline` aplica no boot.

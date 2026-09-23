@@ -205,6 +205,16 @@ export default function AppDetailPage({ params }: { params: Promise<{ id: string
 			{app ? <div className="muted" style={{ fontSize: 12 }}>{app.slug}{app.niche ? ` · ${app.niche}` : ""}</div> : null}
 			{error ? <p style={{ color: "var(--danger)" }}>{error}</p> : null}
 
+			<Link href={`/apps/${id}/concorrentes`} className="panel row" style={{ padding: 14, marginTop: 20, textDecoration: "none", justifyContent: "space-between" }}>
+				<div>
+					<div style={{ fontWeight: 600 }}>Concorrentes → criativos → Meta</div>
+					<div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
+						TrendTrack acha os anúncios vencedores dos concorrentes, a IA recria pro seu app e o MP4 sobe pra Meta como rascunho (pausado).
+					</div>
+				</div>
+				<span className="badge accent">abrir →</span>
+			</Link>
+
 			<h2 style={{ fontSize: 18, marginTop: 28 }}>Referências</h2>
 			<p className="muted" style={{ fontSize: 13, marginTop: 4 }}>
 				Mande um vídeo ou um link (Instagram, TikTok, YouTube ou URL direta). Extraímos os

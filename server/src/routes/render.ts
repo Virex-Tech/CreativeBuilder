@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { env } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
+import { RenderStartError, startRender } from "@/lib/render";
 
 const renderSchema = z.object({
 	kind: z.enum(["VIDEO", "STILL"]).default("VIDEO"),
@@ -20,12 +21,9 @@ interface RenderServiceJob {
 }
 
 /**
- * Render is delegated to render over HTTP.
- *
- * The RenderJob row here is the record of truth for the team ("what did we render, from
- * which version, and did it work"); the render service only knows about the job it is
- * currently doing. That separation is why the render container can be restarted or replaced
- * without losing history.
+ * Render is delegated to render over HTTP (see lib/render.ts). The RenderJob row is the record
+ * of truth; that separation is why the render container can be restarted or replaced without
+ * losing history.
  */
 export async function renderRoutes(app: FastifyInstance): Promise<void> {
 	app.addHook("onRequest", app.authenticate);
@@ -37,59 +35,16 @@ export async function renderRoutes(app: FastifyInstance): Promise<void> {
 		const creative = await prisma.creative.findUnique({ where: { id: request.params.id } });
 		if (!creative) return reply.code(404).send({ error: "criativo não encontrado" });
 
-		const version = await prisma.creativeVersion.findFirst({
-			where: {
-				creativeId: creative.id,
-				...(parsed.data.version ? { version: parsed.data.version } : {}),
-			},
-			orderBy: { version: "desc" },
-		});
-		if (!version) return reply.code(409).send({ error: "criativo sem versão" });
-
-		// A finished render of the same spec is reusable: identical spec, identical output.
-		// Stills are cheap and frame-dependent, so only videos are deduplicated.
-		if (parsed.data.kind === "VIDEO") {
-			const done = await prisma.renderJob.findFirst({
-				where: { creativeVersionId: version.id, kind: "VIDEO", status: "DONE" },
-				orderBy: { createdAt: "desc" },
-			});
-			if (done) return { job: done, reused: true };
-		}
-
-		const job = await prisma.renderJob.create({
-			data: {
-				creativeId: creative.id,
-				creativeVersionId: version.id,
-				kind: parsed.data.kind,
-				frame: parsed.data.frame,
-				status: "QUEUED",
-			},
-		});
-
-		const endpoint = parsed.data.kind === "VIDEO" ? "/render" : "/still";
 		try {
-			const res = await fetch(`${env.RENDER_SERVICE_URL}${endpoint}`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ spec: version.spec, frame: parsed.data.frame ?? 0 }),
-			});
-			if (!res.ok) throw new Error(`render service ${res.status}: ${await res.text()}`);
+			const out = await startRender(creative.id, parsed.data);
+			if (out.reused) return out;
 
-			const body = (await res.json()) as { jobId: string };
-			const updated = await prisma.renderJob.update({
-				where: { id: job.id },
-				data: { externalJobId: body.jobId, status: "RUNNING" },
-			});
-
-			return reply.code(202).send({ job: updated, reused: false });
+			return reply.code(202).send(out);
 		} catch (err) {
-			const message = err instanceof Error ? err.message : String(err);
-			await prisma.renderJob.update({
-				where: { id: job.id },
-				data: { status: "FAILED", error: message, finishedAt: new Date() },
-			});
-
-			return reply.code(502).send({ error: "falha ao acionar o render", detail: message });
+			if (err instanceof RenderStartError) {
+				return reply.code(err.status).send({ error: err.message, ...(err.detail ? { detail: err.detail } : {}) });
+			}
+			throw err;
 		}
 	});
 
