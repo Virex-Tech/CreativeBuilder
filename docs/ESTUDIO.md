@@ -26,7 +26,8 @@ pela IA, aprovados pelo time e publicados no horário. Fica em `/estudio` na web
 - A IA (Codex/Anthropic, `lib/specAuthor.ts` → `editFromTakes`) recebe a transcrição, os frames, a
   referência (ritmo, frames, fala transcrita), a persona/estilo da conta e a instrução, e escreve o
   spec com camadas `footage` (trecho de um take, com o som original) + a legenda do post.
-- O servidor dá o acabamento (`lib/footage.ts`): puxa cada corte pra fronteira de palavra (a
+- O servidor dá o acabamento (`lib/footage.ts`, que busca os takes no banco e chama a implementação
+  única do engine, `render/src/footage.ts`): puxa cada corte pra fronteira de palavra (a
   palavra fica se a maior parte dela está no trecho), tira a sobreposição entre clipes seguidos do
   mesmo take, prende a URL do take pelo id e **refaz a legenda da fala** em blocos de até 4
   palavras com o tempo exato (`karaoke` com `auto: true`). Rodar de novo dá o mesmo resultado. Roda
@@ -43,8 +44,9 @@ com "tentar de novo" que retoma de onde parou. Laço em `lib/studio.ts` (dentro 
 
 O mesmo fluxo sem a plataforma: `node tools/takes.mjs preparar <takes>` (converte + transcreve),
 o agente escreve o spec com layers `footage` e `node tools/spec-tool.mjs footage <spec>` aplica o
-mesmo acabamento — ver `docs/COMO-USAR.md` seção 13. A regra de corte/legenda é a mesma nos dois
-lugares (`server/src/lib/footage.ts` ↔ `tools/spec-tool.mjs`): mudou um, mude o outro.
+mesmo acabamento — ver `docs/COMO-USAR.md` seção 13. A regra de corte/legenda tem uma implementação
+só, `render/src/footage.ts`; `tools/spec-tool.mjs` e `server/src/lib/footage.ts` usam cópias geradas
+por `cd render && npm run build:lib` (nunca edite as cópias; `npm run check:lib` acusa cópia velha).
 
 ## Configuração (env da API)
 

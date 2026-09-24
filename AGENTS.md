@@ -299,7 +299,11 @@ Dois jeitos de usar, com o **mesmo contrato de spec** (`render/src/spec.ts`) e o
   **Concorrentes** `/apps/<id>/concorrentes` (TrendTrack → IA + b-roll + render → Meta pausado,
   `server/src/lib/pipeline.ts`; o formato de `concorrentes.json` é o mesmo).
 
-O acabamento de takes é igual nos dois: `server/src/lib/footage.ts` e `tools/spec-tool.mjs footage`
-seguem a mesma regra — mudou um, mude o outro.
+O acabamento de takes tem **uma implementação só**: `render/src/footage.ts` (engine). O CLI
+(`tools/spec-tool.mjs footage`) usa `render/lib/engine.mjs` e a plataforma usa
+`server/src/lib/engine/footage.ts` — as duas são **geradas** dela por `cd render && npm run build:lib`
+(commitadas; `npm run check:lib` falha se estiverem velhas, e o build Docker do render também). Mude
+só `render/src/footage.ts`, rode `build:lib` e `npm test` em `render/`. O mesmo acabamento está no
+serviço de render como `POST /footage/finalize` (contrato em `render/README.md`).
 Antes de entregar qualquer criativo: `node tools/spec-tool.mjs check` e
 `node tools/review.mjs` no MP4 (ver skill `criativo`, seção "Validar antes de entregar").

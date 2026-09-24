@@ -23,6 +23,9 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
 
+// Implementação única do engine (gerada de render/src/ por `npm run build:lib` em render/).
+import { finalizeFootage } from "../render/lib/engine.mjs";
+
 const execFileAsync = promisify(execFile);
 
 const readJson = async (p) => JSON.parse(await readFile(resolve(p), "utf8"));
@@ -497,80 +500,18 @@ async function cmdSyncCaptions(specPath, opts) {
 
 
 // ---------------------------------------------------------------------------------------
-// footage — acabamento de spec feito de takes gravados. MESMA lógica da plataforma
-// (server/src/lib/footage.ts): corte puxado pra fronteira de palavra (a palavra fica se a
-// maior parte dela está dentro do trecho), clipes seguidos do mesmo take sem sobreposição (a
-// fala tocaria duas vezes) e legenda refeita da fala real em blocos (`karaoke` com auto:true).
-// Rode depois de TODA mudança no spec — as legendas automáticas antigas são jogadas fora.
+// footage — acabamento de spec feito de takes gravados. A lógica é a IMPLEMENTAÇÃO ÚNICA do engine
+// (render/src/footage.ts → render/lib/engine.mjs, gerado por `npm run build:lib` em render/), a
+// mesma da plataforma e do POST /footage/finalize: corte puxado pra fronteira de palavra, clipes
+// seguidos do mesmo take sem sobreposição e legenda refeita da fala real (`karaoke` auto:true).
+// Aqui só se monta a lista de takes a partir dos arquivos em render/public/ (duração via ffprobe,
+// palavras do <take>.words.json). Rode depois de TODA mudança no spec.
 // ---------------------------------------------------------------------------------------
-
-const LEAD_MS = 60;
-const TAIL_MS = 120;
-const GAP_BREAK_MS = 350;
-
-const wordAt = (words, ms) => words.find((w) => ms > w.startMs && ms < w.endMs);
-
-function snapClip(scene, layer, take) {
-	let inMs = layer.startFromMs ?? 0;
-	let outMs = inMs + scene.durationMs;
-	const cutIn = wordAt(take.words, inMs);
-	if (cutIn) {
-		// A folga nunca invade a palavra anterior — senão rodar de novo move o corte.
-		const prev = take.words.filter((w) => w.endMs <= cutIn.startMs).at(-1);
-		inMs = inMs - cutIn.startMs <= cutIn.endMs - inMs ? Math.max(prev?.endMs ?? 0, cutIn.startMs - LEAD_MS) : cutIn.endMs;
-	}
-	const cutOut = wordAt(take.words, outMs);
-	if (cutOut) {
-		if (outMs - cutOut.startMs >= cutOut.endMs - outMs) {
-			const next = take.words.find((w) => w.startMs >= cutOut.endMs);
-			outMs = Math.min(cutOut.endMs + TAIL_MS, next ? next.startMs - 20 : Infinity);
-		} else {
-			outMs = cutOut.startMs - 20;
-		}
-	}
-	outMs = Math.min(outMs, take.durationMs);
-	inMs = Math.min(inMs, Math.max(0, outMs - 300));
-	layer.startFromMs = Math.round(inMs);
-	scene.durationMs = Math.max(300, Math.round(outMs - inMs));
-}
-
-const cleanWord = (w) => w.replace(/^[,.;:!?…"“”]+|[,.;…"“”]+$/g, "");
-
-function captionLayers(words, inMs, sceneMs, maxWords) {
-	const inside = words
-		// Só a palavra majoritariamente dentro do clipe (a sobra de uma palavra cortada não é fala).
-		.filter((w) => Math.min(w.endMs, inMs + sceneMs) - Math.max(w.startMs, inMs) >= Math.max(1, w.endMs - w.startMs) / 2)
-		.map((w) => ({ text: cleanWord(w.word), start: Math.max(0, w.startMs - inMs), end: Math.min(sceneMs, w.endMs - inMs), raw: w.word }))
-		.filter((w) => w.text);
-	const blocks = [];
-	let cur = [];
-	for (const [i, w] of inside.entries()) {
-		cur.push(w);
-		const next = inside[i + 1];
-		if (!next || cur.length >= maxWords || /[.!?…]$/.test(w.raw) || next.start - w.end > GAP_BREAK_MS) {
-			blocks.push(cur);
-			cur = [];
-		}
-	}
-
-	return blocks.map((b, i) => {
-		const start = Math.round(b[0].start);
-		const nextStart = blocks[i + 1]?.[0].start;
-		const end = Math.round(nextStart !== undefined && nextStart - b.at(-1).end < GAP_BREAK_MS ? nextStart : b.at(-1).end + 150);
-
-		return {
-			type: "karaoke",
-			auto: true,
-			text: b.map((w) => w.text).join(" "),
-			startMs: start,
-			durationMs: Math.max(200, Math.min(sceneMs - start, end - start)),
-			wordEndsMs: b.map((w) => Math.max(1, Math.round(w.end - start))),
-		};
-	});
-}
 
 async function cmdFootage(specPath, opts) {
 	const spec = await readJson(specPath);
+
+	// O take de cada clipe "dono" de cena (1º footage sem startMs/durationMs), casado pelo src.
 	const cache = new Map();
 	const takeFor = async (src) => {
 		if (cache.has(src)) return cache.get(src);
@@ -580,56 +521,41 @@ async function cmdFootage(specPath, opts) {
 			const durationMs = await probeDurationMs(abs);
 			const wordsFile = abs.replace(/\.[^.]+$/, ".words.json");
 			const words = existsSync(wordsFile) ? (await readJson(wordsFile)).words ?? [] : [];
-			if (durationMs) take = { durationMs, words, hasWords: existsSync(wordsFile) };
+			if (durationMs) take = { id: src, src, durationMs, words, hasWords: existsSync(wordsFile) };
 		}
 		cache.set(src, take);
 
 		return take;
 	};
 
-	const auto = spec.autoCaptions ?? { enabled: true };
-	const maxWords = auto.maxWords ?? 4;
 	const report = [];
-	const mains = [];
-	for (const scene of spec.scenes) {
-		for (const l of scene.layers) if (l.type === "footage" && typeof l.startFromMs === "number") l.startFromMs = Math.max(0, Math.round(l.startFromMs));
-		scene.layers = scene.layers.filter((l) => !(l.type === "karaoke" && l.auto));
-		const main = scene.layers.find((l) => l.type === "footage" && !l.startMs && !l.durationMs);
+	const reported = new Set();
+	for (const scene of spec.scenes ?? []) {
+		const main = (scene.layers ?? []).find((l) => l.type === "footage" && !l.startMs && !l.durationMs);
 		if (!main) continue;
 		const take = await takeFor(main.src);
 		if (!take) {
 			report.push(`cena ${scene.id}: take "${main.src}" não achado em render/public/ (URL externa fica sem acabamento)`);
-			continue;
-		}
-		if (!take.hasWords) report.push(`cena ${scene.id}: sem ${main.src.replace(/\.[^.]+$/, ".words.json")} — rode tools/takes.mjs preparar`);
-		snapClip(scene, main, take);
-		mains.push({ scene, layer: main, take });
-	}
-	for (let i = 0; i + 1 < mains.length; i++) {
-		const a = mains[i];
-		const b = mains[i + 1];
-		if (a.layer.src !== b.layer.src || spec.scenes.indexOf(b.scene) !== spec.scenes.indexOf(a.scene) + 1) continue;
-		const aIn = a.layer.startFromMs ?? 0;
-		const bIn = b.layer.startFromMs ?? 0;
-		if (bIn >= aIn && aIn + a.scene.durationMs > bIn) a.scene.durationMs = Math.max(300, bIn - aIn);
-	}
-	let captions = 0;
-	for (const { scene, layer, take } of mains) {
-		if (auto.enabled !== false && (layer.volume ?? 1) > 0 && take.words.length) {
-			const caps = captionLayers(take.words, layer.startFromMs ?? 0, scene.durationMs, maxWords);
-			scene.layers.push(...caps);
-			captions += caps.length;
+			reported.add(scene.id);
+		} else if (!take.hasWords) {
+			report.push(`cena ${scene.id}: sem ${main.src.replace(/\.[^.]+$/, ".words.json")} — rode tools/takes.mjs preparar`);
+			reported.add(scene.id);
 		}
 	}
-	if (!spec.autoCaptions) spec.autoCaptions = { enabled: true, maxWords };
-	let cursor = 0;
-	for (const s of spec.scenes) {
-		s.startMs = cursor;
-		cursor += s.durationMs;
-	}
+
+	const result = finalizeFootage(spec, [...cache.values()].filter(Boolean));
+	// Os avisos do engine repetem os daqui (mais acionáveis) para a mesma cena.
+	for (const w of result.warnings) if (![...reported].some((id) => w.startsWith(`cena ${id}:`))) report.push(w);
+
 	const out = opts.out ?? specPath;
-	await writeJson(out, spec);
-	console.log(JSON.stringify({ out, clips: mains.length, captionBlocks: captions, durationMs: cursor, warnings: report }, null, 2));
+	await writeJson(out, result.spec);
+	console.log(
+		JSON.stringify(
+			{ out, clips: result.stats.clips, captionBlocks: result.stats.captionBlocks, durationMs: result.stats.durationMs, warnings: report },
+			null,
+			2,
+		),
+	);
 }
 
 const [cmd, ...rest] = process.argv.slice(2);

@@ -7,6 +7,7 @@
 	"dependencies": {
 		"@remotion/bundler": "^4.0.441",
 		"@remotion/cli": "4.0.441",
+		"@remotion/player": "4.0.441",
 		"@remotion/renderer": "^4.0.441",
 		"@remotion/zod-types": "4.0.441",
 		"fastify": "^5.12.3",
@@ -16,8 +17,11 @@
 		"zod": "4.3.6"
 	},
 	"devDependencies": {
+		"@types/node": "22.20.2",
 		"@types/react": "19.2.7",
+		"@types/react-dom": "19.2.3",
 		"@types/web": "0.0.166",
+		"esbuild": "0.25.0",
 		"tsx": "^4.23.13",
 		"typescript": "5.9.3"
 	},
@@ -26,6 +30,11 @@
 		"render": "remotion render src/index.ts Creative out/video.mp4",
 		"still": "remotion still src/index.ts Creative out/frame.png",
 		"typecheck": "tsc --noEmit",
-		"serve": "tsx server.ts"
+		"serve": "tsx server.ts",
+		"build": "npm run build:preview && npm run build:lib",
+		"build:preview": "node scripts/build.mjs preview",
+		"build:lib": "node scripts/build.mjs lib",
+		"check:lib": "node scripts/build.mjs check",
+		"test": "tsx --test test/*.test.ts"
 	}
 }

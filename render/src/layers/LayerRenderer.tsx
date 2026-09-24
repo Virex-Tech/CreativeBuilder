@@ -1,6 +1,7 @@
 import React from "react";
 import { AbsoluteFill, Img, interpolate, OffthreadVideo, useCurrentFrame, useVideoConfig } from "remotion";
 
+import { layoutFor, type Layout } from "../formats";
 import { resolveAnim, resolveTextPreset } from "../presets/anims";
 import { resolveSrc } from "../resolveSrc";
 import { msToFrames, type BrandKit, type Layer } from "../spec";
@@ -20,8 +21,11 @@ interface Props {
  */
 export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames }) => {
 	const frame = useCurrentFrame();
-	const { fps } = useVideoConfig();
+	const { fps, width, height } = useVideoConfig();
 	const anim = resolveAnim(layer.anim, frame, fps, durationInFrames);
+	// Every px below is in base 1080×1920 px, scaled to the composition (identity at 9:16).
+	const L = layoutFor(width, height);
+	const z = L.size;
 
 	const transform = `scale(${anim.scale}) translateY(${anim.translateY}px)`;
 
@@ -30,14 +34,14 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 			return <AbsoluteFill style={{ backgroundColor: layer.color, opacity: anim.opacity }} />;
 
 		case "text": {
-			const style = resolveTextPreset(layer.preset, brand);
+			const style = resolveTextPreset(layer.preset, brand, L);
 
 			return (
 				<AbsoluteFill
 					style={{
 						justifyContent: style.top !== undefined ? "flex-start" : style.bottom === undefined ? "center" : "flex-end",
 						alignItems: "center",
-						padding: "0 60px",
+						padding: `0 ${L.x(60)}px`,
 						paddingBottom: style.bottom,
 						paddingTop: style.top,
 						opacity: anim.opacity,
@@ -85,6 +89,7 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 					label="b-roll"
 					detail={layer.prompt}
 					opacity={anim.opacity}
+					layout={L}
 				/>
 			);
 
@@ -117,7 +122,7 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 
 			return (
 				<AbsoluteFill style={{ justifyContent: "center", alignItems: "center", transform }}>
-					<DeviceFrame enabled={layer.device !== "none"} brand={brand}>
+					<DeviceFrame enabled={layer.device !== "none"} brand={brand} layout={L}>
 						{layer.src && isVideoSrc(layer.src) ? (
 							// Screen recordings carry UI sounds and mic noise; the spec's audio track owns sound.
 							<OffthreadVideo
@@ -145,6 +150,7 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 								label="app screen"
 								detail={layer.assetId ?? "sem asset"}
 								opacity={anim.opacity}
+								layout={L}
 							/>
 						)}
 					</DeviceFrame>
@@ -155,13 +161,13 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 		case "badge":
 			return (
 				<AbsoluteFill
-					style={{ justifyContent: "flex-start", alignItems: "center", paddingTop: 230 }}
+					style={{ justifyContent: "flex-start", alignItems: "center", paddingTop: L.top(230) }}
 				>
 					<div
 						style={{
 							background: "rgba(10,10,12,0.88)",
-							borderRadius: 36,
-							padding: "22px 54px",
+							borderRadius: z(36),
+							padding: `${z(22)}px ${z(54)}px`,
 							textAlign: "center",
 							fontFamily: brand.fontFamily,
 							transform: `scale(${anim.scale})`,
@@ -171,9 +177,9 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 						{layer.label ? (
 							<div
 								style={{
-									fontSize: 34,
+									fontSize: z(34),
 									fontWeight: 700,
-									letterSpacing: 6,
+									letterSpacing: z(6),
 									color: brand.fg,
 									opacity: 0.9,
 								}}
@@ -183,11 +189,11 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 						) : null}
 						<div
 							style={{
-								fontSize: 84,
+								fontSize: z(84),
 								fontWeight: 900,
 								lineHeight: 1,
 								color: brand.accent,
-								marginTop: layer.label ? 6 : 0,
+								marginTop: layer.label ? z(6) : 0,
 							}}
 						>
 							{layer.value}
@@ -197,21 +203,21 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 			);
 
 		case "karaoke":
-			return <Karaoke layer={layer} brand={brand} durationInFrames={durationInFrames} />;
+			return <Karaoke layer={layer} brand={brand} durationInFrames={durationInFrames} layout={L} />;
 
 		case "disclaimer":
 			return (
 				<AbsoluteFill
-					style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 350 }}
+					style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: L.bottom(350) }}
 				>
 					<div
 						style={{
 							fontFamily: brand.fontFamily,
-							fontSize: 22,
+							fontSize: z(22),
 							fontWeight: 600,
 							color: brand.fg,
 							opacity: 0.85,
-							textShadow: "0 2px 8px rgba(0,0,0,0.9)",
+							textShadow: `0 ${z(2)}px ${z(8)}px rgba(0,0,0,0.9)`,
 							textAlign: "center",
 							maxWidth: "88%",
 						}}
@@ -235,7 +241,9 @@ const Karaoke: React.FC<{
 	layer: Extract<Layer, { type: "karaoke" }>;
 	brand: BrandKit;
 	durationInFrames: number;
-}> = ({ layer, brand, durationInFrames }) => {
+	layout: Layout;
+}> = ({ layer, brand, durationInFrames, layout }) => {
+	const z = layout.size;
 	const frame = useCurrentFrame();
 	const { fps } = useVideoConfig();
 	const words = layer.text.split(/\s+/).filter(Boolean);
@@ -248,21 +256,21 @@ const Karaoke: React.FC<{
 
 	return (
 		<AbsoluteFill
-			style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 420 }}
+			style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: layout.bottom(420) }}
 		>
 			<div
 				style={{
 					display: "flex",
 					flexWrap: "wrap",
 					justifyContent: "center",
-					gap: "0 18px",
+					gap: `0 ${z(18)}px`,
 					maxWidth: "88%",
 					fontFamily: brand.fontFamily,
-					fontSize: 66,
+					fontSize: z(66),
 					fontWeight: 800,
 					lineHeight: 1.25,
 					textAlign: "center",
-					textShadow: "0 4px 16px rgba(0,0,0,0.85)",
+					textShadow: `0 ${z(4)}px ${z(16)}px rgba(0,0,0,0.85)`,
 				}}
 			>
 				{words.map((w, i) => (
@@ -271,8 +279,8 @@ const Karaoke: React.FC<{
 						// The spoken word gets a brand-colour box: coloured text alone vanishes over bright footage.
 						style={
 							i === activeIndex
-								? { color: brand.fg, background: brand.accent, borderRadius: 14, padding: "0 14px", textShadow: "none" }
-								: { color: brand.fg, padding: "0 2px" }
+								? { color: brand.fg, background: brand.accent, borderRadius: z(14), padding: `0 ${z(14)}px`, textShadow: "none" }
+								: { color: brand.fg, padding: `0 ${z(2)}px` }
 						}
 					>
 						{w}
@@ -288,7 +296,8 @@ const PlaceholderLayer: React.FC<{
 	label: string;
 	detail: string;
 	opacity: number;
-}> = ({ brand, label, detail, opacity }) => (
+	layout: Layout;
+}> = ({ brand, label, detail, opacity, layout }) => (
 	<AbsoluteFill
 		style={{
 			opacity,
@@ -298,9 +307,9 @@ const PlaceholderLayer: React.FC<{
 			justifyContent: "flex-start",
 			alignItems: "center",
 			// Below the badge zone (which now owns the top ~400px) and above the caption band.
-			paddingTop: 420,
-			paddingLeft: 60,
-			paddingRight: 60,
+			paddingTop: layout.top(420),
+			paddingLeft: layout.x(60),
+			paddingRight: layout.x(60),
 			border: `2px dashed ${brand.accent}`,
 		}}
 	>
@@ -313,34 +322,49 @@ const PlaceholderLayer: React.FC<{
 				maxWidth: "80%",
 			}}
 		>
-			<div style={{ fontSize: 28, letterSpacing: 4, textTransform: "uppercase" }}>{label}</div>
-			<div style={{ fontSize: 24, marginTop: 12, lineHeight: 1.3 }}>{detail}</div>
+			<div style={{ fontSize: layout.size(28), letterSpacing: layout.size(4), textTransform: "uppercase" }}>{label}</div>
+			<div style={{ fontSize: layout.size(24), marginTop: layout.size(12), lineHeight: 1.3 }}>{detail}</div>
 		</div>
 	</AbsoluteFill>
 );
 
 const isVideoSrc = (src: string): boolean => /\.(mp4|mov|m4v|webm)(\?|#|$)/i.test(src);
 
+/** Phone mock proportions and how much of the frame it may take (tuned on 1080×1920). */
+const DEVICE_ASPECT = 9 / 19.5;
+const DEVICE_MAX_W = 0.78;
+/** 78% of 1080 at 9/19.5 is 1825.2px tall = 95.0625% of 1920 — the same cap for any height. */
+const DEVICE_MAX_H = (DEVICE_MAX_W * 1080) / DEVICE_ASPECT / 1920;
+const DEVICE_BASE_W = DEVICE_MAX_W * 1080;
+
 const DeviceFrame: React.FC<{
 	enabled: boolean;
 	brand: BrandKit;
+	layout: Layout;
 	children: React.ReactNode;
-}> = ({ enabled, brand, children }) => {
+}> = ({ enabled, brand, layout, children }) => {
 	if (!enabled) return <>{children}</>;
+
+	// Width-bound on 9:16 (78% of the width, as always); height-bound on shorter frames, where
+	// 78% of the width would push the phone off the top and bottom of a 4:5 or 1:1 canvas.
+	const byWidth = DEVICE_MAX_W * layout.w;
+	const byHeight = DEVICE_MAX_H * layout.h * DEVICE_ASPECT;
+	const width = byWidth <= byHeight + 0.01 ? byWidth : byHeight;
+	const k = width / DEVICE_BASE_W;
 
 	return (
 		<div
 			style={{
-				width: "78%",
+				width,
 				aspectRatio: "9 / 19.5",
-				borderRadius: 64,
-				padding: 12,
+				borderRadius: 64 * k,
+				padding: 12 * k,
 				background: "#111",
-				boxShadow: `0 40px 120px ${brand.accent}55, 0 0 0 2px #2a2a2a`,
+				boxShadow: `0 ${40 * k}px ${120 * k}px ${brand.accent}55, 0 0 0 2px #2a2a2a`,
 				overflow: "hidden",
 			}}
 		>
-			<div style={{ width: "100%", height: "100%", borderRadius: 52, overflow: "hidden" }}>
+			<div style={{ width: "100%", height: "100%", borderRadius: 52 * k, overflow: "hidden" }}>
 				{children}
 			</div>
 		</div>

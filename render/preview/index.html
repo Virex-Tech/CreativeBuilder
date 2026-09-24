@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>creative-engine preview</title>
+		<style>
+			html,
+			body,
+			#root {
+				margin: 0;
+				width: 100%;
+				height: 100%;
+				background: #111113;
+				color: #a1a1aa;
+				font-family: Inter, system-ui, sans-serif;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="root"></div>
+		<!-- Relative URLs on purpose: the page is served behind path prefixes (/engine/preview/). -->
+		<script src="./config.js"></script>
+		<script src="./main.js"></script>
+	</body>
+</html>

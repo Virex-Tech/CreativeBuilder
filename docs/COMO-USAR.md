@@ -305,7 +305,7 @@ node tools/spec-tool.mjs check render/specs/<spec>.json
 O `footage` puxa cada corte para a fronteira de palavra (a palavra fica se a maior parte dela está
 no trecho), tira a sobreposição entre clipes seguidos do mesmo take (a fala tocaria duas vezes) e
 refaz a legenda da fala em blocos com o tempo exato de cada palavra. Rodar de novo dá o mesmo
-resultado. É a mesma regra da plataforma (`server/src/lib/footage.ts`).
+resultado. É a mesma regra da plataforma — uma implementação só, `render/src/footage.ts`.
 
 Vídeo de iPhone (HEVC/HDR `.mov`) precisa passar pelo `preparar` — o Chrome do render não abre.
 Arquivos em `render/public/takes/` (fora do git).

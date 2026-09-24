@@ -1,5 +1,6 @@
 import { Easing, interpolate, spring } from "remotion";
 
+import { BASE_LAYOUT, type Layout } from "../formats";
 import { msToFrames, type BrandKit, type Layer, type TextPreset, type TransitionKind } from "../spec";
 
 export interface AnimState {
@@ -169,80 +170,85 @@ export interface TextStyle {
 /**
  * Text presets carry the safe-area and legibility rules, not just looks. Sound-off is the
  * feed default, so text has to survive on its own.
+ *
+ * The numbers are in base px (1080×1920); `layout` scales sizes and the top/bottom bands to the
+ * composition (see `formats.ts`) — 9:16 is unchanged, 4:5 and 1:1 keep the same relative bands.
  */
-export function resolveTextPreset(preset: TextPreset, brand: BrandKit): TextStyle {
+export function resolveTextPreset(preset: TextPreset, brand: BrandKit, layout: Layout = BASE_LAYOUT): TextStyle {
+	const { size: z, bottom, top } = layout;
+
 	switch (preset) {
 		case "hook_stroke":
 			return {
-				fontSize: 96,
+				fontSize: z(96),
 				fontWeight: 800,
 				lineHeight: 1.05,
 				color: brand.fg,
-				textShadow: "0 6px 28px rgba(0,0,0,0.65)",
+				textShadow: `0 ${z(6)}px ${z(28)}px rgba(0,0,0,0.65)`,
 				maxWidth: "86%",
 				textAlign: "center",
 				// Bottom-anchored so the block's vertical center lands near y≈1180 (lower-middle
 				// third), not the screen's geometric middle — keeps it clear of the header safe
 				// area above and the caption band below.
-				bottom: 580,
+				bottom: bottom(580),
 			};
 		case "cta_label":
 			// A CTA reads as a tappable pill in the brand colour, sitting above the caption band —
 			// loose white text over a face looks like a subtitle, not an offer.
 			return {
-				fontSize: 60,
+				fontSize: z(60),
 				fontWeight: 800,
 				lineHeight: 1.1,
 				color: brand.fg,
 				maxWidth: "84%",
 				textAlign: "center",
-				bottom: 640,
+				bottom: bottom(640),
 				background: brand.accent,
-				padding: "22px 48px",
+				padding: `${z(22)}px ${z(48)}px`,
 				borderRadius: 999,
-				boxShadow: "0 14px 40px rgba(0,0,0,0.35)",
+				boxShadow: `0 ${z(14)}px ${z(40)}px rgba(0,0,0,0.35)`,
 			};
 		case "title_top":
 			// Título fixo no topo, no estilo do texto nativo do Reels/TikTok (caixa clara, letra
 			// escura): o hook escrito de conteúdo UGC. Abaixo da faixa do cabeçalho da plataforma.
 			return {
-				fontSize: 58,
+				fontSize: z(58),
 				fontWeight: 800,
 				lineHeight: 1.15,
 				color: "#0B0B0F",
 				maxWidth: "84%",
 				textAlign: "center",
-				top: 250,
+				top: top(250),
 				background: "#FFFFFF",
-				padding: "16px 30px",
-				borderRadius: 18,
-				boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+				padding: `${z(16)}px ${z(30)}px`,
+				borderRadius: z(18),
+				boxShadow: `0 ${z(10)}px ${z(30)}px rgba(0,0,0,0.25)`,
 			};
 		case "caption":
 			return {
-				fontSize: 54,
+				fontSize: z(54),
 				fontWeight: 700,
 				lineHeight: 1.2,
 				color: brand.fg,
-				textShadow: "0 4px 18px rgba(0,0,0,0.7)",
+				textShadow: `0 ${z(4)}px ${z(18)}px rgba(0,0,0,0.7)`,
 				maxWidth: "80%",
 				textAlign: "center",
 				// Base of the block ~420px from the bottom (y≈1500), just above the platform's
 				// caption/description/button safe area.
-				bottom: 420,
+				bottom: bottom(420),
 			};
 		case "sub":
 		default:
 			return {
-				fontSize: 62,
+				fontSize: z(62),
 				fontWeight: 700,
 				lineHeight: 1.15,
 				color: brand.fg,
-				textShadow: "0 4px 18px rgba(0,0,0,0.55)",
+				textShadow: `0 ${z(4)}px ${z(18)}px rgba(0,0,0,0.55)`,
 				maxWidth: "82%",
 				textAlign: "center",
 				// Same low caption band as `caption` — this is a legend/sub preset too.
-				bottom: 420,
+				bottom: bottom(420),
 			};
 	}
 }

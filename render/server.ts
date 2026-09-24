@@ -1,203 +1,167 @@
-import { randomUUID } from "node:crypto";
+import { createReadStream, existsSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 
-import { bundle } from "@remotion/bundler";
-import { renderMedia, renderStill, selectComposition } from "@remotion/renderer";
 import Fastify from "fastify";
 
-import { creativeSpec, type CreativeSpec } from "./src/spec";
-
-const PORT = Number(process.env.PORT ?? 11100);
-const OUT_DIR = resolve(process.env.RENDER_OUT_DIR ?? "out");
-const CONCURRENCY = process.env.RENDER_CONCURRENCY
-	? Number(process.env.RENDER_CONCURRENCY)
-	: null;
-
-type JobStatus = "queued" | "rendering" | "done" | "failed";
-
-interface Job {
-	id: string;
-	kind: "video" | "still";
-	status: JobStatus;
-	progress: number;
-	outPath?: string;
-	error?: string;
-	createdAt: number;
-	finishedAt?: number;
-}
+import { registerAuth } from "./service/auth";
+import { loadConfig } from "./service/config";
+import { JobQueue } from "./service/jobs";
+import { registerPreview } from "./service/preview";
+import { getBundle, renderStillFrame, renderVideo } from "./service/renderer";
+import { finalizeFootage, type FootageTakeInput } from "./src/footage";
+import { creativeSpec, specDurationMs } from "./src/spec";
 
 /**
- * In-memory job table.
- *
- * Deliberate: the queue of record lives in the API (BullMQ). This service is a worker that
- * happens to speak HTTP, and duplicating durable job state here would create two sources of
- * truth about what is rendering. If the container restarts, the API re-enqueues.
+ * creative-engine — renders a CreativeSpec to MP4/PNG, validates it, finalizes footage edits and
+ * serves the browser preview. HTTP contract: README.md ("API HTTP"). Used by CreativeBuilder's
+ * server (private network, no token) and by PayPosts (RENDER_TOKEN).
  */
-const jobs = new Map<string, Job>();
 
-const app = Fastify({ logger: true });
+const config = loadConfig();
+const app = Fastify({ logger: true, bodyLimit: 8 * 1024 * 1024 });
+const queue = new JobQueue({ maxJobs: config.maxJobs, ttlMs: config.ttlMs, outDir: config.outDir, log: app.log });
+const renderOpts = { concurrency: config.concurrency, urlRewrite: config.urlRewrite };
 
-/**
- * The bundle is built ONCE and reused for every render.
- *
- * Bundling is the slow part (tens of seconds); doing it per request would dominate render
- * time. It is cached as a promise so concurrent first requests share one build instead of
- * racing to produce several.
- */
-let bundlePromise: Promise<string> | null = null;
+registerAuth(app, config.token);
+registerPreview(app, { previewDir: config.previewDir, publicDir: config.publicDir, origins: config.previewOrigins });
 
-function getBundle(): Promise<string> {
-	bundlePromise ??= bundle({
-		entryPoint: resolve("src/index.ts"),
-		onProgress: () => undefined,
-	});
+const issuesOf = (error: { issues: { path: PropertyKey[]; message: string }[] }): string[] =>
+	error.issues.slice(0, 12).map((i) => `${i.path.map(String).join(".")}: ${i.message}`);
 
-	return bundlePromise;
-}
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-async function resolveComposition(spec: CreativeSpec) {
-	const serveUrl = await getBundle();
+app.get("/health", async () => {
+	const { running, queued, total } = queue.counts();
 
-	// calculateMetadata in Root.tsx derives width/height/fps/duration from the spec, so the
-	// composition is resolved per request rather than assumed.
-	const composition = await selectComposition({
-		serveUrl,
-		id: "Creative",
-		inputProps: { spec },
-	});
-
-	return { serveUrl, composition };
-}
-
-async function runVideo(job: Job, spec: CreativeSpec): Promise<void> {
-	const { serveUrl, composition } = await resolveComposition(spec);
-	const outPath = join(OUT_DIR, `${job.id}.mp4`);
-
-	job.status = "rendering";
-	await renderMedia({
-		serveUrl,
-		composition,
-		codec: "h264",
-		outputLocation: outPath,
-		inputProps: { spec },
-		concurrency: CONCURRENCY,
-		onProgress: ({ progress }) => {
-			job.progress = Math.round(progress * 100);
-		},
-	});
-
-	job.outPath = outPath;
-}
-
-async function runStill(job: Job, spec: CreativeSpec, frame: number): Promise<void> {
-	const { serveUrl, composition } = await resolveComposition(spec);
-	const outPath = join(OUT_DIR, `${job.id}.png`);
-
-	job.status = "rendering";
-	await renderStill({
-		serveUrl,
-		composition,
-		output: outPath,
-		inputProps: { spec },
-		frame: Math.min(frame, composition.durationInFrames - 1),
-	});
-
-	job.outPath = outPath;
-}
-
-function startJob(kind: Job["kind"], work: (job: Job) => Promise<void>): Job {
-	const job: Job = {
-		id: randomUUID(),
-		kind,
-		status: "queued",
-		progress: 0,
-		createdAt: Date.now(),
-	};
-	jobs.set(job.id, job);
-
-	// Fire and forget: renders run for minutes and the caller polls. Errors are captured on
-	// the job rather than thrown into an unhandled rejection.
-	void work(job)
-		.then(() => {
-			job.status = "done";
-			job.progress = 100;
-		})
-		.catch((err: unknown) => {
-			job.status = "failed";
-			job.error = err instanceof Error ? err.message : String(err);
-			app.log.error({ jobId: job.id, err }, "render failed");
-		})
-		.finally(() => {
-			job.finishedAt = Date.now();
-		});
-
-	return job;
-}
-
-app.get("/health", async () => ({ ok: true, jobs: jobs.size }));
+	return { ok: true, jobs: total, running, queued };
+});
 
 /**
- * Validates a spec against the contract without rendering. The API stores specs written by a
+ * Validates a spec against the contract without rendering. Callers store specs written by a
  * model and only this service owns the schema — asking here beats a render failing minutes later.
  */
 app.post("/validate", async (request) => {
-	const parsed = creativeSpec.safeParse((request.body as { spec?: unknown })?.spec);
+	const parsed = creativeSpec.safeParse((request.body as { spec?: unknown } | undefined)?.spec);
 
-	return parsed.success
-		? { ok: true }
-		: { ok: false, issues: parsed.error.issues.slice(0, 12).map((i) => `${i.path.join(".")}: ${i.message}`) };
+	return parsed.success ? { ok: true } : { ok: false, issues: issuesOf(parsed.error) };
 });
 
 app.post("/render", async (request, reply) => {
-	const parsed = creativeSpec.safeParse((request.body as { spec?: unknown })?.spec);
+	const parsed = creativeSpec.safeParse((request.body as { spec?: unknown } | undefined)?.spec);
 	if (!parsed.success) {
 		return reply.code(400).send({ error: "invalid spec", issues: parsed.error.issues });
 	}
+	const spec = parsed.data;
 
-	const job = startJob("video", (j) => runVideo(j, parsed.data));
+	const job = queue.enqueue("video", specDurationMs(spec), async (j) => {
+		const out = queue.fileOf(j.id) as string;
+		await renderVideo(spec, out, renderOpts, (p) => {
+			j.progress = p;
+		});
+		j.outPath = out;
+	});
 
-	return reply.code(202).send({ jobId: job.id, status: job.status });
+	return reply.code(202).send({ jobId: job.id, status: job.status, position: job.position });
 });
 
 app.post("/still", async (request, reply) => {
-	const body = request.body as { spec?: unknown; frame?: number };
+	const body = request.body as { spec?: unknown; frame?: unknown } | undefined;
 	const parsed = creativeSpec.safeParse(body?.spec);
 	if (!parsed.success) {
 		return reply.code(400).send({ error: "invalid spec", issues: parsed.error.issues });
 	}
+	const frame = typeof body?.frame === "number" && Number.isFinite(body.frame) ? body.frame : 0;
+	const spec = parsed.data;
 
-	const job = startJob("still", (j) => runStill(j, parsed.data, body.frame ?? 0));
+	const job = queue.enqueue("still", null, async (j) => {
+		const out = queue.fileOf(j.id) as string;
+		await renderStillFrame(spec, frame, out, renderOpts);
+		j.outPath = out;
+	});
 
-	return reply.code(202).send({ jobId: job.id, status: job.status });
+	return reply.code(202).send({ jobId: job.id, status: job.status, position: job.position });
 });
 
 app.get<{ Params: { id: string } }>("/jobs/:id", async (request, reply) => {
-	const job = jobs.get(request.params.id);
+	const job = queue.get(request.params.id);
 	if (!job) return reply.code(404).send({ error: "job not found" });
 
 	return job;
 });
 
 app.get<{ Params: { id: string } }>("/jobs/:id/file", async (request, reply) => {
-	const job = jobs.get(request.params.id);
-	if (!job) return reply.code(404).send({ error: "job not found" });
+	const { id } = request.params;
+	const job = queue.get(id);
+	if (!job) {
+		// The job table is in memory; after a restart the file may still be on disk (until the TTL
+		// sweep). Serve it by id so a caller that already knows the job keeps working.
+		if (UUID.test(id)) {
+			for (const [ext, type] of [
+				["mp4", "video/mp4"],
+				["png", "image/png"],
+			] as const) {
+				const file = join(config.outDir, `${id}.${ext}`);
+				if (existsSync(file)) return reply.type(type).send(createReadStream(file));
+			}
+		}
+
+		return reply.code(404).send({ error: "job not found" });
+	}
 	if (job.status !== "done" || !job.outPath) {
 		return reply.code(409).send({ error: `job is ${job.status}` });
 	}
 
-	const { createReadStream } = await import("node:fs");
+	return reply.type(job.kind === "video" ? "video/mp4" : "image/png").send(createReadStream(job.outPath));
+});
 
-	return reply
-		.type(job.kind === "video" ? "video/mp4" : "image/png")
-		.send(createReadStream(job.outPath));
+/** Removes a job and its file. 409 while it is rendering; a queued job is simply dropped. */
+app.delete<{ Params: { id: string } }>("/jobs/:id", async (request, reply) => {
+	const result = await queue.remove(request.params.id);
+	if (result === "not_found") return reply.code(404).send({ error: "job not found" });
+	if (result === "rendering") return reply.code(409).send({ error: "job is rendering" });
+
+	return { ok: true };
+});
+
+/**
+ * Footage finalize (the single implementation — see src/footage.ts): snaps cuts to words, removes
+ * same-take overlaps and rebuilds the auto captions. The caller passes the takes it references.
+ */
+app.post("/footage/finalize", async (request, reply) => {
+	const body = request.body as { spec?: unknown; takes?: unknown } | undefined;
+	const spec = body?.spec as { scenes?: unknown } | undefined;
+	if (!spec || typeof spec !== "object" || !Array.isArray(spec.scenes)) {
+		return reply.code(400).send({ error: "spec inválido: precisa de scenes[]" });
+	}
+	const takes = body?.takes ?? [];
+	if (!Array.isArray(takes)) return reply.code(400).send({ error: "takes deve ser uma lista" });
+	const bad = takes.findIndex(
+		(t: Partial<FootageTakeInput> | null) =>
+			!t ||
+			typeof t.id !== "string" ||
+			(t.src != null && typeof t.src !== "string") ||
+			typeof t.durationMs !== "number" ||
+			(t.words != null && !Array.isArray(t.words)),
+	);
+	if (bad !== -1) {
+		return reply.code(400).send({ error: `takes[${String(bad)}] inválido: { id, src, durationMs, words: [{ w, startMs, endMs }] }` });
+	}
+
+	return finalizeFootage(spec as Parameters<typeof finalizeFootage>[0], takes as FootageTakeInput[]);
 });
 
 async function main(): Promise<void> {
-	await mkdir(OUT_DIR, { recursive: true });
+	await mkdir(config.outDir, { recursive: true });
 	// Warm the bundle at boot so the first real request is not the slow one.
-	void getBundle();
-	await app.listen({ port: PORT, host: "0.0.0.0" });
+	getBundle().catch((err: unknown) => app.log.error({ err }, "bundle failed (retried on next render)"));
+	// Hourly: drop expired jobs + their files, and orphan files older than the TTL.
+	void queue.sweep();
+	setInterval(() => void queue.sweep(), 3600_000).unref();
+	if (!existsSync(join(config.previewDir, "index.html"))) {
+		app.log.warn(`preview not built (${config.previewDir}) — run npm run build:preview`);
+	}
+	await app.listen({ port: config.port, host: "0.0.0.0" });
 }
 
 main().catch((err: unknown) => {

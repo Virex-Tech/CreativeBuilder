@@ -2,8 +2,11 @@ node_modules
 .next
 dist
 out
+preview-dist
 .env
 .env.*
 !.env.example
 storage
 *.log
+# Takes gravados (rosto e voz de uma pessoa real): nunca entram na imagem.
+public/takes
