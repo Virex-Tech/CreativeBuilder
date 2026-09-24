@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 
 import { env } from "@/lib/env";
+import { finalizeFootage } from "@/lib/footage";
 import { prisma } from "@/lib/prisma";
 import {
 	isSpec,
@@ -233,6 +234,8 @@ export async function creativeRoutes(app: FastifyInstance): Promise<void> {
 		if (result.issues.errors.length) {
 			return reply.code(422).send({ error: "IA gerou spec inválido", issues: result.issues });
 		}
+		// Criativo feito de takes: corte na palavra + legenda refeita da fala (no-op nos demais).
+		result.spec = await finalizeFootage(result.spec);
 
 		const hash = specHash(result.spec);
 		if (hash === current.specHash) {
@@ -287,7 +290,7 @@ export async function creativeRoutes(app: FastifyInstance): Promise<void> {
 		if (!current) return reply.code(409).send({ error: "criativo sem versão" });
 
 		const base = current.spec as unknown as Spec;
-		const next = reflow(mergeSpec(base, parsed.data.patch));
+		const next = await finalizeFootage(reflow(mergeSpec(base, parsed.data.patch)));
 		const issues = validateSpec(next, creative.app.director as Record<string, unknown>);
 		if (issues.errors.length) return reply.code(422).send({ error: "spec inválido", issues });
 
@@ -335,7 +338,7 @@ export async function creativeRoutes(app: FastifyInstance): Promise<void> {
 		if (!current) return reply.code(409).send({ error: "criativo sem versão" });
 
 		const base = current.spec as unknown as Spec;
-		const next = reflow(mergeSpec(base, parsed.data.patch));
+		const next = await finalizeFootage(reflow(mergeSpec(base, parsed.data.patch)));
 		const issues = validateSpec(next, parent.app.director as Record<string, unknown>);
 		if (issues.errors.length) return reply.code(422).send({ error: "spec inválido", issues });
 

@@ -5,6 +5,7 @@ import Fastify, { type FastifyReply, type FastifyRequest } from "fastify";
 
 import { env } from "@/lib/env";
 import { startPipelineLoop } from "@/lib/pipeline";
+import { startStudioLoop } from "@/lib/studio";
 import { prisma } from "@/lib/prisma";
 import { appRoutes } from "@/routes/apps";
 import { authRoutes } from "@/routes/auth";
@@ -16,6 +17,7 @@ import { mediaRoutes } from "@/routes/media";
 import { metricsRoutes } from "@/routes/metrics";
 import { referenceRoutes } from "@/routes/references";
 import { renderRoutes } from "@/routes/render";
+import { studioRoutes } from "@/routes/studio";
 
 declare module "fastify" {
 	interface FastifyInstance {
@@ -79,6 +81,7 @@ export function buildServer() {
 	void app.register(metricsRoutes);
 	void app.register(competitorRoutes);
 	void app.register(mediaRoutes);
+	void app.register(studioRoutes);
 
 	return app;
 }
@@ -88,6 +91,8 @@ async function main(): Promise<void> {
 	await app.listen({ port: env.PORT, host: "0.0.0.0" });
 	// Pipeline "Concorrentes": avança as etapas em segundo plano (estado no banco, seguro a restart).
 	startPipelineLoop(app.log);
+	// Estúdio: edição → render → revisão → publicação no horário.
+	startStudioLoop(app.log);
 }
 
 if (require.main === module) {

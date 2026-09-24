@@ -127,3 +127,87 @@ export async function generateVideo(prompt: string): Promise<{ url: string; requ
 
 	return { url, requestId: taskId };
 }
+
+// ---------------------------------------------------------------------------------------
+// Veo 3.1 — take de pessoa falando (estúdio). Roda na API própria (/api/v1/veo/*), que é onde
+// se escolhe Fast/Lite/Quality. Não bloqueia: o laço do estúdio consulta o status a cada volta.
+// ---------------------------------------------------------------------------------------
+
+/** Créditos por geração de 8s (US$ 0,005/crédito) — mesma tabela de tools/kie-precos.json. */
+export const VEO_CREDITS: Record<string, number> = { veo3_fast: 60, veo3_lite: 30, veo3: 250 };
+export const KIE_CREDIT_USD = 0.005;
+
+export async function startVeo(prompt: string, model: string): Promise<string> {
+	const res = await fetch(`${env.KIE_BASE_URL}/api/v1/veo/generate`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json", Authorization: authHeader() },
+		body: JSON.stringify({ prompt, model, aspectRatio: "9:16", enableTranslation: false }),
+	});
+	const body = (await res.json().catch(() => ({}))) as CreateTaskResponse;
+	const taskId = body.data?.taskId;
+	if (!res.ok || body.code !== 200 || !taskId) {
+		throw new Error(`kie.ai Veo recusou (HTTP ${res.status}): ${body.msg ?? JSON.stringify(body).slice(0, 300)}`);
+	}
+
+	return taskId;
+}
+
+/** Acha URLs de vídeo em qualquer formato de resposta (o Veo muda o envelope entre versões). */
+function videoUrls(data: unknown): string[] {
+	const found: string[] = [];
+	const visit = (v: unknown, k = ""): void => {
+		if (typeof v === "string") {
+			if (/^\s*[[{]/.test(v)) {
+				try {
+					visit(JSON.parse(v), k);
+
+					return;
+				} catch {
+					// não era JSON
+				}
+			}
+			if (/^https?:\/\//.test(v) && /url/i.test(k)) found.push(v);
+		} else if (Array.isArray(v)) v.forEach((x) => visit(x, k));
+		else if (v && typeof v === "object") for (const [kk, vv] of Object.entries(v)) visit(vv, kk);
+	};
+	visit(data);
+
+	return [...new Set(found)].filter((u) => !/\.(jpg|jpeg|png|webp)(\?|$)/i.test(u));
+}
+
+export type VeoState = { state: "generating" } | { state: "done"; url: string } | { state: "failed"; error: string };
+
+export async function veoStatus(taskId: string): Promise<VeoState> {
+	const res = await fetch(`${env.KIE_BASE_URL}/api/v1/veo/record-info?taskId=${encodeURIComponent(taskId)}`, {
+		headers: { Authorization: authHeader() },
+	});
+	if (!res.ok) return { state: "generating" };
+	const body = (await res.json()) as { code?: number; msg?: string; data?: Record<string, unknown> | null };
+	// Tarefa que a kie não conhece (código 422): falha já, em vez de "gerando" até o timeout.
+	if (body.code && body.code !== 200) return { state: "failed", error: `kie.ai: ${body.msg ?? `código ${body.code}`}` };
+	const data = body.data ?? {};
+	// successFlag: 0 = gerando, 1 = pronto, 2/3 = falhou.
+	const flag = Number(data.successFlag);
+	if (flag === 1) {
+		const url = videoUrls(data)[0];
+
+		return url ? { state: "done", url } : { state: "failed", error: "Veo concluiu sem URL de vídeo" };
+	}
+	if (flag === 2 || flag === 3) {
+		return { state: "failed", error: String(data.errorMessage ?? data.failMsg ?? "a kie.ai não conseguiu gerar") };
+	}
+
+	return { state: "generating" };
+}
+
+/** Saldo em créditos (null se a consulta falhar — o custo ainda aparece). */
+export async function kieCredits(): Promise<number | null> {
+	try {
+		const res = await fetch(`${env.KIE_BASE_URL}/api/v1/chat/credit`, { headers: { Authorization: authHeader() } });
+		const body = (await res.json()) as { code?: number; data?: number };
+
+		return body.code === 200 && typeof body.data === "number" ? body.data : null;
+	} catch {
+		return null;
+	}
+}

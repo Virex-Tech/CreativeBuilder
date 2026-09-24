@@ -84,6 +84,42 @@ O patch contém só as cenas que mudam (casadas por id); `variant` refaz o `star
 `assetId` do b-roll; PT/ES ficam 20–30% mais longos que EN — encurte cenas `flex`, nunca as
 `locked`.
 
+## Fluxo 5 — Takes gravados (conteúdo orgânico / UGC)
+
+Quando o usuário mandar vídeos **gravados por uma pessoa** (takes) + referência + instrução, você é o
+editor: escolhe os trechos, ordena, corta o que não presta e legenda. Nada é gerado — a fala dos
+takes é o conteúdo.
+
+```bash
+node tools/takes.mjs preparar entrada/<pasta> [outros arquivos ou links] --lang pt
+node tools/takes.mjs listar          # relê a fala de todos os takes já preparados
+```
+
+`preparar` converte cada take para `render/public/takes/<nome>.mp4` (H.264 30fps — vídeo HEVC/HDR de
+iPhone não abre no render), transcreve com o tempo de cada palavra (`<nome>.words.json`), tira 2
+frames (`takes/<nome>/f1.jpg`, `f2.jpg`) e imprime a fala como `[início–fim] palavra@segundo ...`.
+
+1. **Leia os frames** e a fala. Com referência, ingira (Fluxo 1) e siga o ritmo dela (`avgShotSec`,
+   onde entra texto, duração) — nunca o conteúdo.
+2. Spec: **cada cena = um trecho de um take**. A 1ª layer da cena é
+   `{ "type": "footage", "takeId": "<nome>", "src": "takes/<nome>.mp4", "startFromMs": <entrada> }`
+   (sem `startMs`/`durationMs`): a cena toca `take[startFromMs .. startFromMs + durationMs]`. Escolha
+   pelos tempos das palavras.
+3. Corte silêncio, "é…", "hã", frase repetida (fique com a **melhor** tentativa, geralmente a
+   última), erro, fim de take. O **hook** é a frase mais forte, mesmo que tenha sido gravada depois.
+   Jump cut do mesmo take: alterne `zoom` 1 e 1.12. Take de câmera frontal espelhado: `mirror: true`.
+4. Título fixo no topo: layer `text` com preset `title_top`. **Não escreva a legenda da fala**: deixe
+   `"autoCaptions": { "enabled": true, "maxWords": 4 }` no spec.
+5. B-roll gerado só se pedirem; para cobrir mantendo a voz, na mesma cena: `footage` (com a fala) e
+   depois `generative_video`.
+6. **Sempre** depois de escrever ou mudar o spec:
+   `node tools/spec-tool.mjs footage render/specs/<spec>.json` — puxa cada corte para a fronteira de
+   palavra, tira sobreposição entre clipes do mesmo take e refaz a legenda da fala real em blocos.
+7. Depois, o de sempre: `validate`, `check`, stills (Read), render, `review.mjs`.
+
+A plataforma web faz este mesmo fluxo em `/estudio` (calendário por conta, aprovação e publicação
+no Instagram) — ver `docs/ESTUDIO.md`.
+
 ## Ajustes em linguagem natural
 
 | Pedido | Ação |
@@ -93,6 +129,9 @@ O patch contém só as cenas que mudam (casadas por id); `variant` refaz o `star
 | "legenda maior / mais pra cima" | trocar `preset` do texto |
 | "faz em espanhol" | `locale_swap` |
 | "versão 4:5 de 15s" | mutação `format` |
+| "título fixo no topo" | layer `text` preset `title_top` |
+| "[0:03] corta essa parte" (takes) | tira/encurta a cena desse trecho + `spec-tool footage` |
+| "legenda com 3 palavras" (takes) | `autoCaptions.maxWords: 3` + `spec-tool footage` |
 
 ## Geração de b-roll e voz — Kie.ai (padrão) no agente
 
@@ -249,14 +288,18 @@ node tools/trendtrack.mjs baixar <adId> --app <slug>             # → entrada/<
    (cada chamada pede confirmação). Nunca ative, nunca crie campanha/conjunto, nunca mexa em
    orçamento — publicar é sempre clique humano no Gerenciador. Informe o id do anúncio criado.
 
-## Escopo: 100% local
+## Escopo: local e plataforma
 
-O fluxo oficial é **local**: Claude Code (ou outro agente) + Kie.ai (vídeo e voz, chave só no
-computador de cada pessoa) + Remotion. A plataforma web (`web/`, `server/`, `DEPLOY.md`,
-`docs/ATIVACAO-IA.md`) está **fora de uso** — não sugira nem use como caminho padrão. Exceção
-documentada como **opção futura**: coleta automática de criativos vencedores no servidor
-(`docs/COMO-USAR.md`, seção 11) — só se o usuário pedir. A plataforma tem o pipeline
-"Concorrentes" (`/apps/<id>/concorrentes`: TrendTrack → IA + b-roll + render → Meta pausado,
-`server/src/lib/pipeline.ts`) para quem usa a web; o formato de `concorrentes.json` é o mesmo.
+Dois jeitos de usar, com o **mesmo contrato de spec** (`render/src/spec.ts`) e o mesmo renderer:
+
+- **Local** (este guia): Claude Code (ou outro agente) + Kie.ai (vídeo e voz, chave só no
+  computador de cada pessoa) + Remotion.
+- **Plataforma web** (`web/` + `server/`, no ar): **Estúdio** `/estudio` — contas, calendário,
+  takes, edição pela IA, aprovação e publicação no Instagram (`docs/ESTUDIO.md`) — e o pipeline
+  **Concorrentes** `/apps/<id>/concorrentes` (TrendTrack → IA + b-roll + render → Meta pausado,
+  `server/src/lib/pipeline.ts`; o formato de `concorrentes.json` é o mesmo).
+
+O acabamento de takes é igual nos dois: `server/src/lib/footage.ts` e `tools/spec-tool.mjs footage`
+seguem a mesma regra — mudou um, mude o outro.
 Antes de entregar qualquer criativo: `node tools/spec-tool.mjs check` e
 `node tools/review.mjs` no MP4 (ver skill `criativo`, seção "Validar antes de entregar").

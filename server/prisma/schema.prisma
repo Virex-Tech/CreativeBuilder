@@ -25,6 +25,7 @@ model User {
   apps       App[]
   creatives  Creative[]
   references ReferenceAsset[]
+  posts      Post[]
 
   @@map("users")
 }
@@ -56,6 +57,9 @@ model App {
   references    ReferenceAsset[]
   assets        Asset[]
   competitorAds CompetitorAd[]
+  accounts      SocialAccount[]
+  posts         Post[]
+  takes         Take[]
 
   @@index([ownerId])
   @@map("apps")
@@ -81,6 +85,7 @@ model ReferenceAsset {
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   templates     Template[]
   competitorAds CompetitorAd[]
+  posts         Post[]
 
   @@index([appId, createdAt(sort: Desc)])
   @@map("reference_assets")
@@ -136,6 +141,7 @@ model Creative {
   versions      CreativeVersion[]
   renders       RenderJob[]
   competitorAds CompetitorAd[]
+  posts         Post[]
 
   @@index([appId, createdAt(sort: Desc)])
   @@index([parentId])
@@ -302,4 +308,140 @@ model CompetitorAd {
   @@unique([appId, source, externalId])
   @@index([appId, stage])
   @@map("competitor_ads")
+}
+
+// ---------------------------------------------------------------------------------------
+// Estúdio de conteúdo orgânico: contas → postagens no calendário → takes → edição pela IA →
+// aprovação → publicação. Ver lib/studio.ts.
+// ---------------------------------------------------------------------------------------
+
+/// Uma conta onde se posta (a da marca, a de um criador UGC, uma persona). Qualquer uma: o
+/// time adiciona a que quiser e diz como ela fala e em que horários posta.
+model SocialAccount {
+  id             String    @id @default(uuid()) @db.Uuid
+  appId          String    @map("app_id") @db.Uuid
+  /// INSTAGRAM | TIKTOK. TikTok por enquanto é manual (baixa o MP4 e marca como postado).
+  platform       String    @default("INSTAGRAM")
+  handle         String
+  displayName    String?   @map("display_name")
+  avatarUrl      String?   @map("avatar_url")
+  /// Quem é a pessoa por trás da conta e como ela fala — vai pro prompt de toda edição.
+  persona        String?
+  /// Estilo de edição padrão da conta (ritmo, legenda, música...). A instrução da postagem vence.
+  style          String?
+  /// Horários fixos do dia ("09:30"). O calendário mostra uma vaga por horário.
+  slotTimes      String[]  @default([]) @map("slot_times")
+  timezone       String    @default("America/Sao_Paulo")
+  /// Pasta do Google Drive de onde puxar takes (compartilhada "qualquer pessoa com o link").
+  driveFolder    String?   @map("drive_folder")
+  /// Publica sozinho no horário depois de aprovado (só com a conta conectada).
+  autoPublish    Boolean   @default(true) @map("auto_publish")
+  active         Boolean   @default(true)
+  /// Instagram conectado (API do Instagram com login do Instagram). Token cifrado (AES-GCM).
+  igUserId       String?   @map("ig_user_id")
+  igUsername     String?   @map("ig_username")
+  accessTokenEnc String?   @map("access_token_enc")
+  tokenExpiresAt DateTime? @map("token_expires_at")
+  connectedAt    DateTime? @map("connected_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  app   App    @relation(fields: [appId], references: [id], onDelete: Cascade)
+  posts Post[]
+  takes Take[]
+
+  @@index([appId])
+  @@map("social_accounts")
+}
+
+/// Uma postagem num horário de uma conta. `status` diz o que falta (ver lib/studio.ts):
+///   DRAFT → QUEUED → PREPARING → EDITING → BROLL → RENDERING → REVIEW
+///   REVIEW → (pedir alteração) REVISING → RENDERING → REVIEW
+///   REVIEW → (aprovar) APPROVED → SCHEDULED → PUBLISHING → PUBLISHED   (ou FAILED)
+model Post {
+  id            String    @id @default(uuid()) @db.Uuid
+  accountId     String    @map("account_id") @db.Uuid
+  appId         String    @map("app_id") @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  scheduledAt   DateTime  @map("scheduled_at")
+  status        String    @default("DRAFT")
+  title         String?
+  /// Como editar: o que o time escreveria pro editor humano.
+  instructions  String?
+  /// Legenda do post (a IA escreve se estiver vazia).
+  caption       String?
+  referenceId   String?   @map("reference_id") @db.Uuid
+  creativeId    String?   @map("creative_id") @db.Uuid
+  renderJobId   String?   @map("render_job_id") @db.Uuid
+  /// Cópia pública do MP4 aprovado (servida em /assets) — o Instagram baixa daqui.
+  videoFile     String?   @map("video_file")
+  /// Pedido de alteração em andamento; o histórico fica em `revisions`.
+  revisionNote  String?   @map("revision_note")
+  /// [{ at, note, version }] — cada "pedir alteração", na ordem.
+  revisions     Json      @default("[]")
+  /// Token do link de envio sem login (criadores sobem takes pelo celular).
+  uploadToken   String    @unique @default(uuid()) @map("upload_token")
+  approvedAt    DateTime? @map("approved_at")
+  /// Container de mídia do Instagram (retomar a publicação sem subir de novo).
+  igContainerId String?   @map("ig_container_id")
+  externalId    String?   @map("external_id")
+  permalink     String?
+  publishedAt   DateTime? @map("published_at")
+  error         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  account   SocialAccount   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  app       App             @relation(fields: [appId], references: [id], onDelete: Cascade)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reference ReferenceAsset? @relation(fields: [referenceId], references: [id], onDelete: SetNull)
+  creative  Creative?       @relation(fields: [creativeId], references: [id], onDelete: SetNull)
+  takes     Take[]
+
+  @@index([accountId, scheduledAt])
+  @@index([status, updatedAt])
+  @@map("posts")
+}
+
+/// Um vídeo gravado (ou gerado) que a IA usa como matéria-prima. Chega por upload, link, pasta
+/// do Drive, link de envio ou geração na kie.ai; o worker normaliza, tira a miniatura e transcreve
+/// com o tempo de cada palavra — é pela fala que a IA escolhe onde cortar.
+model Take {
+  id           String   @id @default(uuid()) @db.Uuid
+  appId        String   @map("app_id") @db.Uuid
+  accountId    String?  @map("account_id") @db.Uuid
+  postId       String?  @map("post_id") @db.Uuid
+  /// UPLOAD | LINK | DRIVE | SENDER (link de envio) | KIE
+  source       String   @default("UPLOAD")
+  sourceUrl    String?  @map("source_url")
+  /// Id do arquivo na origem (Drive) — evita importar duas vezes.
+  sourceId     String?  @map("source_id")
+  originalName String?  @map("original_name")
+  /// Arquivo como chegou (antes de normalizar).
+  rawPath      String?  @map("raw_path")
+  /// Nome do MP4 normalizado e da miniatura em STORAGE_DIR/assets (servidos em /assets).
+  file         String?
+  thumbFile    String?  @map("thumb_file")
+  durationMs   Int?     @map("duration_ms")
+  width        Int?
+  height       Int?
+  hasAudio     Boolean  @default(true) @map("has_audio")
+  /// { language, text, words: [{ word, startMs, endMs }] }
+  transcript   Json?
+  /// Pra take gerado: prompt e id da tarefa na kie.ai.
+  prompt       String?
+  providerTask String?  @map("provider_task")
+  /// QUEUED (chegou) → GENERATING (kie) → PROCESSING → DONE | FAILED
+  status       String   @default("QUEUED")
+  error        String?
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  app     App            @relation(fields: [appId], references: [id], onDelete: Cascade)
+  account SocialAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  post    Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([status, createdAt])
+  @@map("takes")
 }

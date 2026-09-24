@@ -137,6 +137,18 @@ function startJob(kind: Job["kind"], work: (job: Job) => Promise<void>): Job {
 
 app.get("/health", async () => ({ ok: true, jobs: jobs.size }));
 
+/**
+ * Validates a spec against the contract without rendering. The API stores specs written by a
+ * model and only this service owns the schema — asking here beats a render failing minutes later.
+ */
+app.post("/validate", async (request) => {
+	const parsed = creativeSpec.safeParse((request.body as { spec?: unknown })?.spec);
+
+	return parsed.success
+		? { ok: true }
+		: { ok: false, issues: parsed.error.issues.slice(0, 12).map((i) => `${i.path.join(".")}: ${i.message}`) };
+});
+
 app.post("/render", async (request, reply) => {
 	const parsed = creativeSpec.safeParse((request.body as { spec?: unknown })?.spec);
 	if (!parsed.success) {

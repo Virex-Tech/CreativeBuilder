@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { CodexConnect } from "@/components/CodexConnect";
+import { StudioNav } from "@/components/StudioNav";
 import { api } from "@/lib/api";
 import { starterSpec } from "@/lib/starterSpec";
 import type { AppRow, CreativeRow } from "@/lib/types";
@@ -104,6 +105,8 @@ export default function AppsPage() {
 	}
 
 	return (
+		<>
+		<StudioNav />
 		<main style={{ maxWidth: 1100, margin: "0 auto", padding: 32 }}>
 			<div className="row" style={{ justifyContent: "space-between" }}>
 				<h1 style={{ fontSize: 22, margin: 0 }}>Apps</h1>
@@ -219,5 +222,6 @@ export default function AppsPage() {
 				{creatives.length === 0 && !error ? <p className="muted">Nenhum criativo ainda.</p> : null}
 			</div>
 		</main>
+		</>
 	);
 }

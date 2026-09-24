@@ -118,6 +118,8 @@ nunca as `locked`.
 | "faz em espanhol" | `locale_swap` |
 | "versão 4:5 de 15s" | mutação `format` |
 | "gera 4 variações do hook" | 4 filhos com `hook_rewrite`, cada um com ângulo diferente |
+| "título fixo no topo" | layer `text` preset `title_top` |
+| "[0:03] corta essa parte" (takes) | tira/encurta a cena desse trecho + `spec-tool footage` |
 
 ### 6. Análise de performance
 
@@ -132,6 +134,30 @@ crie, edite, pause nem mexa em orçamento sem autorização explícita.
 
 Criativo em "Modelar" → variações de gancho e roteiro sobre ele (fluxo 4).
 
+### 7. Takes gravados (conteúdo orgânico / UGC)
+
+Quando o usuário mandar vídeos gravados por uma pessoa + referência + instrução, você é o editor:
+escolhe os trechos pela fala, ordena, corta o que não presta e legenda. Nada é gerado.
+
+```bash
+node tools/takes.mjs preparar entrada/<pasta> [arquivos ou links] --lang pt
+node tools/takes.mjs listar
+```
+
+1. Leia os frames (`render/public/takes/<nome>/f1.jpg`, `f2.jpg`) e a fala impressa
+   (`[início–fim] palavra@segundo`). Referência → Fluxo 1, e siga só o ritmo dela.
+2. Cada cena = um trecho de um take. 1ª layer:
+   `{ "type": "footage", "takeId": "<nome>", "src": "takes/<nome>.mp4", "startFromMs": <entrada> }`
+   sem `startMs`/`durationMs` — a duração da cena é a saída do trecho.
+3. Corte silêncio, "é…", repetição (fique com a melhor tentativa), erro. Hook = frase mais forte
+   primeiro. Jump cut do mesmo take: `zoom` 1 ↔ 1.12. Título no topo: `text` preset `title_top`.
+   Não escreva legenda da fala: `"autoCaptions": { "enabled": true, "maxWords": 4 }`.
+4. **Depois de toda mudança:** `node tools/spec-tool.mjs footage render/specs/<spec>.json` (corte na
+   fronteira de palavra, sem fala repetida entre clipes, legenda da fala real).
+5. `validate`, `check`, stills, render, `review.mjs` como sempre.
+
+Na plataforma web isso é o **Estúdio** (`/estudio`, `docs/ESTUDIO.md`).
+
 ## DirectorProfile
 
 Regras de edição por app, em `directors/<app>.yaml`. Leia antes de escrever qualquer spec e
@@ -140,7 +166,8 @@ se quer criar ou use os defaults do renderer.
 
 ## Estado atual — o que ainda não existe
 
-Saída de imagem e carrossel, publicação e ingestão automática de métricas. (Já existem: transições,
+Saída de imagem e carrossel e ingestão automática de métricas. (Publicação no Instagram existe
+só na plataforma web — Estúdio, `docs/ESTUDIO.md`.) (Já existem: transições,
 efeitos sonoros, zoom em imagem estática e legenda sincronizada com a voz — veja as seções acima.)
 
 **Áudio já funciona**: `spec.audio.voiceover` (com `atMs` e `durationMs`) e `spec.audio.music`
@@ -367,7 +394,8 @@ cenas com locução usam clipe **sem som**. Fala do Veo pode ser transcrita com
 ### Validar antes de entregar (obrigatório)
 
 1. `node tools/spec-tool.mjs check render/specs/<spec>.json` → zero `errors`; resolva os `warnings`
-   (cena sem visual, clipe mais curto que a cena, legenda não sincronizada).
+   (cena sem visual, clipe mais curto que a cena, legenda não sincronizada, takes sem legenda da
+   fala — neste caso rode `spec-tool footage`).
 2. Stills dos momentos-chave (hook, cada troca de cena, CTA) → **olhe com Read**.
 3. Depois do MP4: `node tools/review.mjs render/out/<nome>.mp4` → abra a folha de contato com Read e
    leia o JSON de áudio (silêncios longos, volume). Critique como editor: tem cena parada? texto

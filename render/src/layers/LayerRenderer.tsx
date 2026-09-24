@@ -35,10 +35,11 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 			return (
 				<AbsoluteFill
 					style={{
-						justifyContent: style.bottom === undefined ? "center" : "flex-end",
+						justifyContent: style.top !== undefined ? "flex-start" : style.bottom === undefined ? "center" : "flex-end",
 						alignItems: "center",
 						padding: "0 60px",
 						paddingBottom: style.bottom,
+						paddingTop: style.top,
 						opacity: anim.opacity,
 						transform,
 					}}
@@ -85,6 +86,24 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 					detail={layer.prompt}
 					opacity={anim.opacity}
 				/>
+			);
+
+		case "footage":
+			return (
+				<AbsoluteFill style={{ opacity: anim.opacity, transform, overflow: "hidden" }}>
+					<OffthreadVideo
+						src={resolveSrc(layer.src)}
+						trimBefore={layer.startFromMs ? msToFrames(layer.startFromMs, fps) : undefined}
+						volume={layer.volume}
+						muted={layer.volume === 0}
+						style={{
+							width: "100%",
+							height: "100%",
+							objectFit: layer.fit,
+							transform: `scale(${layer.mirror ? -layer.zoom : layer.zoom}, ${layer.zoom})`,
+						}}
+					/>
+				</AbsoluteFill>
 			);
 
 		case "app_screen_recording": {

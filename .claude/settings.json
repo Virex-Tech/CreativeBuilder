@@ -3,6 +3,7 @@
 		"allow": [
 			"Bash(node tools/spec-tool.mjs *)",
 			"Bash(node tools/ingest-reference.mjs *)",
+			"Bash(node tools/takes.mjs *)",
 			"Bash(node tools/doctor.mjs)",
 			"Bash(python tools/transcribe.py *)",
 			"Bash(npx remotion still *)",
@@ -20,6 +21,7 @@
 			"Bash(higgsfield workspace status*)",
 			"PowerShell(node tools/spec-tool.mjs *)",
 			"PowerShell(node tools/ingest-reference.mjs *)",
+			"PowerShell(node tools/takes.mjs *)",
 			"PowerShell(node tools/doctor.mjs)",
 			"PowerShell(python tools/transcribe.py *)",
 			"PowerShell(npx remotion still *)",

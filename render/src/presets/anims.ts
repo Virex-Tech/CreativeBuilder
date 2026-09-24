@@ -202,6 +202,22 @@ export function resolveTextPreset(preset: TextPreset, brand: BrandKit): TextStyl
 				borderRadius: 999,
 				boxShadow: "0 14px 40px rgba(0,0,0,0.35)",
 			};
+		case "title_top":
+			// Título fixo no topo, no estilo do texto nativo do Reels/TikTok (caixa clara, letra
+			// escura): o hook escrito de conteúdo UGC. Abaixo da faixa do cabeçalho da plataforma.
+			return {
+				fontSize: 58,
+				fontWeight: 800,
+				lineHeight: 1.15,
+				color: "#0B0B0F",
+				maxWidth: "84%",
+				textAlign: "center",
+				top: 250,
+				background: "#FFFFFF",
+				padding: "16px 30px",
+				borderRadius: 18,
+				boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+			};
 		case "caption":
 			return {
 				fontSize: 54,

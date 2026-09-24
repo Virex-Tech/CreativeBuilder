@@ -29,6 +29,9 @@ render/public/test-*.mp3
 entrada/*
 !entrada/LEIA-ME.md
 
+# takes gravados preparados (tools/takes.mjs): vídeo de pessoa real, pesado — fica no computador
+render/public/takes/
+
 # OAuth do Codex (server-side) — NUNCA versionar
 .codex-server/
 

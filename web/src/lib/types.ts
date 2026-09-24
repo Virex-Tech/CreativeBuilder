@@ -159,3 +159,125 @@ export interface LookupHit {
 	brandtracker?: { id: string; name: string; facebookPageId?: string } | null;
 	shop?: { id: string; domain?: string; name?: string } | null;
 }
+
+// ---------------------------------------------------------------------------------------
+// Estúdio de conteúdo
+// ---------------------------------------------------------------------------------------
+
+export type PostStatus =
+	| "DRAFT"
+	| "QUEUED"
+	| "PREPARING"
+	| "EDITING"
+	| "REVISING"
+	| "BROLL"
+	| "RENDERING"
+	| "REVIEW"
+	| "APPROVED"
+	| "SCHEDULED"
+	| "PUBLISHING"
+	| "PUBLISHED"
+	| "FAILED";
+
+export interface SocialAccountRow {
+	id: string;
+	appId: string;
+	platform: "INSTAGRAM" | "TIKTOK";
+	handle: string;
+	displayName: string | null;
+	avatarUrl: string | null;
+	persona: string | null;
+	style: string | null;
+	slotTimes: string[];
+	timezone: string;
+	driveFolder: string | null;
+	autoPublish: boolean;
+	active: boolean;
+	igUserId: string | null;
+	igUsername: string | null;
+	tokenExpiresAt: string | null;
+	connectedAt: string | null;
+	connected: boolean;
+	app?: { id: string; name: string };
+}
+
+export interface CalendarPost {
+	id: string;
+	accountId: string;
+	scheduledAt: string;
+	status: PostStatus;
+	title: string | null;
+	error: string | null;
+	permalink: string | null;
+	hasReference: boolean;
+	takes: number;
+	takesPending: number;
+	thumbUrl: string | null;
+}
+
+export interface TakeRow {
+	id: string;
+	source: "UPLOAD" | "LINK" | "DRIVE" | "SENDER" | "KIE";
+	sourceUrl: string | null;
+	originalName: string | null;
+	status: "RECEIVING" | "QUEUED" | "GENERATING" | "PROCESSING" | "DONE" | "FAILED";
+	error: string | null;
+	durationMs: number | null;
+	width: number | null;
+	height: number | null;
+	prompt: string | null;
+	sortOrder: number;
+	text: string | null;
+	videoUrl: string | null;
+	thumbUrl: string | null;
+	createdAt: string;
+}
+
+export interface PostDetail {
+	id: string;
+	accountId: string;
+	appId: string;
+	scheduledAt: string;
+	status: PostStatus;
+	title: string | null;
+	instructions: string | null;
+	caption: string | null;
+	referenceId: string | null;
+	creativeId: string | null;
+	videoFile: string | null;
+	revisionNote: string | null;
+	revisions: { at: string; note: string }[];
+	approvedAt: string | null;
+	permalink: string | null;
+	publishedAt: string | null;
+	error: string | null;
+	updatedAt: string;
+	account: SocialAccountRow;
+	takes: TakeRow[];
+	reference: {
+		id: string;
+		status: "QUEUED" | "RUNNING" | "DONE" | "FAILED";
+		error: string | null;
+		sourceUrl: string | null;
+		durationSec: number | null;
+		avgShotSec: number | null;
+		transcript: string | null;
+		frames: (string | null)[];
+	} | null;
+	versions: { version: number; note: string | null; createdAt: string; createdBy: string }[];
+	render: { id: string; status: string; progress: number; error: string | null } | null;
+	videoUrl: string | null;
+	posterUrl: string | null;
+	uploadUrl: string | null;
+}
+
+export interface StudioStatus {
+	ai: boolean;
+	kie: boolean;
+	broll: string[];
+	instagramOauth: boolean;
+	drive: "api" | "public-page";
+	uploadLinks: boolean;
+	takeModel: string;
+	takeCostUsd: number;
+}

@@ -71,8 +71,8 @@ Formato do spec (specVersion "1"):
 }
 
 Tipos de layer:
-- { "type": "text", "content": "...", "preset": "hook_stroke"|"sub"|"caption"|"cta_label", "anim": "none"|"pop_in"|"fade_in"|"slide_up"|"punch_in" }
-- { "type": "generative_video", "prompt": "<descrição do b-roll>", "provider": "higgsfield"|"fal", "fit": "cover"|"contain" }   // sem assetId ainda; o prompt descreve a cena
+- { "type": "text", "content": "...", "preset": "hook_stroke"|"sub"|"caption"|"cta_label"|"title_top", "anim": "none"|"pop_in"|"fade_in"|"slide_up"|"punch_in" }
+- { "type": "generative_video", "prompt": "<descrição do b-roll>", "provider": "kie"|"higgsfield", "fit": "cover"|"contain" }   // sem assetId ainda; o prompt descreve a cena
 - { "type": "app_screen_recording", "device": "iphone15_mock"|"none" }
 - { "type": "solid", "color": "#hex" }
 - { "type": "badge", "label": "", "value": "<texto curto>" }
@@ -298,4 +298,167 @@ export async function adjustSpec(
 	const text = `Spec atual:\n${JSON.stringify(current)}\n\nAjuste pedido: ${instruction}\n\nReescreva o spec inteiro com o ajuste aplicado, mantendo o resto igual. Responda só o JSON.`;
 
 	return complete({ system, text, imagePaths: [] }, director);
+}
+
+// ---------------------------------------------------------------------------------------
+// Estúdio: edição de TAKES (vídeo gravado por gente de verdade). A IA é a editora: escolhe os
+// trechos pela fala transcrita, monta o ritmo da referência e escreve a legenda do post. O
+// acabamento (corte na fronteira de palavra + legenda sincronizada) é do servidor, em
+// lib/footage.ts — por isso a IA não escreve karaoke aqui.
+// ---------------------------------------------------------------------------------------
+
+const TAKE_RULES = `
+EDIÇÃO DE TAKES (conteúdo orgânico, estilo UGC). Além dos layers acima existe:
+- { "type": "footage", "takeId": "<id do take>", "src": "<url do take>", "startFromMs": <entrada no take, ms>, "volume": 1, "zoom": 1, "fit": "cover" }
+  Um trecho de um vídeo gravado, COM o som original (a fala é o conteúdo). A saída do trecho é
+  a duração da cena: a cena toca take[startFromMs .. startFromMs + durationMs].
+
+Como editar:
+- Cada cena = UM trecho de UM take (layer footage SEM startMs/durationMs, primeiro da lista).
+  Escolha os trechos pela transcrição: use os tempos das palavras pra entrar logo antes da 1ª
+  palavra e sair logo depois da última. O servidor ajusta o corte fino na fronteira da palavra.
+- Corte tudo que não presta: silêncio, "é...", "hã", frase repetida (fique com a MELHOR
+  tentativa, normalmente a última), erro, olhada pro lado, fim de take ("pronto, foi").
+- HOOK nos primeiros 1–2s: a frase mais forte vai primeiro, mesmo que não tenha sido gravada primeiro.
+- Jump cut: dois trechos seguidos do MESMO take alternam zoom 1 e 1.12 (senão parece travada).
+- Siga o ritmo da referência (duração média dos cortes, onde entra texto na tela, tamanho total).
+- Texto na tela: no máximo um título de hook, curto, e o que a instrução pedir. Título fixo no
+  topo (padrão de conteúdo orgânico) = preset "title_top", numa layer "text" com startMs 0 e
+  durationMs cobrindo a cena (ou repita nas cenas em que deve ficar); "hook_stroke" = texto grande
+  no meio da tela, só se pedirem. NÃO escreva legenda da fala (karaoke): o servidor gera a partir da transcrição.
+  Deixe "autoCaptions": { "enabled": true, "maxWords": 4 } no spec (false só se pedirem sem legenda).
+- B-roll gerado (generative_video) só se a instrução pedir ou se faltar imagem pra cobrir uma
+  fala; pra cobrir mantendo a voz, ponha na MESMA cena: footage (com a fala) e depois o generative_video.
+- Não invente áudio (música/locução) sem arquivo; a fala dos takes é o áudio.
+- Não use takes que não estejam na lista, nem tempos além da duração do take.
+
+Além do spec, escreva a legenda do post no campo raiz "caption" (texto do Instagram/TikTok na voz
+da conta: gancho na 1ª linha, 1–3 frases, CTA, 3–5 hashtags). O JSON de resposta é o spec com o
+campo extra "caption".
+`.trim();
+
+export interface TakeForAi {
+	id: string;
+	src: string;
+	durationMs: number;
+	transcript: { text: string; words: { word: string; startMs: number; endMs: number }[] } | null;
+	framePaths: string[];
+	name?: string | null;
+}
+
+/** Transcrição compacta: frases (quebradas nas pausas) com o início de cada palavra em segundos. */
+function transcriptForAi(take: TakeForAi): string {
+	const words = take.transcript?.words ?? [];
+	if (words.length === 0) return "    (sem fala)";
+	const lines: string[] = [];
+	let cur: typeof words = [];
+	const flush = (): void => {
+		if (!cur.length) return;
+		const s = (ms: number): string => (ms / 1000).toFixed(2);
+		lines.push(`    [${s(cur[0].startMs)}–${s(cur[cur.length - 1].endMs)}] ${cur.map((w) => `${w.word}@${s(w.startMs)}`).join(" ")}`);
+		cur = [];
+	};
+	for (const [i, w] of words.entries()) {
+		if (i > 0 && w.startMs - words[i - 1].endMs > 450) flush();
+		cur.push(w);
+	}
+	flush();
+
+	return lines.join("\n");
+}
+
+export interface StudioContext {
+	app: { id: string; name: string; director: Record<string, unknown>; brandKit: Record<string, unknown> };
+	account: { handle: string; platform: string; persona?: string | null; style?: string | null };
+	locale: string;
+	takes: TakeForAi[];
+	reference?: { manifest: Record<string, unknown>; framePaths: string[]; transcript?: string | null } | null;
+	storageDir: string;
+}
+
+function studioSystem(ctx: StudioContext): string {
+	return [
+		SPEC_RULES,
+		TAKE_RULES,
+		`DirectorProfile do app:\n${JSON.stringify(ctx.app.director)}`,
+		`BrandKit:\n${JSON.stringify(ctx.app.brandKit)}`,
+	].join("\n\n");
+}
+
+function studioContextText(ctx: StudioContext): string {
+	const parts = [
+		`App: ${ctx.app.name} (appId "${ctx.app.id}"). Locale: ${ctx.locale}.`,
+		`Conta: @${ctx.account.handle} (${ctx.account.platform}).`,
+	];
+	if (ctx.account.persona) parts.push(`Quem é a conta / como fala:\n${ctx.account.persona}`);
+	if (ctx.account.style) parts.push(`Estilo de edição da conta:\n${ctx.account.style}`);
+
+	if (ctx.takes.length) {
+		parts.push(
+			`TAKES (${ctx.takes.length}). As imagens anexadas mostram 2 frames de cada take, na ordem abaixo${ctx.reference?.framePaths.length ? ", depois os frames da referência" : ""}.\n` +
+				ctx.takes
+					.map(
+						(t, i) =>
+							`take ${i + 1}: takeId "${t.id}" · ${(t.durationMs / 1000).toFixed(2)}s${t.name ? ` · arquivo "${t.name}"` : ""}\n  src: "${t.src}"\n  fala:\n${transcriptForAi(t)}`,
+					)
+					.join("\n\n"),
+		);
+	} else {
+		parts.push("SEM TAKES: monte o vídeo com b-roll gerado (generative_video), textos e tela do app.");
+	}
+
+	if (ctx.reference) {
+		parts.push(
+			`REFERÊNCIA (copie só a estrutura, o ritmo e o ângulo — nunca marca, rosto ou texto literal). Manifest: ${JSON.stringify(ctx.reference.manifest)}` +
+				(ctx.reference.transcript ? `\nFala da referência: ${ctx.reference.transcript.slice(0, 2500)}` : ""),
+		);
+	}
+
+	return parts.join("\n\n");
+}
+
+function studioImages(ctx: StudioContext): string[] {
+	const takeFrames = ctx.takes.flatMap((t) => t.framePaths).slice(0, 10);
+	const refFrames = (ctx.reference?.framePaths ?? []).slice(0, 16 - takeFrames.length);
+
+	return [...takeFrames, ...refFrames];
+}
+
+function pullCaption(spec: Spec): string | null {
+	const caption = typeof spec.caption === "string" ? spec.caption.trim() : null;
+	delete spec.caption;
+
+	return caption || null;
+}
+
+/** Primeira edição de uma postagem: takes + referência + instrução → spec + legenda do post. */
+export async function editFromTakes(
+	ctx: StudioContext,
+	instructions: string | null,
+): Promise<{ spec: Spec; issues: SpecIssues; caption: string | null }> {
+	const text =
+		`${studioContextText(ctx)}\n\nINSTRUÇÃO DE EDIÇÃO:\n${instructions?.trim() || "(nenhuma — edite no melhor formato pra reter e gerar vontade de baixar o app, no ritmo da referência)"}` +
+		`\n\nEscreva o CreativeSpec completo (creativeId "studio", appId "${ctx.app.id}", format 1080x1920 30fps) + "caption". Responda só o JSON.`;
+	const out = await complete({ system: studioSystem(ctx), text, imagePaths: studioImages(ctx) }, ctx.app.director);
+
+	return { ...out, caption: pullCaption(out.spec) };
+}
+
+/** Pedido de alteração em cima da versão atual (com os takes à mão, pra poder recortar). */
+export async function reviseFromTakes(
+	ctx: StudioContext,
+	current: Spec,
+	note: string,
+	caption: string | null,
+): Promise<{ spec: Spec; issues: SpecIssues; caption: string | null }> {
+	// As legendas automáticas voltam no acabamento; mandar elas só polui o contexto.
+	const lean = JSON.parse(JSON.stringify(current)) as Spec;
+	for (const s of lean.scenes) s.layers = s.layers.filter((l) => !(l as { auto?: boolean }).auto);
+
+	const text =
+		`${studioContextText(ctx)}\n\nSPEC ATUAL:\n${JSON.stringify(lean)}\n\nLEGENDA ATUAL DO POST:\n${caption ?? "(vazia)"}` +
+		`\n\nPEDIDO DE ALTERAÇÃO:\n${note}\n\nReescreva o spec inteiro com a alteração aplicada, mantendo o resto igual. Inclua "caption" (mude só se o pedido mexer na legenda). Responda só o JSON.`;
+	const out = await complete({ system: studioSystem(ctx), text, imagePaths: studioImages(ctx).slice(0, 10) }, ctx.app.director);
+
+	return { ...out, caption: pullCaption(out.spec) };
 }

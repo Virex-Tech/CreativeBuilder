@@ -89,6 +89,26 @@ const envSchema = z.object({
 	// "false" desliga o laço (as etapas param onde estão até religar).
 	PIPELINE_ENABLED: z.enum(["true", "false"]).default("true"),
 	PIPELINE_TICK_MS: z.coerce.number().int().positive().default(8000),
+	// Estúdio de conteúdo (lib/studio.ts): edição dos takes → aprovação → publicação.
+	// URL pública do front — link de envio de takes e volta do login do Instagram.
+	PUBLIC_WEB_URL: z.string().default(""),
+	STUDIO_ENABLED: z.enum(["true", "false"]).default("true"),
+	STUDIO_TICK_MS: z.coerce.number().int().positive().default(6000),
+	// Transcrição dos takes (faster-whisper, no worker). tiny|base|small|medium. Idioma vazio = detectar.
+	WHISPER_MODEL: z.string().default("small"),
+	WHISPER_LANG: z.string().default(""),
+	WHISPER_THREADS: z.coerce.number().int().positive().default(2),
+	// Instagram (API do Instagram com login do Instagram): app da Meta com o produto Instagram e
+	// a permissão instagram_business_content_publish. Sem isso, a conta ainda conecta colando um
+	// token gerado no painel da Meta.
+	INSTAGRAM_APP_ID: z.string().optional(),
+	INSTAGRAM_APP_SECRET: z.string().optional(),
+	INSTAGRAM_API_VERSION: z.string().default("v23.0"),
+	// Google Drive: chave de API (Drive API ligada) pra listar pastas "qualquer pessoa com o link".
+	// Sem ela, a listagem cai na página pública da pasta (funciona, mas é menos robusta).
+	GOOGLE_API_KEY: z.string().optional(),
+	// Take gerado por IA (pessoa falando): modelo Veo da kie.ai.
+	KIE_TAKE_MODEL: z.enum(["veo3_fast", "veo3_lite", "veo3"]).default("veo3_fast"),
 });
 
 const parsed = envSchema.safeParse(process.env);

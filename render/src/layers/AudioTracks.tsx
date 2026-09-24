@@ -2,7 +2,7 @@ import React from "react";
 import { Audio, Sequence, useVideoConfig } from "remotion";
 
 import { resolveSrc } from "../resolveSrc";
-import { dbToGain, msToFrames, type SpecAudio } from "../spec";
+import { dbToGain, msToFrames, msToStartFrame, type SpecAudio } from "../spec";
 
 /**
  * Voiceover + music for the whole creative.
@@ -16,7 +16,7 @@ export const AudioTracks: React.FC<{ audio?: SpecAudio }> = ({ audio }) => {
 
 	const { voiceover, music, sfx } = audio;
 
-	const voFrom = voiceover ? msToFrames(voiceover.atMs, fps) : 0;
+	const voFrom = voiceover ? msToStartFrame(voiceover.atMs, fps) : 0;
 	const voEnd = voiceover?.durationMs ? voFrom + msToFrames(voiceover.durationMs, fps) : null;
 
 	// Short ramp instead of a hard step: an instant drop is audible as a click and reads as
@@ -64,7 +64,7 @@ export const AudioTracks: React.FC<{ audio?: SpecAudio }> = ({ audio }) => {
 			{sfx?.map((fx, i) => (
 				// One-shot effects sit at absolute timeline positions, independent of scenes — a
 				// whoosh belongs to the cut, not to either scene it sits between.
-				<Sequence key={`sfx-${String(i)}`} from={msToFrames(fx.atMs, fps)}>
+				<Sequence key={`sfx-${String(i)}`} from={msToStartFrame(fx.atMs, fps)}>
 					<Audio src={resolveSrc(fx.src)} volume={fx.volume} />
 				</Sequence>
 			))}

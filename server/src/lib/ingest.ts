@@ -42,9 +42,11 @@ export interface IngestManifest {
 	avgShotSec: number | null;
 	frames: IngestFrame[];
 	audioFile: string | null;
+	/** Fala da referência (whisper, preenchida pelo worker quando há áudio). */
+	transcript?: { language?: string; text: string };
 }
 
-interface Probe {
+export interface Probe {
 	durationSec: number;
 	width: number | null;
 	height: number | null;
@@ -61,7 +63,7 @@ function parseFps(raw: string | undefined): number | null {
 	return Number((num / den).toFixed(3));
 }
 
-async function probe(video: string): Promise<Probe> {
+export async function probe(video: string): Promise<Probe> {
 	const { stdout } = await run("ffprobe", [
 		"-v", "error",
 		"-show_entries", "format=duration",

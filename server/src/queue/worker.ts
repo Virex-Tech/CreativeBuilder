@@ -5,6 +5,7 @@ import { env } from "@/lib/env";
 import { downloadVideo } from "@/lib/fetchVideo";
 import { ingestVideo } from "@/lib/ingest";
 import { prisma } from "@/lib/prisma";
+import { processTake, transcribe } from "@/lib/takes";
 
 /**
  * Background reconciler for render jobs.
@@ -118,6 +119,15 @@ async function reconcileReferencesOnce(): Promise<void> {
 		}
 
 		const manifest = await ingestVideo(video, outDir);
+		// A fala da referência (hook, roteiro) vira texto pra IA — ela não ouve áudio. Não é fatal.
+		if (manifest.audioFile) {
+			try {
+				const t = await transcribe(join(outDir, manifest.audioFile));
+				manifest.transcript = { language: t.language, text: t.text };
+			} catch (err) {
+				console.error(`worker: transcrição da referência ${ref.id} falhou`, err);
+			}
+		}
 		await prisma.referenceAsset.update({
 			where: { id: ref.id },
 			data: { status: "DONE", manifest: manifest as object, error: null },
@@ -132,8 +142,44 @@ async function reconcileReferencesOnce(): Promise<void> {
 	}
 }
 
+/**
+ * Takes do estúdio: um por vez (ffmpeg + whisper disputam CPU com o render). Roda num laço
+ * próprio pra um take longo não atrasar a checagem dos renders.
+ */
+async function processTakesOnce(): Promise<boolean> {
+	const take = await prisma.take.findFirst({ where: { status: "QUEUED" }, orderBy: { createdAt: "asc" } });
+	if (!take) return false;
+	await prisma.take.update({ where: { id: take.id }, data: { status: "PROCESSING" } });
+	try {
+		await processTake(take);
+		console.log(`worker: take ${take.id} pronto`);
+	} catch (err) {
+		await prisma.take
+			.update({ where: { id: take.id }, data: { status: "FAILED", error: err instanceof Error ? err.message.slice(0, 500) : "falhou" } })
+			.catch(() => undefined); // take apagado no meio
+		console.error(`worker: take ${take.id} falhou`, err);
+	}
+
+	return true;
+}
+
+async function takesLoop(): Promise<void> {
+	// Take que ficou PROCESSING num restart do worker volta pra fila.
+	await prisma.take.updateMany({ where: { status: "PROCESSING" }, data: { status: "QUEUED" } });
+	for (;;) {
+		let worked = false;
+		try {
+			worked = await processTakesOnce();
+		} catch (err) {
+			console.error("worker: ciclo de takes falhou", err);
+		}
+		if (!worked) await new Promise((resolve) => setTimeout(resolve, POLL_MS));
+	}
+}
+
 async function main(): Promise<void> {
-	console.log(`worker: reconciliando render jobs + referências a cada ${POLL_MS}ms`);
+	console.log(`worker: reconciliando render jobs + referências + takes a cada ${POLL_MS}ms`);
+	void takesLoop();
 
 	for (;;) {
 		try {

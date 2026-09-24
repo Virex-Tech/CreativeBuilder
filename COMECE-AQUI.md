@@ -218,6 +218,7 @@ Você só conversa. Alguns pedidos prontos para copiar e adaptar.
 | **100% IA** | não tem gravação do app | *"cria um criativo do OzemPro 100% com IA"* |
 | **Com o app** | tem gravação de tela do app | *"cria um criativo do OzemPro com a gravação entrada/ozempro/home.mp4"* |
 | **Imagem no final** | quer terminar com um print ou oferta | *"cria um criativo do OzemPro terminando com a imagem entrada/ozempro/loja.png"* |
+| **Gravado por gente** | tem vídeos gravados (UGC, você, a marca) | *"edita os takes da pasta entrada/brenda seguindo esta referência: https://..."* |
 
 Se você não disser, ele pergunta. Em todos: vídeo em todas as cenas, voz humana, legenda
 embaixo destacando cada palavra falada.
@@ -313,6 +314,14 @@ Ele traduz adaptando (não ao pé da letra), gera a voz no idioma e sincroniza a
 Gerar a locução na Kie.ai custa poucos centavos de dólar — ele mostra o custo e pergunta antes.
 A legenda sincronizada é feita no seu computador, sem custo.
 
+**Editar vídeos gravados** (takes de criador UGC, seus ou da marca)
+> edita os takes da pasta entrada/brenda: começa pela frase mais forte, corta os erros e silêncios,
+> 20s no máximo, título no topo "você treina errado?"
+
+Coloque os vídeos numa pasta dentro de `entrada/` (pode ser direto do iPhone, `.mov`). Ele converte,
+transcreve cada take, escolhe os melhores trechos pela fala e monta a legenda palavra por palavra —
+sem gastar nada. Para pedir mudança depois: *"[0:03] corta essa parte"*, *"legenda com 3 palavras"*.
+
 **Análise de resultado** (depois que o anúncio rodou)
 1. No Gerenciador de Anúncios da Meta, exporte o relatório em CSV.
 2. Coloque o arquivo na pasta do projeto e peça:
@@ -395,6 +404,7 @@ Os MP4 finais (`render/out/`) **não** vão para o GitHub — mande pelo canal d
 | `render/specs/` | os roteiros dos criativos (arquivos `.json`) |
 | `render/public/app/<app>/` | **você coloca** gravações de tela e prints do app |
 | `render/public/broll/` | clipes gerados na Kie.ai (ou no Higgsfield, se usar a alternativa) |
+| `render/public/takes/` | takes gravados já preparados (convertidos + transcritos) — fica só no seu computador |
 | `render/out/` | **vídeos finais** (MP4) e previews |
 | `references/` | referências analisadas (frames e áudio) — fica só no seu computador |
 | `directors/` | regras de edição de cada app (ritmo, legendas) |
@@ -428,6 +438,8 @@ Os MP4 finais (`render/out/`) **não** vão para o GitHub — mande pelo canal d
 ## 10. Para saber mais
 
 - `docs/COMO-USAR.md` — referência técnica dos comandos
+- `docs/ESTUDIO.md` — **Estúdio na plataforma web**: calendário das contas, takes, aprovar/pedir
+  alteração e postagem automática no Instagram, sem instalar nada (https://creativebuilder.paywallo.com.br/estudio)
 - `render/specs/_modelos/LEIA-ME.md` — os modelos de vídeo
 - `AGENTS.md` — instruções que o Claude Code segue
 - `render/src/spec.ts` — todos os campos de um roteiro

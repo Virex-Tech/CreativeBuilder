@@ -65,3 +65,44 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const fileUrl = (renderJobId: string): string =>
 	`${BASE}/render-jobs/${renderJobId}/file`;
+
+/**
+ * Upload multipart com progresso (fetch não expõe progresso de envio). Um arquivo por chamada:
+ * take de celular é grande, e um por vez deixa cada barra honesta e cada falha isolada.
+ */
+export function uploadFile<T>(
+	path: string,
+	file: File,
+	onProgress?: (pct: number) => void,
+	opts: { auth?: boolean } = { auth: true },
+): Promise<T> {
+	return new Promise((resolve, reject) => {
+		const xhr = new XMLHttpRequest();
+		xhr.open("POST", `${BASE}${path}`);
+		const token = opts.auth === false ? null : getToken();
+		if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+		xhr.upload.onprogress = (e) => {
+			if (e.lengthComputable) onProgress?.(Math.round((e.loaded / e.total) * 100));
+		};
+		xhr.onload = () => {
+			let body: unknown = null;
+			try {
+				body = xhr.responseText ? JSON.parse(xhr.responseText) : null;
+			} catch {
+				// resposta não-JSON (nginx 413, por ex.)
+			}
+			if (xhr.status >= 200 && xhr.status < 300) return resolve(body as T);
+			const msg =
+				body && typeof body === "object" && "error" in body
+					? String((body as { error: unknown }).error)
+					: xhr.status === 413
+						? "arquivo grande demais pro servidor"
+						: `HTTP ${xhr.status}`;
+			reject(new ApiError(xhr.status, msg, body));
+		};
+		xhr.onerror = () => reject(new ApiError(0, "conexão caiu durante o envio"));
+		const form = new FormData();
+		form.append("file", file, file.name);
+		xhr.send(form);
+	});
+}

@@ -4,7 +4,7 @@ import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig } from "remotio
 import { AudioTracks } from "./layers/AudioTracks";
 import { LayerRenderer } from "./layers/LayerRenderer";
 import { resolveTransition } from "./presets/anims";
-import { msToFrames, type CreativeSpec, type Scene } from "./spec";
+import { msToFrames, msToStartFrame, type CreativeSpec, type Scene } from "./spec";
 
 /**
  * The ONE composition.
@@ -22,7 +22,7 @@ export const SpecRenderer: React.FC<{ spec: CreativeSpec }> = ({ spec }) => {
 		<AbsoluteFill style={{ backgroundColor: brand.bg }}>
 			<AudioTracks audio={spec.audio} />
 			{spec.scenes.map((scene, sceneIndex) => {
-				const from = msToFrames(scene.startMs, fps);
+				const from = msToStartFrame(scene.startMs, fps);
 				const durationInFrames = msToFrames(scene.durationMs, fps);
 				// The opening scene has nothing to transition from, so it always cuts in.
 				const transitionIn = sceneIndex === 0 ? "cut" : scene.transitionIn;
@@ -38,7 +38,7 @@ export const SpecRenderer: React.FC<{ spec: CreativeSpec }> = ({ spec }) => {
 							{scene.layers.map((layer, i) => {
 								// A layer may start later than its scene and end earlier — that is how a
 								// caption appears after the cut without needing a scene of its own.
-								const layerFrom = msToFrames(layer.startMs ?? 0, fps) - (layer.startMs ? 0 : 1);
+								const layerFrom = msToStartFrame(layer.startMs ?? 0, fps);
 								const layerDuration = layer.durationMs
 									? msToFrames(layer.durationMs, fps)
 									: durationInFrames - Math.max(0, layerFrom);

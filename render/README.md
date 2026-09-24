@@ -34,7 +34,17 @@ arquivos em `specs/props/` embrulham os de `specs/`.
 
 ## Layers hoje
 
-`text` · `generative_video` · `app_screen_recording` · `solid` · `badge` · `karaoke` · `disclaimer`
+`text` · `generative_video` · `footage` · `app_screen_recording` · `solid` · `badge` · `karaoke` · `disclaimer`
+
+- `footage` — take gravado por uma pessoa, **com o som original** (`volume`, 0 = mudo). A cena
+  toca `take[startFromMs .. startFromMs + durationMs]`; `zoom` (1–1.6) faz o punch-in de jump cut
+  e `mirror` desfaz o espelhamento da câmera frontal. As legendas da fala são `karaoke` com
+  `auto: true`, geradas por `tools/spec-tool.mjs footage` (local) ou `server/src/lib/footage.ts`
+  (plataforma) a partir da transcrição — `spec.autoCaptions` liga/desliga e define palavras por bloco.
+- `text` presets: `hook_stroke`, `sub`, `caption`, `cta_label` e `title_top` (título fixo no topo,
+  caixa clara com letra escura — o texto nativo do Reels/TikTok).
+- Início de cena/voz/sfx usa `msToStartFrame` (pode ser 0); `msToFrames` (mínimo 1) é só para
+  duração — usar o segundo para início deixava o frame 0 de todo vídeo vazio.
 
 ## Áudio
 
@@ -69,6 +79,6 @@ rascunho.
 
 ## Ainda não existe
 
-Alinhamento palavra a palavra da legenda (hoje o karaokê divide o tempo igualmente entre as
-palavras — passe `wordEndsMs` quando tiver os tempos reais), saída `image`/`carousel`, e o
-servidor HTTP (`POST /render`). Hoje é CLI.
+Saída `image`/`carousel`. (Karaokê sem `wordEndsMs` divide o tempo igualmente entre as palavras —
+com voz, use `spec-tool sync-captions`; com takes, `spec-tool footage`.) O serviço HTTP
+(`server.ts`: `POST /render`, `/still`, `/validate`) é o que a plataforma usa; local é CLI.

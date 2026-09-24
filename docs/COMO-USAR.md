@@ -208,7 +208,9 @@ Higgsfield: `kling3_0 --start-image <arquivo>`). Rosto real só com autorizaçã
 | `transitionIn` / `transitionMs` | cena | `cut` (padrão), `fade`, `zoom`, `whip`, `slide_up`, `flash` / 80–600 ms (padrão 250). Não muda a duração do vídeo |
 | `audio.sfx[]` | spec | `{ src: "sfx/whoosh.mp3", atMs, volume }` — `whoosh`, `pop`, `click`, `rise` em `render/public/sfx/` |
 | `anim` | layer | `none`, `pop_in`, `fade_in`, `slide_up`, `punch_in`, `tilt_scroll`, `handheld_subtle` |
-| `preset` | layer `text` | `hook_stroke` (terço inferior-médio), `sub`/`caption` (faixa de legenda), `cta_label` |
+| `preset` | layer `text` | `hook_stroke` (terço inferior-médio), `sub`/`caption` (faixa de legenda), `cta_label`, `title_top` (título fixo no topo, caixa clara — padrão de conteúdo orgânico) |
+| `footage` | layer | take gravado com o som original: `takeId`, `src`, `startFromMs` (entrada), `volume` (0 = mudo), `zoom` (1–1.6, jump cut), `mirror` — ver seção 13 |
+| `autoCaptions` | spec | `{ enabled, maxWords }` — legenda da fala dos takes, gerada por `spec-tool footage` |
 | imagem estática | `app_screen_recording` com imagem e `anim: "none"` | zoom lento automático |
 
 Detalhes do renderer: [`render/README.md`](../render/README.md).
@@ -233,7 +235,8 @@ pronto (`target_language`: por, spa, eng, fra, deu, ita...).
 | Comando | O que acusa |
 |---|---|
 | `spec-tool validate` | estrutura do spec: gap/overlap de cenas, texto vazio, hook longo |
-| `spec-tool check` | **errors:** cena sem vídeo/imagem, layer sem `src`, arquivo inexistente · **warnings:** clipe mais curto que a cena, legenda não sincronizada com a voz, voz além do fim do vídeo, vídeo sem legenda |
+| `spec-tool check` | **errors:** cena sem vídeo/imagem, layer sem `src`, arquivo inexistente · **warnings:** clipe mais curto que a cena, legenda não sincronizada com a voz, voz além do fim do vídeo, vídeo sem legenda, takes sem a legenda da fala |
+| `spec-tool footage` | não acusa — **corrige**: corte na fronteira de palavra, clipes do mesmo take sem sobreposição, legenda da fala refeita |
 | `tools/review.mjs <mp4>` | folha de contato (quadros com tempo) + volume médio/pico e silêncios do áudio |
 
 ## 11. Criativos que deram certo (Meta Ads)
@@ -274,9 +277,40 @@ coleta automática exige o token server-side. O formato das fichas (`referencias
 ## 12. Compartilhar
 
 Specs, contextos, clipes (`render/public/`) vão para o GitHub. Não vão: `entrada/`,
-`references/`, `render/out/` (MP4 finais — mande pelo canal da equipe).
+`references/`, `render/out/` (MP4 finais — mande pelo canal da equipe) e `render/public/takes/`
+(takes gravados: vídeo de pessoa real e pesado — para outra pessoa renderizar, mande os arquivos
+ou use o Estúdio da plataforma).
 
----
+## 13. Takes gravados (conteúdo orgânico / UGC)
 
-A plataforma web (`web/`, `server/`, `DEPLOY.md`, `docs/ATIVACAO-IA.md`) está **fora de uso** por
-enquanto.
+Vídeo gravado por uma pessoa (criador UGC, a marca, você) editado pelo agente: ele escolhe os
+trechos pela fala, corta silêncio/erro/repetição, põe o hook na frente e legenda.
+
+```bash
+# 1. preparar: converte (H.264 30fps), transcreve com o tempo de cada palavra, tira 2 frames
+node tools/takes.mjs preparar entrada/<pasta> [arquivo.mov] [link do Drive/Instagram] --lang pt
+node tools/takes.mjs listar                      # relê a fala de todos
+
+# 2. o agente escreve o spec com layers footage (uma cena = um trecho de um take):
+#    { "type": "footage", "takeId": "<nome>", "src": "takes/<nome>.mp4", "startFromMs": 20870 }
+#    + "autoCaptions": { "enabled": true, "maxWords": 4 } e, se quiser, título preset title_top
+
+# 3. acabamento — SEMPRE depois de qualquer mudança no spec
+node tools/spec-tool.mjs footage render/specs/<spec>.json
+
+# 4. o de sempre
+node tools/spec-tool.mjs check render/specs/<spec>.json
+```
+
+O `footage` puxa cada corte para a fronteira de palavra (a palavra fica se a maior parte dela está
+no trecho), tira a sobreposição entre clipes seguidos do mesmo take (a fala tocaria duas vezes) e
+refaz a legenda da fala em blocos com o tempo exato de cada palavra. Rodar de novo dá o mesmo
+resultado. É a mesma regra da plataforma (`server/src/lib/footage.ts`).
+
+Vídeo de iPhone (HEVC/HDR `.mov`) precisa passar pelo `preparar` — o Chrome do render não abre.
+Arquivos em `render/public/takes/` (fora do git).
+
+## 14. Plataforma web: Estúdio
+
+O mesmo fluxo de takes, com calendário por conta, aprovação e publicação no Instagram, está na
+plataforma em `/estudio` — ver [`docs/ESTUDIO.md`](ESTUDIO.md).
