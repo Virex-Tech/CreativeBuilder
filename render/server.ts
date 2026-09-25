@@ -21,7 +21,7 @@ import { creativeSpec, specDurationMs } from "./src/spec";
 const config = loadConfig();
 const app = Fastify({ logger: true, bodyLimit: 8 * 1024 * 1024 });
 const queue = new JobQueue({ maxJobs: config.maxJobs, ttlMs: config.ttlMs, outDir: config.outDir, log: app.log });
-const renderOpts = { concurrency: config.concurrency, urlRewrite: config.urlRewrite };
+const renderOpts = { concurrency: config.concurrency, urlRewrite: config.urlRewrite, mediaTimeoutMs: config.mediaTimeoutMs };
 
 registerAuth(app, config.token);
 registerPreview(app, { previewDir: config.previewDir, publicDir: config.publicDir, origins: config.previewOrigins });

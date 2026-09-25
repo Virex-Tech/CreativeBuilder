@@ -54,7 +54,14 @@ arquivos em `specs/props/` embrulham os de `specs/`.
   `tools/spec-tool.mjs footage` no local, `server/src/lib/footage.ts` na plataforma) a partir da
   transcrição — `spec.autoCaptions` liga/desliga e define palavras por bloco.
 - `text` presets: `hook_stroke`, `sub`, `caption`, `cta_label` e `title_top` (título fixo no topo,
-  caixa clara com letra escura — o texto nativo do Reels/TikTok).
+  caixa clara com letra escura — o texto nativo do Reels/TikTok). `title_top` e `badge` dividem a
+  faixa de cima: se estão na tela ao mesmo tempo (mesma cena, tempos que se cruzam), o título desce
+  para baixo do selo durante toda a sua duração.
+- `app_screen_recording` com `device: "iphone15_mock"`: a tela do celular toma o formato da mídia
+  (lido no navegador antes do frame), então print 9:16, 9:19.5 ou gravação de tela aparecem
+  inteiros, sem corte lateral nem faixa. Mídia fora do formato de celular (9:21–9:15, ex. imagem
+  quadrada ou horizontal) aparece inteira sobre uma cópia desfocada dela mesma (vídeo: fundo preto).
+  Sem `src` (placeholder), o celular é o 9:19.5 de sempre. `device: "none"` continua tela cheia em cover.
 - Início de cena/voz/sfx usa `msToStartFrame` (pode ser 0); `msToFrames` (mínimo 1) é só para
   duração — usar o segundo para início deixava o frame 0 de todo vídeo vazio.
 
@@ -241,6 +248,7 @@ tudo e só vale se escrito explicitamente.
 | `RENDER_TOKEN` | vazio (aberto) | Bearer exigido em tudo menos `/health` e `/preview/*` |
 | `RENDER_MAX_JOBS` | `1` | renders simultâneos; o resto fica na fila |
 | `RENDER_CONCURRENCY` | padrão do Remotion | abas do Chrome por render |
+| `RENDER_MEDIA_TIMEOUT_MS` | `120000` | teto de todo `delayRender()` do render (baixar/decodificar take, b-roll, imagem, áudio); o padrão do Remotion (30 s) estoura com o host carregado |
 | `RENDER_OUT_TTL_HOURS` | `24` | vida dos jobs terminados + arquivos (e dos órfãos); `0` = para sempre |
 | `RENDER_URL_REWRITE` | vazio | `de=>para;de2=>para2` (prefixos), só no render do servidor |
 | `PREVIEW_ALLOWED_ORIGINS` | vazio (mesma origem) | origens que podem embutir e comandar `/preview/`; `*` = qualquer |

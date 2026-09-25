@@ -252,3 +252,16 @@ export function resolveTextPreset(preset: TextPreset, brand: BrandKit, layout: L
 			};
 	}
 }
+
+/**
+ * The top band is shared by the `badge` (the "SEMANA 1" chip) and the `title_top` preset. When both
+ * are on screen in the same scene at the same time, the title stacks BELOW the badge instead of
+ * sitting on top of it. Base px (1080×1920), measured from the rendered badge: 22px padding top and
+ * bottom, a 34px label line (Inter, normal line-height) + 6px, and the 84px value at line-height 1.
+ */
+export const BADGE_TOP = 230;
+export function badgeHeight(hasLabel: boolean): number {
+	return hasLabel ? 173 : 128;
+}
+/** Space between the badge and a title stacked under it. */
+export const TOP_STACK_GAP = 28;

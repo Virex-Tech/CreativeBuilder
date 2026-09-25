@@ -8,6 +8,11 @@ export interface Config {
 	outDir: string;
 	/** Chrome tabs per render (Remotion `concurrency`); null = Remotion's default. */
 	concurrency: number | null;
+	/**
+	 * Ceiling for every delayRender() of a render — media fetch/decoding (OffthreadVideo, Img, Audio,
+	 * the app-screen aspect probe). Remotion's 30 s default fails under host load on remote takes.
+	 */
+	mediaTimeoutMs: number;
 	/** Renders running at once; the rest wait in a FIFO queue. */
 	maxJobs: number;
 	/** Finished jobs (and their files) live this long. 0 = forever (no prune, no sweep). */
@@ -35,6 +40,7 @@ export function loadConfig(): Config {
 		port: num("PORT", 11100, 1),
 		outDir: resolve(process.env.RENDER_OUT_DIR ?? "out"),
 		concurrency: process.env.RENDER_CONCURRENCY ? num("RENDER_CONCURRENCY", 1, 1) : null,
+		mediaTimeoutMs: Math.floor(num("RENDER_MEDIA_TIMEOUT_MS", 120_000, 5_000)),
 		maxJobs: Math.floor(num("RENDER_MAX_JOBS", 1, 1)),
 		ttlMs: num("RENDER_OUT_TTL_HOURS", 24, 0) * 3600_000,
 		token: (process.env.RENDER_TOKEN ?? "").trim(),

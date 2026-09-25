@@ -4,6 +4,7 @@ import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig } from "remotio
 import { AudioTracks } from "./layers/AudioTracks";
 import { LayerRenderer } from "./layers/LayerRenderer";
 import { resolveTransition } from "./presets/anims";
+import { titleUnderBadge } from "./layers/topBand";
 import { msToFrames, msToStartFrame, type CreativeSpec, type Scene } from "./spec";
 
 /**
@@ -26,6 +27,7 @@ export const SpecRenderer: React.FC<{ spec: CreativeSpec }> = ({ spec }) => {
 				const durationInFrames = msToFrames(scene.durationMs, fps);
 				// The opening scene has nothing to transition from, so it always cuts in.
 				const transitionIn = sceneIndex === 0 ? "cut" : scene.transitionIn;
+				const badges = scene.layers.filter((l) => l.type === "badge");
 
 				return (
 					<Sequence
@@ -54,6 +56,7 @@ export const SpecRenderer: React.FC<{ spec: CreativeSpec }> = ({ spec }) => {
 											layer={layer}
 											brand={brand}
 											durationInFrames={Math.max(1, layerDuration)}
+											belowBadge={titleUnderBadge(layer, badges, scene.durationMs)}
 										/>
 									</Sequence>
 								);
@@ -94,3 +97,4 @@ const SceneEnter: React.FC<{
 		</>
 	);
 };
+

@@ -29,10 +29,12 @@ export function getBundle(): Promise<string> {
 
 export interface RenderOptions {
 	concurrency: number | null;
+	/** delayRender() ceiling for the whole render (RENDER_MEDIA_TIMEOUT_MS). */
+	mediaTimeoutMs: number;
 	urlRewrite: RewriteRule[];
 }
 
-async function resolveComposition(spec: CreativeSpec) {
+async function resolveComposition(spec: CreativeSpec, timeoutInMilliseconds: number) {
 	const serveUrl = await getBundle();
 
 	// calculateMetadata in Root.tsx derives width/height/fps/duration from the spec, so the
@@ -41,6 +43,7 @@ async function resolveComposition(spec: CreativeSpec) {
 		serveUrl,
 		id: "Creative",
 		inputProps: { spec },
+		timeoutInMilliseconds,
 	});
 
 	return { serveUrl, composition };
@@ -56,7 +59,7 @@ export async function renderVideo(
 	onProgress: (percent: number) => void,
 ): Promise<void> {
 	const input = forServer(spec, opts);
-	const { serveUrl, composition } = await resolveComposition(input);
+	const { serveUrl, composition } = await resolveComposition(input, opts.mediaTimeoutMs);
 
 	await renderMedia({
 		serveUrl,
@@ -65,13 +68,15 @@ export async function renderVideo(
 		outputLocation: outPath,
 		inputProps: { spec: input },
 		concurrency: opts.concurrency,
+		// Default for every delayRender() in the page (OffthreadVideo/Img/Audio fetches included).
+		timeoutInMilliseconds: opts.mediaTimeoutMs,
 		onProgress: ({ progress }) => onProgress(Math.round(progress * 100)),
 	});
 }
 
 export async function renderStillFrame(spec: CreativeSpec, frame: number, outPath: string, opts: RenderOptions): Promise<void> {
 	const input = forServer(spec, opts);
-	const { serveUrl, composition } = await resolveComposition(input);
+	const { serveUrl, composition } = await resolveComposition(input, opts.mediaTimeoutMs);
 
 	await renderStill({
 		serveUrl,
@@ -79,5 +84,6 @@ export async function renderStillFrame(spec: CreativeSpec, frame: number, outPat
 		output: outPath,
 		inputProps: { spec: input },
 		frame: Math.max(0, Math.min(Math.floor(frame), composition.durationInFrames - 1)),
+		timeoutInMilliseconds: opts.mediaTimeoutMs,
 	});
 }

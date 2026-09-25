@@ -2,7 +2,8 @@ import React from "react";
 import { AbsoluteFill, Img, interpolate, OffthreadVideo, useCurrentFrame, useVideoConfig } from "remotion";
 
 import { layoutFor, type Layout } from "../formats";
-import { resolveAnim, resolveTextPreset } from "../presets/anims";
+import { useMediaAspect } from "./mediaAspect";
+import { BADGE_TOP, badgeHeight, resolveAnim, resolveTextPreset, TOP_STACK_GAP } from "../presets/anims";
 import { resolveSrc } from "../resolveSrc";
 import { msToFrames, type BrandKit, type Layer } from "../spec";
 
@@ -10,6 +11,11 @@ interface Props {
 	layer: Layer;
 	brand: BrandKit;
 	durationInFrames: number;
+	/**
+	 * Set on a `title_top` text that shares the screen with a `badge` (same scene, overlapping
+	 * time): the title goes below the badge. `badgeWithLabel` picks the badge's height.
+	 */
+	belowBadge?: { badgeWithLabel: boolean };
 }
 
 /**
@@ -19,7 +25,7 @@ interface Props {
  * generative model. Models misspell words and mangle UI, and a single wrong letter is what
  * makes an ad read as AI slop. The generative providers only supply moving imagery.
  */
-export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames }) => {
+export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames, belowBadge }) => {
 	const frame = useCurrentFrame();
 	const { fps, width, height } = useVideoConfig();
 	const anim = resolveAnim(layer.anim, frame, fps, durationInFrames);
@@ -35,6 +41,10 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 
 		case "text": {
 			const style = resolveTextPreset(layer.preset, brand, L);
+			if (belowBadge && layer.preset === "title_top") {
+				const underBadge = L.top(BADGE_TOP) + z(badgeHeight(belowBadge.badgeWithLabel) + TOP_STACK_GAP);
+				style.top = Math.max(style.top ?? 0, underBadge);
+			}
 
 			return (
 				<AbsoluteFill
@@ -111,57 +121,24 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 				</AbsoluteFill>
 			);
 
-		case "app_screen_recording": {
-			const isImage = !!layer.src && !isVideoSrc(layer.src);
-			// A static screenshot with no explicit anim otherwise sits dead on screen — give it
-			// an automatic, subtle Ken Burns push so it reads as "alive" without a spec change.
-			const kenBurnsScale =
-				isImage && layer.anim === "none"
-					? interpolate(frame, [0, durationInFrames], [1, 1.08], { extrapolateRight: "clamp" })
-					: 1;
-
+		case "app_screen_recording":
+			// Keyed by src: the size probe (and its render hold) belongs to one media file.
 			return (
-				<AbsoluteFill style={{ justifyContent: "center", alignItems: "center", transform }}>
-					<DeviceFrame enabled={layer.device !== "none"} brand={brand} layout={L}>
-						{layer.src && isVideoSrc(layer.src) ? (
-							// Screen recordings carry UI sounds and mic noise; the spec's audio track owns sound.
-							<OffthreadVideo
-								src={resolveSrc(layer.src)}
-								trimBefore={layer.startFromMs ? msToFrames(layer.startFromMs, fps) : undefined}
-								muted
-								style={{ width: "100%", height: "100%", objectFit: "cover" }}
-							/>
-						) : layer.src ? (
-							// Clip the Ken Burns overscan so it never peeks outside the frame/device.
-							<div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
-								<Img
-									src={resolveSrc(layer.src)}
-									style={{
-										width: "100%",
-										height: "100%",
-										objectFit: "cover",
-										transform: `scale(${kenBurnsScale})`,
-									}}
-								/>
-							</div>
-						) : (
-							<PlaceholderLayer
-								brand={brand}
-								label="app screen"
-								detail={layer.assetId ?? "sem asset"}
-								opacity={anim.opacity}
-								layout={L}
-							/>
-						)}
-					</DeviceFrame>
-				</AbsoluteFill>
+				<AppScreen
+					key={layer.src ?? "placeholder"}
+					layer={layer}
+					brand={brand}
+					layout={L}
+					durationInFrames={durationInFrames}
+					opacity={anim.opacity}
+					transform={transform}
+				/>
 			);
-		}
 
 		case "badge":
 			return (
 				<AbsoluteFill
-					style={{ justifyContent: "flex-start", alignItems: "center", paddingTop: L.top(230) }}
+					style={{ justifyContent: "flex-start", alignItems: "center", paddingTop: L.top(BADGE_TOP) }}
 				>
 					<div
 						style={{
@@ -336,29 +313,117 @@ const DEVICE_MAX_W = 0.78;
 /** 78% of 1080 at 9/19.5 is 1825.2px tall = 95.0625% of 1920 — the same cap for any height. */
 const DEVICE_MAX_H = (DEVICE_MAX_W * 1080) / DEVICE_ASPECT / 1920;
 const DEVICE_BASE_W = DEVICE_MAX_W * 1080;
+/**
+ * Screen shapes a phone can plausibly have (w/h). Media in this range gets a screen of exactly its
+ * shape (nothing cropped, no bars); outside it (a landscape clip, a banner) the screen is clamped and
+ * the media is shown whole over a blurred copy of itself.
+ */
+const SCREEN_ASPECT_MIN = 9 / 21;
+const SCREEN_ASPECT_MAX = 9 / 15;
+
+const AppScreen: React.FC<{
+	layer: Extract<Layer, { type: "app_screen_recording" }>;
+	brand: BrandKit;
+	layout: Layout;
+	durationInFrames: number;
+	opacity: number;
+	transform: string;
+}> = ({ layer, brand, layout, durationInFrames, opacity, transform }) => {
+	const frame = useCurrentFrame();
+	const { fps } = useVideoConfig();
+	const src = layer.src ? resolveSrc(layer.src) : null;
+	const isVideo = !!layer.src && isVideoSrc(layer.src);
+	const inDevice = layer.device !== "none";
+	// Only a phone needs the media's shape; full-screen (device "none") stays a cover crop.
+	const mediaAspect = useMediaAspect(inDevice ? src : null, isVideo ? "video" : "image");
+	const screenAspect = mediaAspect === null ? null : Math.min(SCREEN_ASPECT_MAX, Math.max(SCREEN_ASPECT_MIN, mediaAspect));
+	const fitsExactly = screenAspect !== null && mediaAspect !== null && Math.abs(screenAspect - mediaAspect) < 0.005;
+	const fit = !inDevice || screenAspect === null || fitsExactly ? "cover" : "contain";
+
+	// A static screenshot with no explicit anim otherwise sits dead on screen — give it
+	// an automatic, subtle Ken Burns push so it reads as "alive" without a spec change.
+	const kenBurnsScale =
+		src && !isVideo && layer.anim === "none"
+			? interpolate(frame, [0, durationInFrames], [1, 1.08], { extrapolateRight: "clamp" })
+			: 1;
+
+	return (
+		<AbsoluteFill style={{ justifyContent: "center", alignItems: "center", transform }}>
+			<DeviceFrame enabled={inDevice} brand={brand} layout={layout} screenAspect={screenAspect}>
+				{src && isVideo ? (
+					// Screen recordings carry UI sounds and mic noise; the spec's audio track owns sound.
+					<div style={{ width: "100%", height: "100%", background: fit === "contain" ? "#000" : undefined }}>
+						<OffthreadVideo
+							src={src}
+							trimBefore={layer.startFromMs ? msToFrames(layer.startFromMs, fps) : undefined}
+							muted
+							style={{ width: "100%", height: "100%", objectFit: fit }}
+						/>
+					</div>
+				) : src ? (
+					// Clip the Ken Burns overscan so it never peeks outside the frame/device.
+					<div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
+						{fit === "contain" ? (
+							<Img
+								src={src}
+								style={{
+									position: "absolute",
+									inset: 0,
+									width: "100%",
+									height: "100%",
+									objectFit: "cover",
+									filter: `blur(${layout.size(28)}px) brightness(0.7)`,
+									transform: "scale(1.15)",
+								}}
+							/>
+						) : null}
+						<Img
+							src={src}
+							style={{
+								position: "relative",
+								width: "100%",
+								height: "100%",
+								objectFit: fit,
+								transform: `scale(${kenBurnsScale})`,
+							}}
+						/>
+					</div>
+				) : (
+					<PlaceholderLayer brand={brand} label="app screen" detail={layer.assetId ?? "sem asset"} opacity={opacity} layout={layout} />
+				)}
+			</DeviceFrame>
+		</AbsoluteFill>
+	);
+};
 
 const DeviceFrame: React.FC<{
 	enabled: boolean;
 	brand: BrandKit;
 	layout: Layout;
+	/** Shape (w/h) of the media's screen; null = the stock 9:19.5 phone (placeholder / unknown). */
+	screenAspect: number | null;
 	children: React.ReactNode;
-}> = ({ enabled, brand, layout, children }) => {
+}> = ({ enabled, brand, layout, screenAspect, children }) => {
 	if (!enabled) return <>{children}</>;
 
 	// Width-bound on 9:16 (78% of the width, as always); height-bound on shorter frames, where
 	// 78% of the width would push the phone off the top and bottom of a 4:5 or 1:1 canvas.
+	const aspect = screenAspect ?? DEVICE_ASPECT;
 	const byWidth = DEVICE_MAX_W * layout.w;
-	const byHeight = DEVICE_MAX_H * layout.h * DEVICE_ASPECT;
+	const byHeight = DEVICE_MAX_H * layout.h * aspect;
 	const width = byWidth <= byHeight + 0.01 ? byWidth : byHeight;
 	const k = width / DEVICE_BASE_W;
+	const pad = 12 * k;
 
 	return (
 		<div
 			style={{
 				width,
-				aspectRatio: "9 / 19.5",
+				// Content-box: width/height are the SCREEN inside the bezel padding. The stock phone keeps
+				// its exact old geometry; a media-shaped one gets the media's shape, so cover crops nothing.
+				...(screenAspect === null ? { aspectRatio: "9 / 19.5" } : { height: width / screenAspect }),
 				borderRadius: 64 * k,
-				padding: 12 * k,
+				padding: pad,
 				background: "#111",
 				boxShadow: `0 ${40 * k}px ${120 * k}px ${brand.accent}55, 0 0 0 2px #2a2a2a`,
 				overflow: "hidden",

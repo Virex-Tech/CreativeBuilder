@@ -45,3 +45,18 @@ describe("formats", () => {
 		assert.equal(layoutFor(1080, 1080).s, 0.8);
 	});
 });
+
+describe("top band: title_top under a badge", async () => {
+	const { titleUnderBadge } = await import("../src/layers/topBand");
+	const title = { type: "text", preset: "title_top", content: "t", anim: "none" } as const;
+	const badge = (extra: Record<string, unknown> = {}) => ({ type: "badge", label: "", value: "1", anim: "none", ...extra }) as never;
+
+	it("stacks only when both are on screen at the same time", () => {
+		assert.deepEqual(titleUnderBadge(title, [badge()], 3000), { badgeWithLabel: false });
+		assert.deepEqual(titleUnderBadge(title, [badge({ label: "semana" })], 3000), { badgeWithLabel: true });
+		assert.equal(titleUnderBadge(title, [], 3000), undefined);
+		assert.equal(titleUnderBadge({ ...title, startMs: 0, durationMs: 1000 }, [badge({ startMs: 1000 })], 3000), undefined);
+		assert.deepEqual(titleUnderBadge({ ...title, startMs: 0, durationMs: 1200 }, [badge({ startMs: 1000 })], 3000), { badgeWithLabel: false });
+		assert.equal(titleUnderBadge({ ...title, preset: "sub" }, [badge()], 3000), undefined);
+	});
+});
