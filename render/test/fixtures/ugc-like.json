@@ -1,0 +1,34 @@
+{
+	"specVersion": "1",
+	"creativeId": "cr_engine_ugc_like",
+	"appId": "app_sample",
+	"locale": "pt-BR",
+	"format": { "w": 1080, "h": 1920, "fps": 30 },
+	"brandKit": { "bg": "#0B0B0F", "fg": "#FFFFFF", "accent": "#FF3B6B", "fontFamily": "Inter, system-ui, sans-serif" },
+	"autoCaptions": { "enabled": true, "maxWords": 4 },
+	"scenes": [
+		{
+			"id": "c1",
+			"role": "HOOK",
+			"startMs": 0,
+			"durationMs": 2000,
+			"layers": [
+				{ "type": "footage", "src": "broll/tapfit-treino-aleatorio-hook.mp4", "startFromMs": 0, "volume": 0 },
+				{ "type": "text", "preset": "title_top", "content": "O que ninguém te conta sobre treinar em casa" },
+				{ "type": "karaoke", "auto": true, "text": "eu parei de treinar", "startMs": 0, "durationMs": 2000, "wordEndsMs": [300, 800, 1200, 2000] }
+			]
+		},
+		{
+			"id": "c2",
+			"role": "POINT",
+			"startMs": 2000,
+			"durationMs": 2000,
+			"layers": [
+				{ "type": "footage", "src": "broll/tapfit-treino-aleatorio-hook.mp4", "startFromMs": 1500, "zoom": 1.12, "volume": 0 },
+				{ "type": "text", "preset": "title_top", "content": "O que ninguém te conta sobre treinar em casa" },
+				{ "type": "karaoke", "auto": true, "text": "e voltei com um plano de dois minutos", "startMs": 0, "durationMs": 2000, "wordEndsMs": [200, 400, 700, 900, 1100, 1300, 1600, 2000] },
+				{ "type": "text", "preset": "cta_label", "content": "Link na bio" }
+			]
+		}
+	]
+}

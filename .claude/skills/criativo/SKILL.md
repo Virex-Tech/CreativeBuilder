@@ -139,6 +139,8 @@ nunca as `locked`.
 | "faz em espanhol" | `locale_swap` |
 | "versão 4:5 de 15s" | mutação `format` |
 | "gera 4 variações do hook" | 4 filhos com `hook_rewrite`, cada um com ângulo diferente |
+| "título fixo no topo" | layer `text` preset `title_top` |
+| "[0:03] corta essa parte" (takes) | tira/encurta a cena desse trecho + `spec-tool footage` |
 
 ### 6. Análise de performance
 
@@ -153,6 +155,30 @@ crie, edite, pause nem mexa em orçamento sem autorização explícita.
 
 Criativo em "Modelar" → variações de gancho e roteiro sobre ele (fluxo 4).
 
+### 7. Takes gravados (conteúdo orgânico / UGC)
+
+Quando o usuário mandar vídeos gravados por uma pessoa + referência + instrução, você é o editor:
+escolhe os trechos pela fala, ordena, corta o que não presta e legenda. Nada é gerado.
+
+```bash
+node tools/takes.mjs preparar entrada/<pasta> [arquivos ou links] --lang pt
+node tools/takes.mjs listar
+```
+
+1. Leia os frames (`render/public/takes/<nome>/f1.jpg`, `f2.jpg`) e a fala impressa
+   (`[início–fim] palavra@segundo`). Referência → Fluxo 1, e siga só o ritmo dela.
+2. Cada cena = um trecho de um take. 1ª layer:
+   `{ "type": "footage", "takeId": "<nome>", "src": "takes/<nome>.mp4", "startFromMs": <entrada> }`
+   sem `startMs`/`durationMs` — a duração da cena é a saída do trecho.
+3. Corte silêncio, "é…", repetição (fique com a melhor tentativa), erro. Hook = frase mais forte
+   primeiro. Jump cut do mesmo take: `zoom` 1 ↔ 1.12. Título no topo: `text` preset `title_top`.
+   Não escreva legenda da fala: `"autoCaptions": { "enabled": true, "maxWords": 4 }`.
+4. **Depois de toda mudança:** `node tools/spec-tool.mjs footage render/specs/<spec>.json` (corte na
+   fronteira de palavra, sem fala repetida entre clipes, legenda da fala real).
+5. `validate`, `check`, stills, render, `review.mjs` como sempre.
+
+Na plataforma web isso é o **Estúdio** (`/estudio`, `docs/ESTUDIO.md`).
+
 ## DirectorProfile
 
 Regras de edição por app, em `directors/<app>.yaml`. Leia antes de escrever qualquer spec e
@@ -161,7 +187,8 @@ se quer criar ou use os defaults do renderer.
 
 ## Estado atual — o que ainda não existe
 
-Saída de imagem e carrossel, publicação e ingestão automática de métricas. (Já existem: transições,
+Saída de imagem e carrossel e ingestão automática de métricas. (Publicação no Instagram existe
+só na plataforma web — Estúdio, `docs/ESTUDIO.md`.) (Já existem: transições,
 efeitos sonoros, zoom em imagem estática e legenda sincronizada com a voz — veja as seções acima.)
 
 **Áudio já funciona**: `spec.audio.voiceover` (com `atMs` e `durationMs`) e `spec.audio.music`
@@ -193,6 +220,7 @@ Servidor `meta-ads` (`.mcp.json`, `https://mcp.facebook.com/ads`), login OAuth d
 `/mcp`. Se as ferramentas `mcp__meta-ads__*` não estiverem disponíveis, peça ao usuário para seguir
 a seção 4.1 do `COMECE-AQUI.md`. **Só leitura:** nunca crie, edite, pause ou mude orçamento de
 anúncio por esse servidor, mesmo que a ferramenta exista — a não ser que o usuário peça explicitamente.
+Única escrita prevista: criar anúncio **pausado** (rascunho) na etapa 03 do pipeline de concorrentes (abaixo).
 
 1. **Ranking:** `ads_get_ad_entities` no nível de anúncio, período pedido (padrão: últimos 30 dias),
    com gasto, impressões, CTR, CPC e as métricas de vídeo disponíveis (plays de 3s, p25/p50/p75/p100,
@@ -220,6 +248,52 @@ métricas; sinais indiretos = tempo no ar e "N ads use this creative". Os termos
 automatizada sem autorização — use apenas consulta **pontual pedida pelo usuário** (ex.: ver um
 concorrente), nunca rotina em lote. Para anúncios próprios, prefira sempre o Meta Ads MCP.
 
+## Concorrentes vencedores → criativo → rascunho na Meta
+
+Pipeline em 3 etapas: **01** achar os anúncios vencedores dos concorrentes →
+**02** recriar a estrutura para o app (Fluxo 1 + Kie.ai + render) → **03** subir o MP4 para a Meta
+como anúncio **pausado** (rascunho). Chave `TRENDTRACK_API_KEY` no computador de cada pessoa
+(TrendTrack → configurações do workspace → API; o admin precisa ter habilitado a Public API).
+O TrendTrack é um serviço pago com API própria — diferente de raspar a Biblioteca de Anúncios.
+
+**Três fontes para a etapa 01** (mesmo `concorrentes.json`; use a que estiver configurada):
+
+| Fonte | Comando | Cobre | Custo |
+|---|---|---|---|
+| Biblioteca da Meta **oficial** (API) | `node tools/biblioteca.mjs vencedores --app <slug>` | só anúncio comercial veiculado na **UE/UK** (limite da Meta); dias no ar + alcance UE | grátis — `META_AD_LIBRARY_TOKEN` (verificação em facebook.com/ID) |
+| **Manual** | `node tools/biblioteca.mjs baixar "<link do anúncio>" --app <slug>` | qualquer anúncio que o usuário escolher (inclusive só-Brasil) | grátis |
+| TrendTrack | `node tools/trendtrack.mjs vencedores --app <slug>` (abaixo) | tudo, inclusive Brasil; alcance, transcrição | pago, por anúncio devolvido |
+
+Nunca raspe o site da Biblioteca em lote (termos da Meta): só a API oficial e downloads pontuais
+de anúncios que o usuário escolheu. O id da página de um concorrente está na URL da Biblioteca
+(`view_all_page_id=`) ou sai do `trendtrack.mjs buscar`.
+
+```bash
+node tools/trendtrack.mjs saldo                                  # grátis
+node tools/trendtrack.mjs buscar "nome, domínio ou @instagram"   # grátis → id da página
+node tools/trendtrack.mjs vencedores --app <slug>                # gasta crédito POR anúncio devolvido
+node tools/trendtrack.mjs baixar <adId> --app <slug>             # → entrada/<slug>/trendtrack/<adId>.mp4
+```
+
+1. **Concorrentes:** `apps/<slug>/concorrentes.json` (modelo em `apps/_modelo/`): páginas
+   (`competitors[].pageId`, achadas com `buscar`), termos de copy (`keywords`), `countries`,
+   `minDaysRunning` (vencedor = ativo há ≥ N dias, padrão 14) e `perSource` (máx. por fonte,
+   padrão 5). Mesmo formato do pipeline "Concorrentes" da plataforma web.
+2. **Vencedores:** rode `vencedores`, mostre a tabela (dias no ar, alcance, copy) e peça ao usuário
+   quais recriar. Não baixe/recrie tudo por conta própria.
+3. **Referência:** `baixar` → `node tools/ingest-reference.mjs <mp4> --out references/<slug>-tt-<adId>`
+   → leia os frames. A fala vem em `entrada/<slug>/trendtrack/<adId>.json` (`ad.content.transcript`);
+   se estiver vazia, `python tools/transcribe.py <mp4>`. Grave a ficha em
+   `referencias/<slug>/tt-<adId>.md` (fonte: TrendTrack, sinais = dias no ar + alcance, sem métricas
+   de conversão).
+4. **Recriar:** Fluxo 1 — **só estrutura, ângulo do hook e ritmo**. Nunca a marca, o produto, o texto
+   literal, rostos ou imagens do concorrente. O compliance de `apps/<slug>/contexto.md` vence o ângulo
+   do concorrente. B-roll pela Kie.ai (custo e ok antes), render, `check` e `review.mjs`.
+5. **Rascunho na Meta** (só com pedido do usuário): pelo Meta Ads MCP — `ads_creative_upload_video`
+   → `ads_create_creative` → `ads_create_ad` com **status PAUSED** num conjunto que o usuário indicar
+   (cada chamada pede confirmação). Nunca ative, nunca crie campanha/conjunto, nunca mexa em
+   orçamento — publicar é sempre clique humano no Gerenciador. Informe o id do anúncio criado.
+
 ## Material anexado (pasta `entrada/` ou Google Drive)
 
 O usuário anexa vídeos e imagens de dois jeitos:
@@ -239,12 +313,13 @@ O usuário anexa vídeos e imagens de dois jeitos:
     (`"device": "none"` para tela cheia sem mockup; imagem estática entra por aqui também);
   - vídeo real em tela cheia (UGC, filmagem) → `render/public/broll/` → layer `generative_video`
     com `src` e `prompt` descrevendo o clipe (o campo é obrigatório; sem `assetId`).
-- **Base para o Higgsfield:** o CLI aceita caminho local e sobe o arquivo sozinho. Custo antes
-  (`generate cost` com os mesmos flags), ok do usuário, depois `create`.
-  - `kling3_0`: `--start-image <arquivo>` e/ou `--end-image <arquivo>` (anima a partir da foto);
-  - `seedance_2_0`: `--image-references <arquivo>` (até 9, repetindo o flag) e
-    `--video-references <arquivo>` (até 3) para cenário/estilo/produto.
-  Confira os params com `higgsfield model get <modelo>` antes.
+- **Base para a Kie.ai:** `--imagem <arquivo ou URL>` em `node tools/kie.mjs gerar <modelo> ...`
+  (Kling usa como primeiro quadro; Veo como primeiro/último quadro; .jpg/.png/.webp até 10 MB).
+  Mostre o custo (`node tools/kie.mjs custo <modelo> ...`) e peça ok antes de rodar com `--sim`.
+  Alternativa Higgsfield: o CLI aceita caminho local e sobe o arquivo sozinho (`generate cost`
+  antes, `create` só com ok) — `kling3_0 --start-image <arquivo>` e/ou `--end-image <arquivo>`,
+  ou `seedance_2_0 --image-references <arquivo>` (até 9) e `--video-references <arquivo>` (até 3)
+  para cenário/estilo/produto; confira os params com `higgsfield model get <modelo>` antes.
 - **Direitos:** rosto de pessoa real só com autorização; música de terceiros não vai para o
   anúncio (use o áudio do spec); nunca use imagem de tela do app como referência para gerar UI.
   O compliance de `apps/<slug>/contexto.md` vale para material do Drive e para o que for gerado
@@ -269,50 +344,79 @@ gravação do app) ou **imagem-final** (imagem estática no fim). Regras de todo
 - textos nas faixas padrão do renderer (hook no terço inferior-médio, legenda embaixo) — não
   invente posição.
 
-### Imagem real (Higgsfield)
+### Imagem real (Kie.ai)
 
 - **Prompt de UGC real:** "filmado com iPhone na mão", luz natural, ambiente comum (casa,
   cozinha, rua, academia de bairro), pessoa comum com roupa do dia a dia, pequenas imperfeições
   (tremor leve, foco que respira), sem "cinematic", sem pele de plástico, sem cores saturadas.
   Descreva idade, aparência e ação concreta. Escreva o prompt em inglês.
 - **Nunca** texto, logo ou tela de app no prompt.
-- **Qual modelo** (confira preço com `generate cost` antes — o saldo é limitado):
+- **Qual modelo** (confira o preço com `node tools/kie.mjs custo <modelo> ...` antes — o saldo é
+  pré-pago e limitado ao que foi carregado):
 
-| Uso | Modelo | Custo aprox. |
+| Uso | Modelo | Custo aprox. (720p, sem som) |
 |---|---|---|
-| b-roll de ação/ambiente (padrão) | `kling3_0` 9:16, `--sound off` | 6,25 cr / 5s |
-| plano principal com mais nitidez | `kling3_0_turbo` `--resolution 1080p` | 10 cr / 5s |
-| **pessoa falando para a câmera** (UGC) com fala nativa | `veo3_1` 9:16 (4/6/8s) | 11 cr / 4s |
-| animar uma foto real do usuário | `kling3_0 --start-image <foto>` | 6,25 cr / 5s |
+| b-roll de ação/ambiente (padrão) | `kling3` | 5s ≈ US$ 0,35 (com som ≈ US$ 0,50) |
+| b-roll mais rápido | `kling3-turbo` | 5s ≈ US$ 0,45 |
+| b-roll barato (cena curta de fundo) | `seedance-1.5` | 5s ≈ US$ 0,09 |
+| **pessoa falando para a câmera** (UGC) com fala/som nativos | `veo3-fast` (8s) | ≈ US$ 0,30–0,33 |
+| mais barato, qualidade menor | `veo3-lite` (8s) | ≈ US$ 0,15 |
+| plano principal de altíssima qualidade (só com pedido explícito) | `veo3-quality` (8s) | ≈ US$ 1,25 |
+| animar uma foto real do usuário | `--imagem <foto>` em qualquer modelo | preço do modelo escolhido |
 
 Pessoa falando: escreva no prompt a fala exata em português entre aspas e o tom ("conversando,
 natural, sem parecer propaganda"). Transcreva o resultado com `transcribe.py` para conferir se
-falou certo antes de usar.
+falou certo antes de usar. Lembrete de áudio: clipe com som próprio (Kling `--audio` ou fala do
+Veo) não leva locução nem música por cima naquela cena (ver "Limitação de áudio" mais abaixo).
+
+**Alternativa Higgsfield** — mensalidade fixa com créditos que zeram; use se o usuário já tiver
+essa conta configurada. `generate cost` antes, `create` só com ok:
+
+| Uso | Modelo | Custo aprox. |
+|---|---|---|
+| b-roll de ação/ambiente | `kling3_0` 9:16, `--sound off` | 6,25 cr / 5s |
+| plano principal com mais nitidez | `kling3_0_turbo` `--resolution 1080p` | 10 cr / 5s |
+| pessoa falando para a câmera, fala nativa | `veo3_1` 9:16 (4/6/8s) | 11 cr / 4s |
+| animar uma foto real do usuário | `kling3_0 --start-image <foto>` | 6,25 cr / 5s |
+
+### Limitação de áudio
+
+Clipe gerado **com som** (Kling `--audio` ou fala nativa do Veo) toca em volume cheio no vídeo
+final — ainda não há mixagem que abaixe esse som sob a locução/música. Regra até isso existir:
+cena com clipe de som próprio **não** leva locução (`karaoke`) nem música por cima naquela cena;
+cenas com locução usam clipe **sem som**. Fala do Veo pode ser transcrita com
+`python tools/transcribe.py` para virar legenda karaokê sincronizada.
 
 ### Voz humana
 
 - Roteiro **falado**, não escrito: frases curtas, coloquiais, com pausas (vírgulas, reticências),
   como alguém contando para uma amiga. Leia em voz alta mentalmente; se soa como locutor de
   comercial, reescreva.
-- Padrão: `text2speech_v2 --variant elevenlabs` (voz multilíngue, ~0,3 cr). Voz nativa pt-BR:
-  `inworld_text_to_speech --voice "Maitê (pt)"` ou `"Heitor (pt)"` (~2 cr). Quando o usuário
-  escolher a voz de um app, registre em `apps/<slug>/contexto.md` (seção Marca) e use sempre a mesma.
+- Padrão: `node tools/kie.mjs voz --texto "<roteiro>" --saida render/public/audio/<spec>-vo.mp3
+  --voz "Ana Rita" --sim` (custo em centavos de dólar; o script mostra o saldo antes/depois).
+  `node tools/kie.mjs vozes` lista as vozes disponíveis. Quando o usuário escolher a voz de um
+  app, registre em `apps/<slug>/contexto.md` (seção Marca) e use sempre a mesma.
 - Música sempre abaixo da voz (`duckingDb`), volume da música baixo; sem música de terceiros.
-- Trocar a voz de um vídeo já pronto: workflow `voice_change`.
+- Alternativa Higgsfield: `text2speech_v2 --variant elevenlabs` (~0,3 cr) ou
+  `inworld_text_to_speech --voice "Maitê (pt)"`/`"Heitor (pt)"` (~2 cr, voz nativa pt-BR).
+- Trocar a voz de um vídeo já pronto: só existe hoje na alternativa Higgsfield, workflow
+  `voice_change`.
 
 ### Outros idiomas
 
 1. Gere a variação com `variant --mutation locale_swap` traduzindo textos e karaokê (adapte, não
    traduza literal; PT/ES ~20–30% mais longos — encurte cenas `flex`).
-2. Locução nova no idioma (mesma voz se possível) → `transcribe.py --lang <en|es|...>` →
-   `sync-captions`.
-3. Vídeo com pessoa falando (UGC/Veo): workflow `dubbing` com `target_language` (por, spa, eng...).
+2. Locução nova no idioma (mesma voz se possível, `node tools/kie.mjs voz`) →
+   `transcribe.py --lang <en|es|...>` → `sync-captions`.
+3. Vídeo com pessoa falando: gere de novo no idioma com `veo3-fast` (fala nativa). Só a
+   alternativa Higgsfield tem o workflow `dubbing` pronto (`target_language`: por, spa, eng...).
 4. Compliance do país vale (`apps/<slug>/contexto.md`).
 
 ### Validar antes de entregar (obrigatório)
 
 1. `node tools/spec-tool.mjs check render/specs/<spec>.json` → zero `errors`; resolva os `warnings`
-   (cena sem visual, clipe mais curto que a cena, legenda não sincronizada).
+   (cena sem visual, clipe mais curto que a cena, legenda não sincronizada, takes sem legenda da
+   fala — neste caso rode `spec-tool footage`).
 2. Stills dos momentos-chave (hook, cada troca de cena, CTA) → **olhe com Read**.
 3. Depois do MP4: `node tools/review.mjs render/out/<nome>.mp4` → abra a folha de contato com Read e
    leia o JSON de áudio (silêncios longos, volume). Critique como editor: tem cena parada? texto
@@ -327,17 +431,20 @@ reaproveite clipes nas variações; um MP4 de ~20s renderiza em 1–2 min.
 
 A layer `karaoke` destaca a palavra falada na cor `accent`. Para o destaque seguir a voz:
 
-1. **Locução.** Áudio do usuário (gravação, narração): copie para `render/public/audio/`. Sem áudio,
-   gere no Higgsfield — mostre o custo e peça ok antes do `create`:
-   - `higgsfield voices list` → escolha a voz;
-     `higgsfield generate cost text2speech_v2 --prompt "<roteiro falado>" --variant elevenlabs --voice_id <id> --voice_type preset` (~0,3 crédito);
-   - voz nativa em português: `higgsfield generate cost inworld_text_to_speech --prompt "<roteiro>" --voice "Maitê (pt)"` (ou `"Heitor (pt)"`, ~2 créditos);
-   - `higgsfield generate create <mesmos flags> --wait --json` → baixe para `render/public/audio/<spec>-vo.mp3`.
+1. **Locução.** Áudio do usuário (gravação, narração): copie para `render/public/audio/`. Sem
+   áudio, gere na Kie.ai — mostre o custo e peça ok antes do `--sim`:
+   - `node tools/kie.mjs vozes` → escolha a voz (padrão: "Ana Rita");
+   - `node tools/kie.mjs voz --texto "<roteiro falado>" --saida render/public/audio/<spec>-vo.mp3 --voz "Ana Rita"`
+     mostra o custo (poucos centavos de dólar); repita com `--sim` após o ok do usuário — baixa
+     direto para `render/public/audio/<spec>-vo.mp3`.
+   - Alternativa Higgsfield: `higgsfield voices list` → `higgsfield generate cost text2speech_v2 --prompt "<roteiro>" --variant elevenlabs --voice_id <id> --voice_type preset` (~0,3 crédito)
+     ou `inworld_text_to_speech --voice "Maitê (pt)"` (~2 créditos) → `generate create` com os
+     mesmos flags `--wait --json`.
 2. **Spec:** `audio.voiceover` com `src` (ex: `audio/<spec>-vo.mp3`), `atMs` (quando a voz começa),
    `durationMs` (duração do arquivo — `ffprobe`) e `script`.
 3. **Legenda:** uma layer `karaoke` por cena com **exatamente o trecho falado** naquela cena.
 4. **Tempos:** `python tools/transcribe.py render/public/audio/<arquivo> --lang pt` → `<arquivo>.words.json`.
-5. **Sincronizar:** `node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/public/audio/<arquivo>.words.json --fit-scenes`
+5. **Sincronizar:** `node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/public/audio/<arquivo>.words.json --fit-scenes --chunk 4`
    → preenche `wordEndsMs` e, com `--fit-scenes`, ajusta a duração das cenas faladas para cortar no
    ritmo da voz (use sempre, salvo cena `locked` que precise manter tempo). Resultado sem `warnings`.
    Depois confira se os clipes ainda cobrem as cenas (`check`).
@@ -345,13 +452,64 @@ A layer `karaoke` destaca a palavra falada na cor `accent`. Para o destaque segu
 
 Sem locução, a legenda divide o tempo da cena igualmente — serve para vídeo sem voz.
 
-## B-roll com o Higgsfield (CLI / MCP, aqui no Claude Code)
+## B-roll com a Kie.ai (padrão)
 
-A geração roda **nesta máquina**, pela conta Higgsfield logada (OAuth) — sem API key e sem
-passar pelo servidor. Use o MCP do Higgsfield se estiver conectado; senão, o CLI
-(`higgsfield`, alias `hf`). Conferir login e saldo: `higgsfield account status`.
+A geração roda **por este agente**, com a chave `KIE_API_KEY` do computador de quem está usando
+(pré-paga; cada pessoa cria a própria conta e chave — ver `COMECE-AQUI.md`, seção 3.2). Ferramenta:
+`node tools/kie.mjs` (leia o topo do arquivo). `gerar` só gasta saldo com `--sim`; sem essa flag
+mostra o custo e sai — rode primeiro sem `--sim`, mostre o custo ao usuário em dólares, peça ok e
+só então repita com `--sim`.
 
 Para cada layer `generative_video` sem `src`:
+
+```bash
+# 1. modelos e parâmetros aceitos
+node tools/kie.mjs modelos
+
+# 2. custo ANTES de gerar — mostre ao usuário e só siga com o ok dele (gasta saldo)
+node tools/kie.mjs custo kling3 --duracao 5 --resolucao 720p
+
+# 3. sem --sim, mostra o custo de novo e não gasta nada; com --sim, gera, espera e baixa
+node tools/kie.mjs gerar kling3 --prompt "<prompt da layer>" \
+  --saida render/public/broll/<spec>-<scene-id>.mp4 --duracao 5 --resolucao 720p --proporcao 9:16 --sim
+```
+
+Modelos: `kling3` (b-roll, com ou sem som via `--audio`), `kling3-turbo` (b-roll rápido, sem som), `seedance-1.5` (b-roll barato p/ cena curta de fundo, 4–12s),
+`veo3-fast` (pessoa falando — padrão UGC, 8s, fala/som nativos), `veo3-lite` (mais barato),
+`veo3-quality` (caro, só com pedido explícito). O script já baixa o arquivo (o link da Kie expira
+em 24h) e grava `<arquivo>.kie.json` com `taskId`, prompt e créditos gastos.
+
+4. Preencha a layer: `"src": "broll/<spec>-<scene-id>.mp4"` (caminho relativo a `render/public/`),
+   `"assetId": "<taskId>"`, `"provider": "kie"`.
+5. Rode `validate` → `props` → `still` e olhe o frame antes do MP4.
+
+Sempre `9:16` (ou `3:4`/`1:1` na mutação `format`), `--duracao` ≥ a duração da cena. Nunca peça
+texto, logo ou UI no prompt — isso é do Remotion. Cena com clipe gerado **com som** não leva
+locução nem música por cima (ver "Limitação de áudio").
+
+**Testado em 21/09/2026 (conta real):**
+- **Veo 3.1 Fast** funcionou: 8s, 720×1280, com fala em português e áudio, ~2 min para gerar,
+  60 créditos (US$ 0,30) exatos — resultado de selfie UGC muito realista.
+- **Prompt com fala entre aspas:** grave o prompt num arquivo e use `--prompt-arquivo <arquivo.txt>`
+  (voz: `--texto-arquivo`). No PowerShell, aspas duplas no meio do argumento cortam o prompt — o
+  primeiro teste saiu com a fala inventada por isso. Rodar sem `--sim` mostra início, fim e
+  tamanho do prompt: confira antes de gastar.
+- **Voz ElevenLabs pela Kie** falhou 3 vezes com erro interno deles ("Internal Error", sem
+  cobrança). Até voltar: use a fala nativa do Veo (pessoa falando), gravação própria em
+  `render/public/audio/`, ou a alternativa Higgsfield (`text2speech_v2`). Tente de novo de vez em quando.
+- **Seedance 1.5 Pro** funcionou: 5s, 720×1280, 42s para gerar, 17,5 créditos (US$ 0,09) exatos.
+  Luz e comida realistas, mas com defeitos de IA (mãos de duas pessoas, objeto fora do prompt):
+  use só como fundo de 1–2s, não como cena principal.
+- **Kling 3.0** ainda não foi gerado de verdade (usa o mesmo endpoint da voz, que respondeu
+  normalmente à criação da tarefa).
+
+### Alternativa: Higgsfield
+
+Mensalidade fixa com créditos que zeram — use só se o usuário já tiver essa conta configurada em
+vez da Kie.ai (`higgsfield auth login`, ver `COMECE-AQUI.md` seção 3.5). A geração roda nesta
+máquina, pela conta Higgsfield logada (OAuth) — sem chave. Use o MCP do Higgsfield se estiver
+conectado; senão, o CLI (`higgsfield`, alias `hf`). Conferir login e saldo:
+`higgsfield account status`.
 
 ```bash
 # 1. parâmetros aceitos pelo modelo (aspect_ratio, duration, mode...)
@@ -365,15 +523,11 @@ higgsfield generate create kling3_0 --prompt "<prompt da layer>" --aspect_ratio 
   --duration 5 --sound off --wait --wait-timeout 20m --json
 ```
 
-`--sound off` sempre: o áudio vem do Remotion, e o som do modelo encarece (Kling 3.0 5s:
-10 → 7.5 créditos). Os valores de `duration` mudam por modelo (Veo 3.1 Lite: 4/6/8;
+`--sound off` por padrão (a locução e a música vêm do Remotion, e o som do modelo encarece:
+Kling 3.0 5s 10 → 6,25 créditos); com som só quando a cena pede — ver "Limitação de áudio". Os valores de `duration` mudam por modelo (Veo 3.1 Lite: 4/6/8;
 Seedance 1.5: 4/8/12) — confira no `model get` antes.
 
-4. Baixe o vídeo para `render/public/broll/<spec>-<scene-id>.mp4` e preencha a layer:
-   `"src": "broll/<spec>-<scene-id>.mp4"`, `"assetId": "<job id>"`, `"provider": "higgsfield"`.
-   **Não deixe a URL do Higgsfield no `src`**: ela expira em ~7 dias.
-5. Rode `validate` → `props` → `still` e olhe o frame antes do MP4.
-
-Modelos de vídeo: `higgsfield model list --video`. Sempre `9:16` (ou `3:4`/`1:1` na mutação
-`format`), `duration` ≥ a duração da cena. Nunca peça texto, logo ou UI no prompt — isso é
-do Remotion.
+Baixe o vídeo para `render/public/broll/<spec>-<scene-id>.mp4` e preencha a layer:
+`"src": "broll/<spec>-<scene-id>.mp4"`, `"assetId": "<job id>"`, `"provider": "higgsfield"`.
+**Não deixe a URL do Higgsfield no `src`**: ela expira em ~7 dias. Modelos de vídeo:
+`higgsfield model list --video`.

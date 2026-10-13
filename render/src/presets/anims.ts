@@ -1,5 +1,6 @@
 import { Easing, interpolate, spring } from "remotion";
 
+import { BASE_LAYOUT, type Layout } from "../formats";
 import { msToFrames, type BrandKit, type Layer, type TextPreset, type TransitionKind } from "../spec";
 
 export interface AnimState {
@@ -184,62 +185,108 @@ export interface TextStyle {
 	textAlign: "center" | "left";
 	bottom?: number;
 	top?: number;
+	/** Pill behind the text — for calls to action that must read as a button, not a caption. */
+	background?: string;
+	padding?: string;
+	borderRadius?: number;
+	boxShadow?: string;
 }
 
 /**
  * Text presets carry the safe-area and legibility rules, not just looks. Sound-off is the
  * feed default, so text has to survive on its own.
+ *
+ * The numbers are in base px (1080×1920); `layout` scales sizes and the top/bottom bands to the
+ * composition (see `formats.ts`) — 9:16 is unchanged, 4:5 and 1:1 keep the same relative bands.
  */
-export function resolveTextPreset(preset: TextPreset, brand: BrandKit): TextStyle {
+export function resolveTextPreset(preset: TextPreset, brand: BrandKit, layout: Layout = BASE_LAYOUT): TextStyle {
+	const { size: z, bottom, top } = layout;
+
 	switch (preset) {
 		case "hook_stroke":
 			return {
-				fontSize: 96,
+				fontSize: z(96),
 				fontWeight: 800,
 				lineHeight: 1.05,
 				color: brand.fg,
-				textShadow: "0 6px 28px rgba(0,0,0,0.65)",
+				textShadow: `0 ${z(6)}px ${z(28)}px rgba(0,0,0,0.65)`,
 				maxWidth: "86%",
 				textAlign: "center",
 				// Bottom-anchored so the block's vertical center lands near y≈1180 (lower-middle
 				// third), not the screen's geometric middle — keeps it clear of the header safe
 				// area above and the caption band below.
-				bottom: 580,
+				bottom: bottom(580),
 			};
 		case "cta_label":
+			// A CTA reads as a tappable pill in the brand colour, sitting above the caption band —
+			// loose white text over a face looks like a subtitle, not an offer.
 			return {
-				fontSize: 68,
+				fontSize: z(60),
 				fontWeight: 800,
 				lineHeight: 1.1,
 				color: brand.fg,
 				maxWidth: "84%",
 				textAlign: "center",
+				bottom: bottom(640),
+				background: brand.accent,
+				padding: `${z(22)}px ${z(48)}px`,
+				borderRadius: 999,
+				boxShadow: `0 ${z(14)}px ${z(40)}px rgba(0,0,0,0.35)`,
+			};
+		case "title_top":
+			// Título fixo no topo, no estilo do texto nativo do Reels/TikTok (caixa clara, letra
+			// escura): o hook escrito de conteúdo UGC. Abaixo da faixa do cabeçalho da plataforma.
+			return {
+				fontSize: z(58),
+				fontWeight: 800,
+				lineHeight: 1.15,
+				color: "#0B0B0F",
+				maxWidth: "84%",
+				textAlign: "center",
+				top: top(250),
+				background: "#FFFFFF",
+				padding: `${z(16)}px ${z(30)}px`,
+				borderRadius: z(18),
+				boxShadow: `0 ${z(10)}px ${z(30)}px rgba(0,0,0,0.25)`,
 			};
 		case "caption":
 			return {
-				fontSize: 54,
+				fontSize: z(54),
 				fontWeight: 700,
 				lineHeight: 1.2,
 				color: brand.fg,
-				textShadow: "0 4px 18px rgba(0,0,0,0.7)",
+				textShadow: `0 ${z(4)}px ${z(18)}px rgba(0,0,0,0.7)`,
 				maxWidth: "80%",
 				textAlign: "center",
 				// Base of the block ~420px from the bottom (y≈1500), just above the platform's
 				// caption/description/button safe area.
-				bottom: 420,
+				bottom: bottom(420),
 			};
 		case "sub":
 		default:
 			return {
-				fontSize: 62,
+				fontSize: z(62),
 				fontWeight: 700,
 				lineHeight: 1.15,
 				color: brand.fg,
-				textShadow: "0 4px 18px rgba(0,0,0,0.55)",
+				textShadow: `0 ${z(4)}px ${z(18)}px rgba(0,0,0,0.55)`,
 				maxWidth: "82%",
 				textAlign: "center",
 				// Same low caption band as `caption` — this is a legend/sub preset too.
-				bottom: 420,
+				bottom: bottom(420),
 			};
 	}
 }
+
+/**
+ * The top band is shared by the `badge` (the "SEMANA 1" chip) and the `title_top` preset. When both
+ * are on screen in the same scene at the same time, the title stacks BELOW the badge instead of
+ * sitting on top of it. Base px (1080×1920), measured from the rendered badge: 22px padding top and
+ * bottom, a 34px label line (Inter, normal line-height) + 6px, and the 84px value at line-height 1.
+ */
+export const BADGE_TOP = 230;
+export function badgeHeight(hasLabel: boolean): number {
+	return hasLabel ? 173 : 128;
+}
+/** Space between the badge and a title stacked under it. */
+export const TOP_STACK_GAP = 28;

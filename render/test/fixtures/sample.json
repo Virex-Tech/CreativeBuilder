@@ -1,0 +1,47 @@
+{
+	"specVersion": "1",
+	"creativeId": "cr_engine_sample",
+	"appId": "app_sample",
+	"locale": "pt-BR",
+	"format": { "w": 1080, "h": 1920, "fps": 30 },
+	"brandKit": { "bg": "#0B0B0F", "fg": "#FFFFFF", "accent": "#7C5CFF", "fontFamily": "Inter, system-ui, sans-serif" },
+	"scenes": [
+		{
+			"id": "hook",
+			"role": "HOOK",
+			"startMs": 0,
+			"durationMs": 1500,
+			"layers": [
+				{ "type": "solid", "color": "#1B1B2A" },
+				{ "type": "badge", "label": "semana", "value": "1" },
+				{ "type": "text", "preset": "hook_stroke", "content": "Você treina há meses e não vê resultado?" },
+				{ "type": "karaoke", "text": "Isso acontece com quase todo mundo", "wordEndsMs": [200, 500, 800, 1000, 1200, 1500] },
+				{ "type": "disclaimer", "text": "Dramatização. Resultados variam de pessoa para pessoa." }
+			]
+		},
+		{
+			"id": "demo",
+			"role": "DEMO",
+			"startMs": 1500,
+			"durationMs": 1000,
+			"transitionIn": "fade",
+			"layers": [
+				{ "type": "solid", "color": "#14141C" },
+				{ "type": "app_screen_recording", "src": "app/ozempro/icone.png" },
+				{ "type": "text", "preset": "caption", "content": "Um treino novo todo dia, sem pensar" }
+			]
+		},
+		{
+			"id": "cta",
+			"role": "CTA",
+			"startMs": 2500,
+			"durationMs": 1000,
+			"layers": [
+				{ "type": "solid", "color": "#0B0B0F" },
+				{ "type": "text", "preset": "title_top", "content": "3 erros que travam seu resultado" },
+				{ "type": "text", "preset": "sub", "content": "Comece hoje, grátis" },
+				{ "type": "text", "preset": "cta_label", "content": "Baixe o app" }
+			]
+		}
+	]
+}

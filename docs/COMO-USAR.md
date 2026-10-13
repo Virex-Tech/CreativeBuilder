@@ -3,10 +3,23 @@
 > **Primeira vez?** Comece por [`COMECE-AQUI.md`](../COMECE-AQUI.md) (instalação e uso sem jargão).
 > Este documento é a referência dos comandos e campos — útil para quem quer entender ou rodar à mão.
 
+<<<<<<< HEAD
 Tudo roda **local**: Claude Code (ou Codex) + **Higgsfield CLI** (vídeo, voz) + **Remotion**
 (edição e render). Sem API key. O criativo é um **`CreativeSpec`** (JSON) —
 o agente nunca "edita vídeo", ele escreve e reescreve o spec. Contrato dos campos:
 [`render/src/spec.ts`](../render/src/spec.ts).
+=======
+Tudo roda **local**: Claude Code (ou Codex) + **Kie.ai** (vídeo, voz, pré-paga, sob demanda) +
+**Remotion** (edição e render). Sem plataforma web. A chave da Kie.ai fica só no computador de
+cada pessoa (variável de ambiente `KIE_API_KEY`) — nunca no repositório. O criativo é um
+**`CreativeSpec`** (JSON) — o agente nunca "edita vídeo", ele escreve e reescreve o spec.
+Contrato dos campos: [`render/src/spec.ts`](../render/src/spec.ts).
+
+O **Higgsfield** continua disponível como alternativa guardada (mensalidade fixa com créditos
+que zeram) — ver seção 5, "Alternativa: Higgsfield". A Kie.ai é o padrão porque cobra só o que
+for gerado e o crédito não expira, o que combina melhor com um volume incerto (até ~130
+clipes/mês, com meses sem uso).
+>>>>>>> 5505af8b7907d586351ea3f73f519149771fea1e
 
 Instruções que o agente segue: [`.claude/skills/criativo/SKILL.md`](../.claude/skills/criativo/SKILL.md)
 (Claude Code) e [`AGENTS.md`](../AGENTS.md) (Codex e outros).
@@ -17,9 +30,12 @@ Instruções que o agente segue: [`.claude/skills/criativo/SKILL.md`](../.claude
 
 - Node 22+, Git, `ffmpeg`/`ffprobe`, `yt-dlp` (referência por link)
 - Python 3 + `python -m pip install faster-whisper` (legenda sincronizada e transcrição)
-- `npm i -g @higgsfield/cli` + `higgsfield auth login` + `higgsfield workspace set <id do plano pago>`
+- Conta na Kie.ai com créditos + chave em https://kie.ai/api-key, exportada como
+  `KIE_API_KEY` (`setx KIE_API_KEY "..."` no PowerShell, depois reabrir o terminal)
 - `cd render && npm ci` uma vez
-- Conferir tudo: `node tools/doctor.mjs`
+- Conferir tudo: `node tools/doctor.mjs` (checa a chave/saldo da Kie.ai; Higgsfield aparece como
+  opcional — `npm i -g @higgsfield/cli` + `higgsfield auth login` + `higgsfield workspace set <id do plano pago>`
+  só é necessário para quem usar a alternativa)
 
 ## 2. Fluxo completo
 
@@ -31,11 +47,11 @@ python tools/transcribe.py .cache-ingestao/<nome>/audio.wav --lang pt   # o que 
 
 # 2. spec: copie um modelo de render/specs/_modelos/ e preencha (contexto em apps/<slug>/contexto.md)
 
-# 3. material: b-roll e voz no Higgsfield (seções 5 e 6), gravações do app, anexos (seção 7)
+# 3. material: b-roll e voz na Kie.ai (seções 5 e 6), gravações do app, anexos (seção 7)
 
 # 4. legenda sincronizada com a voz (seção 6)
 python tools/transcribe.py render/public/audio/<spec>-vo.mp3 --lang pt
-node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/public/audio/<spec>-vo.words.json --fit-scenes
+node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/public/audio/<spec>-vo.words.json --fit-scenes --chunk 4
 
 # 5. validar, preview, render, revisar
 node tools/spec-tool.mjs check render/specs/<spec>.json
@@ -65,17 +81,66 @@ legenda embaixo, acima da interface das redes).
   **compliance**. Modelo em `apps/_modelo/`.
 - `directors/<slug>.yaml` — ritmo, legenda, câmera, bloco `never` (vence brief e referência).
 
-## 5. Vídeo com o Higgsfield
+## 5. Vídeo com a Kie.ai
 
-Sempre `generate cost` antes e `create` só com ok (gasta créditos). Prompt em inglês, estilo UGC
-real (iPhone na mão, luz natural, pessoa comum), nunca texto/logo/tela de app no prompt.
+Ferramenta: [`tools/kie.mjs`](../tools/kie.mjs) (preços em [`tools/kie-precos.json`](../tools/kie-precos.json),
+1 crédito = US$ 0,005). `gerar` só gasta saldo com `--sim`; sem essa flag mostra o custo e sai —
+rode primeiro sem `--sim`, mostre o custo ao usuário, peça ok e só então repita com `--sim`.
+
+```bash
+node tools/kie.mjs saldo
+node tools/kie.mjs modelos
+node tools/kie.mjs custo   kling3 --duracao 5 --resolucao 720p
+node tools/kie.mjs gerar   kling3 --prompt "..." --saida render/public/broll/<spec>-<cena>.mp4 \
+  --duracao 5 --resolucao 720p --proporcao 9:16 --sim
+# baixa o arquivo na hora (o link da Kie expira em 24h) e grava <arquivo>.kie.json
+# layer generative_video: src = caminho relativo a render/public/, assetId = taskId, provider: "kie"
+```
+
+| Uso | Modelo | Custo aprox. (9:16, 720p, sem som) |
+|---|---|---|
+| b-roll de ação/ambiente (padrão) | `kling3` | 5s ≈ US$ 0,35 (com som ≈ US$ 0,50; 1080p sem som ≈ US$ 0,45) |
+| b-roll mais rápido, sem som | `kling3-turbo` | 5s ≈ US$ 0,45 |
+| pessoa falando para a câmera (fala/som nativos, padrão UGC) | `veo3-fast` (8s) | ≈ US$ 0,30–0,33 |
+| mais barato, qualidade menor | `veo3-lite` (8s) | ≈ US$ 0,15 |
+| plano principal de altíssima qualidade (só com pedido explícito) | `veo3-quality` (8s) | ≈ US$ 1,25 |
+| animar uma foto real | `--imagem <arquivo>` em qualquer modelo (Kling: 1º quadro; Veo: 1º/último) | preço do modelo escolhido |
+
+Prompt em inglês, estilo UGC real (iPhone na mão, luz natural, pessoa comum), nunca texto/logo/tela
+de app no prompt. Veo entrega 720p; 1080p no Veo exige uma etapa extra ainda não automatizada.
+
+**Limitação de áudio:** um clipe gerado com som (Kling `--audio` ou fala do Veo) toca em volume
+cheio no vídeo final — ainda não há mixagem que abaixe esse som sob locução/música. Por isso: cena
+com clipe de som próprio não leva locução (`karaoke`) nem música por cima; cenas com locução usam
+clipe sem som (`kling3` sem `--audio`, ou `kling3-turbo`).
+
+Não deixe a URL da Kie no `src` (expira em 24h) — o script já baixa sozinho.
+
+**Testado em 21/09/2026 (conta real):**
+- **Veo 3.1 Fast** funcionou: 8s, 720×1280, com fala em português e áudio, ~2 min para gerar,
+  60 créditos (US$ 0,30) exatos — resultado de selfie UGC muito realista.
+- **Prompt com fala entre aspas:** grave o prompt num arquivo e use `--prompt-arquivo <arquivo.txt>`
+  (voz: `--texto-arquivo`). No PowerShell, aspas duplas no meio do argumento cortam o prompt — o
+  primeiro teste saiu com a fala inventada por isso. Rodar sem `--sim` mostra início, fim e
+  tamanho do prompt: confira antes de gastar.
+- **Voz ElevenLabs pela Kie** falhou 3 vezes com erro interno deles ("Internal Error", sem
+  cobrança). Até voltar: use a fala nativa do Veo (pessoa falando), gravação própria em
+  `render/public/audio/`, ou a alternativa Higgsfield (`text2speech_v2`). Tente de novo de vez em quando.
+- **Kling 3.0** ainda não foi gerado de verdade (usa o mesmo endpoint da voz, que respondeu
+  normalmente à criação da tarefa).
+
+### Alternativa: Higgsfield
+
+Guardado para quem preferir mensalidade fixa (créditos zeram todo mês) em vez de pré-pago.
+`npm i -g @higgsfield/cli` + `higgsfield auth login` + `higgsfield workspace set <id do plano pago>`.
+Sempre `generate cost` antes e `create` só com ok (gasta créditos).
 
 ```bash
 higgsfield account status
 higgsfield model get kling3_0
 higgsfield generate cost   kling3_0 --prompt "..." --aspect_ratio 9:16 --duration 5 --sound off
 higgsfield generate create kling3_0 --prompt "..." --aspect_ratio 9:16 --duration 5 --sound off --wait --json
-# baixe o result_url para render/public/broll/<spec>-<cena>.mp4 → layer generative_video: src, assetId, provider
+# baixe o result_url para render/public/broll/<spec>-<cena>.mp4 → layer generative_video: src, assetId, provider: "higgsfield"
 ```
 
 | Uso | Modelo | Custo aprox. (9:16) |
@@ -93,24 +158,31 @@ Não deixe a URL do Higgsfield no `src` (expira em ~7 dias) — sempre baixe.
 
 ```bash
 # voz (se não houver gravação própria)
-higgsfield voices list
-higgsfield generate cost text2speech_v2 --prompt "<roteiro falado>" --variant elevenlabs --voice_id <id> --voice_type preset   # ~0,3 cr
-higgsfield generate cost inworld_text_to_speech --prompt "<roteiro>" --voice "Maitê (pt)"                                  # ~2 cr (ou "Heitor (pt)")
-# create com os mesmos flags --wait --json → render/public/audio/<spec>-vo.mp3
+node tools/kie.mjs vozes
+node tools/kie.mjs voz --texto "<roteiro falado>" --saida render/public/audio/<spec>-vo.mp3 \
+  --voz "Ana Rita" --sim   # custo baixo (centavos de dólar); o script mostra o saldo antes/depois
 
 # tempos por palavra (local, grátis; 1ª vez baixa ~460 MB)
 python tools/transcribe.py render/public/audio/<spec>-vo.mp3 --lang pt
 
 # legenda: uma layer karaoke por cena com o trecho falado; depois:
-node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/public/audio/<spec>-vo.words.json --fit-scenes
+node tools/spec-tool.mjs sync-captions render/specs/<spec>.json --words render/public/audio/<spec>-vo.words.json --fit-scenes --chunk 4
 ```
+
+**Alternativa: Higgsfield** — `higgsfield voices list`,
+`higgsfield generate cost text2speech_v2 --prompt "<roteiro>" --variant elevenlabs --voice_id <id> --voice_type preset`
+(~0,3 cr) ou `higgsfield generate cost inworld_text_to_speech --prompt "<roteiro>" --voice "Maitê (pt)"`
+(~2 cr, ou "Heitor (pt)"); `create` com os mesmos flags `--wait --json` → `render/public/audio/<spec>-vo.mp3`.
 
 - `audio.voiceover`: `src`, `atMs` (quando começa), `durationMs` (duração do arquivo), `script`.
 - `sync-captions` preenche `wordEndsMs` (fim de cada palavra) casando legenda e fala em ordem.
+- `--chunk 4` divide a legenda em blocos de até 4 palavras (quebra na pontuação), cada bloco na tela
+  só enquanto é falado — estilo Reels/TikTok. A palavra falada ganha um quadro na cor `accent`.
 - `--fit-scenes` ajusta a duração das cenas faladas para cortar no ritmo da voz (entre a última
   palavra de uma cena e a primeira da próxima). Sem ele, `warnings` aponta fala fora da cena.
 - `audio.music` com `duckingDb` abaixa a música enquanto a voz fala. Sem música de terceiros.
-- Trocar a voz de um vídeo pronto: workflow `voice_change`.
+- Trocar a voz de um vídeo pronto: só pela alternativa Higgsfield, workflow `voice_change`
+  (a Kie.ai ainda não tem esse recurso).
 
 ## 7. Material próprio: app, anexos, Google Drive
 
@@ -133,7 +205,8 @@ O spec **nunca** aponta para `entrada/` ou `G:\` — copie o arquivo usado para 
 | `prompt` | `generative_video` | obrigatório — em vídeo real, descreva o clipe |
 
 Analisar anexo: `node tools/ingest-reference.mjs <vídeo>` (imagens) e `python tools/transcribe.py <vídeo>`
-(fala). Gerar a partir de foto: `kling3_0 --start-image <arquivo>`. Rosto real só com autorização.
+(fala). Gerar a partir de foto: `node tools/kie.mjs gerar kling3 --imagem <arquivo> ...` (alternativa
+Higgsfield: `kling3_0 --start-image <arquivo>`). Rosto real só com autorização.
 
 ## 8. Edição
 
@@ -142,7 +215,9 @@ Analisar anexo: `node tools/ingest-reference.mjs <vídeo>` (imagens) e `python t
 | `transitionIn` / `transitionMs` | cena | `cut` (padrão), `fade`, `zoom`, `whip`, `slide_up`, `flash` / 80–600 ms (padrão 250). Não muda a duração do vídeo |
 | `audio.sfx[]` | spec | `{ src: "sfx/whoosh.mp3", atMs, volume }` — `whoosh`, `pop`, `click`, `rise` em `render/public/sfx/` |
 | `anim` | layer | `none`, `pop_in`, `fade_in`, `slide_up`, `punch_in`, `tilt_scroll`, `handheld_subtle` |
-| `preset` | layer `text` | `hook_stroke` (terço inferior-médio), `sub`/`caption` (faixa de legenda), `cta_label` |
+| `preset` | layer `text` | `hook_stroke` (terço inferior-médio), `sub`/`caption` (faixa de legenda), `cta_label`, `title_top` (título fixo no topo, caixa clara — padrão de conteúdo orgânico) |
+| `footage` | layer | take gravado com o som original: `takeId`, `src`, `startFromMs` (entrada), `volume` (0 = mudo), `zoom` (1–1.6, jump cut), `mirror` — ver seção 13 |
+| `autoCaptions` | spec | `{ enabled, maxWords }` — legenda da fala dos takes, gerada por `spec-tool footage` |
 | imagem estática | `app_screen_recording` com imagem e `anim: "none"` | zoom lento automático |
 
 Detalhes do renderer: [`render/README.md`](../render/README.md).
@@ -158,15 +233,17 @@ Uma dimensão por variação: `hook_rewrite`, `hook_visual`, `pacing`, `cta`, `v
 `format`, `locale_swap`. O patch traz só as cenas que mudam; clipes são reaproveitados.
 
 Outro idioma: `locale_swap` com textos e karaokê adaptados → voz nova no idioma →
-`transcribe.py --lang <en|es|...>` → `sync-captions --fit-scenes`. Vídeo com pessoa falando:
-workflow `dubbing` (`target_language`: por, spa, eng, fra, deu, ita...).
+`transcribe.py --lang <en|es|...>` → `sync-captions --fit-scenes --chunk 4`. Vídeo com pessoa falando: gere de
+novo no idioma com `veo3-fast` (fala nativa); só na alternativa Higgsfield há o workflow `dubbing`
+pronto (`target_language`: por, spa, eng, fra, deu, ita...).
 
 ## 10. Validação
 
 | Comando | O que acusa |
 |---|---|
 | `spec-tool validate` | estrutura do spec: gap/overlap de cenas, texto vazio, hook longo |
-| `spec-tool check` | **errors:** cena sem vídeo/imagem, layer sem `src`, arquivo inexistente · **warnings:** clipe mais curto que a cena, legenda não sincronizada com a voz, voz além do fim do vídeo, vídeo sem legenda |
+| `spec-tool check` | **errors:** cena sem vídeo/imagem, layer sem `src`, arquivo inexistente · **warnings:** clipe mais curto que a cena, legenda não sincronizada com a voz, voz além do fim do vídeo, vídeo sem legenda, takes sem a legenda da fala |
+| `spec-tool footage` | não acusa — **corrige**: corte na fronteira de palavra, clipes do mesmo take sem sobreposição, legenda da fala refeita |
 | `tools/review.mjs <mp4>` | folha de contato (quadros com tempo) + volume médio/pico e silêncios do áudio |
 
 ## 11. Criativos que deram certo (Meta Ads)
@@ -195,8 +272,59 @@ vídeo em todas as ferramentas — se faltar, usar o arquivo original.
 | **`yt-dlp` em posts orgânicos** | views, likes, data e o vídeo de TikTok/YouTube | nenhum (Instagram costuma exigir cookies do navegador e falha com frequência) | grátis | ver o que bombou no orgânico |
 | **Biblioteca de Anúncios da Meta** | anúncios **ativos** de qualquer página + vídeo; sem métricas (sinais: tempo no ar, "N ads use this creative") | nenhum | grátis | olhar concorrentes — só consulta pontual: os termos da Meta proíbem coleta automatizada |
 | **TikTok Creative Center** (Top Ads) | anúncios em alta no TikTok por nicho | nenhum | grátis | referência de mercado; sem API |
+<<<<<<< HEAD
+=======
+| **Biblioteca da Meta oficial** (`tools/biblioteca.mjs`) | anúncios **ativos** de concorrentes que rodam na UE/UK, dias no ar, alcance UE; `baixar <link>` pega o vídeo de qualquer anúncio escolhido | token com acesso à Ad Library API (`META_AD_LIBRARY_TOKEN`) | grátis | alternativa grátis ao TrendTrack; o link manual cobre concorrente só-Brasil |
+| **TrendTrack** (`tools/trendtrack.mjs`) | anúncios **ativos** de concorrentes com dias no ar, alcance, copy, transcrição e o vídeo | chave `TRENDTRACK_API_KEY` (workspace com Public API) | plano pago; crédito por anúncio devolvido | achar o que está vencendo nos concorrentes e recriar a estrutura (skill `criativo`, seção TrendTrack) |
+| **Plataforma web (futuro)** | ranking automático diário, vídeos vencedores baixados e analisados no servidor, time vê na web e o Claude local puxa as fichas | **token de leitura da Meta (System User, `ads_read`) guardado só no servidor** | VPS + manutenção | quando o volume pedir ranking automático sem ninguém pedir |
+
+**Sobre a plataforma:** o servidor já tem módulos de métricas e ingestão de referência (`server/`),
+mas está fora de uso. Um servidor não usa o login OAuth do MCP (que é por pessoa), por isso a
+coleta automática exige o token server-side. O formato das fichas (`referencias/<slug>/<ad_id>.md`)
+é o mesmo nos dois caminhos — dá para começar local e migrar sem perder nada.
+>>>>>>> 5505af8b7907d586351ea3f73f519149771fea1e
 
 ## 12. Compartilhar
 
 Specs, contextos, clipes (`render/public/`) vão para o GitHub. Não vão: `entrada/`,
+<<<<<<< HEAD
 `.cache-ingestao/`, `render/out/` (MP4 finais — mande pelo canal da equipe).
+=======
+`references/`, `render/out/` (MP4 finais — mande pelo canal da equipe) e `render/public/takes/`
+(takes gravados: vídeo de pessoa real e pesado — para outra pessoa renderizar, mande os arquivos
+ou use o Estúdio da plataforma).
+
+## 13. Takes gravados (conteúdo orgânico / UGC)
+
+Vídeo gravado por uma pessoa (criador UGC, a marca, você) editado pelo agente: ele escolhe os
+trechos pela fala, corta silêncio/erro/repetição, põe o hook na frente e legenda.
+
+```bash
+# 1. preparar: converte (H.264 30fps), transcreve com o tempo de cada palavra, tira 2 frames
+node tools/takes.mjs preparar entrada/<pasta> [arquivo.mov] [link do Drive/Instagram] --lang pt
+node tools/takes.mjs listar                      # relê a fala de todos
+
+# 2. o agente escreve o spec com layers footage (uma cena = um trecho de um take):
+#    { "type": "footage", "takeId": "<nome>", "src": "takes/<nome>.mp4", "startFromMs": 20870 }
+#    + "autoCaptions": { "enabled": true, "maxWords": 4 } e, se quiser, título preset title_top
+
+# 3. acabamento — SEMPRE depois de qualquer mudança no spec
+node tools/spec-tool.mjs footage render/specs/<spec>.json
+
+# 4. o de sempre
+node tools/spec-tool.mjs check render/specs/<spec>.json
+```
+
+O `footage` puxa cada corte para a fronteira de palavra (a palavra fica se a maior parte dela está
+no trecho), tira a sobreposição entre clipes seguidos do mesmo take (a fala tocaria duas vezes) e
+refaz a legenda da fala em blocos com o tempo exato de cada palavra. Rodar de novo dá o mesmo
+resultado. É a mesma regra da plataforma — uma implementação só, `render/src/footage.ts`.
+
+Vídeo de iPhone (HEVC/HDR `.mov`) precisa passar pelo `preparar` — o Chrome do render não abre.
+Arquivos em `render/public/takes/` (fora do git).
+
+## 14. Plataforma web: Estúdio
+
+O mesmo fluxo de takes, com calendário por conta, aprovação e publicação no Instagram, está na
+plataforma em `/estudio` — ver [`docs/ESTUDIO.md`](ESTUDIO.md).
+>>>>>>> 5505af8b7907d586351ea3f73f519149771fea1e

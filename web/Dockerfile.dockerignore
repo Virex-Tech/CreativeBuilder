@@ -1,0 +1,19 @@
+# Ignore da imagem web (contexto = raiz do repo; a web só usa web/ e render/src).
+# Segredos — NUNCA entram em imagem
+.env
+.env.*
+.codex-server
+.higgsfield-server
+
+.git
+**/node_modules
+**/.next
+render/out
+render/public
+references
+entrada
+storage
+server
+deploy
+docker-compose*.yml
+*.orig

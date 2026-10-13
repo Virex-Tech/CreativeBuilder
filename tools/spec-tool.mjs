@@ -12,7 +12,8 @@
  *   node tools/spec-tool.mjs check   <spec.json>
  *   node tools/spec-tool.mjs variant <spec.json> --mutation hook_rewrite --patch patch.json [--id cr_x]
  *   node tools/spec-tool.mjs diff    <a.json> <b.json>
- *   node tools/spec-tool.mjs sync-captions <spec.json> --words <voz.words.json> [--fit-scenes]
+ *   node tools/spec-tool.mjs sync-captions <spec.json> --words <voz.words.json> [--fit-scenes] [--chunk 4]
+ *   node tools/spec-tool.mjs footage <spec.json> [--out file]
  */
 
 import { execFile } from "node:child_process";
@@ -21,6 +22,9 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
+
+// Implementação única do engine (gerada de render/src/ por `npm run build:lib` em render/).
+import { finalizeFootage } from "../render/lib/engine.mjs";
 
 const execFileAsync = promisify(execFile);
 
@@ -84,7 +88,7 @@ async function cmdValidate(specPath) {
 	if (r.errors.length) process.exit(1);
 }
 
-const VISUAL_TYPES = new Set(["generative_video", "app_screen_recording"]);
+const VISUAL_TYPES = new Set(["generative_video", "app_screen_recording", "footage"]);
 const isVideoSrc = (src) => /\.(mp4|mov|m4v|webm)(\?|#|$)/i.test(src);
 
 /** `render/public/<src>` for a local path, or null when `src` is already an absolute URL. */
@@ -151,7 +155,7 @@ async function check(spec, specPath) {
 			}
 
 			// Only videos can "run out" — an image just holds, so duration checks don't apply.
-			const isVideo = layer.type === "generative_video" || isVideoSrc(layer.src);
+			const isVideo = layer.type === "generative_video" || layer.type === "footage" || isVideoSrc(layer.src);
 			if (!isVideo || !abs) continue;
 
 			const durationMs = await probeDurationMs(abs);
@@ -202,6 +206,13 @@ async function check(spec, specPath) {
 		if (musicAbs && !existsSync(musicAbs)) {
 			errors.push(`audio.music.src "${music.src}" não existe em render/public/`);
 		}
+	}
+
+	// Take com fala sem as legendas automáticas = o `footage` não rodou depois da última mudança.
+	const hasFootage = (spec.scenes ?? []).some((s) => (s.layers ?? []).some((l) => l.type === "footage"));
+	const hasAuto = (spec.scenes ?? []).some((s) => (s.layers ?? []).some((l) => l.type === "karaoke" && l.auto));
+	if (hasFootage && spec.autoCaptions?.enabled !== false && !hasAuto) {
+		warnings.push("takes sem legenda da fala — rode: node tools/spec-tool.mjs footage <spec>");
 	}
 
 	if (!hasAnyCaption) {
@@ -441,6 +452,39 @@ async function cmdSyncCaptions(specPath, opts) {
 		layers.push({ scene: scene.id, words: tokens.length, matched, outOfWindow, applied: true });
 	}
 
+	if (opts.chunk > 0) {
+		// Feed-style captions: a few words at a time, each chunk on screen exactly while it is
+		// spoken. A whole sentence in three lines reads as a transcript, not as an ad.
+		for (const scene of spec.scenes) {
+			scene.layers = scene.layers.flatMap((layer) => {
+				if (layer.type !== "karaoke" || !layer.wordEndsMs) return [layer];
+				const words = layer.text.split(/\s+/).filter(Boolean);
+				const ends = layer.wordEndsMs;
+				const base = layer.startMs ?? 0;
+				const layerDur = layer.durationMs ?? scene.durationMs - base;
+				const groups = [];
+				let cur = [];
+				words.forEach((w, i) => {
+					cur.push(i);
+					if (cur.length >= opts.chunk || (/[.,!?;:]$/.test(w) && cur.length >= 2)) groups.push(cur), (cur = []);
+				});
+				if (cur.length) groups.push(cur);
+				return groups.map((g, gi) => {
+					const from = g[0] === 0 ? 0 : ends[g[0] - 1];
+					const to = gi === groups.length - 1 ? layerDur : ends[g.at(-1)];
+					return {
+						type: "karaoke",
+						anim: layer.anim,
+						text: g.map((i) => words[i]).join(" "),
+						startMs: base + from,
+						durationMs: Math.max(1, to - from),
+						wordEndsMs: g.map((i) => Math.max(1, ends[i] - from)),
+					};
+				});
+			});
+		}
+	}
+
 	const out = opts.out ?? specPath;
 	await writeJson(out, spec);
 	const warnings = layers
@@ -452,6 +496,66 @@ async function cmdSyncCaptions(specPath, opts) {
 		);
 	const durationMs = spec.scenes.reduce((end, s) => Math.max(end, s.startMs + s.durationMs), 0);
 	console.log(JSON.stringify({ out, offsetMs, fitScenes: Boolean(opts.fitScenes), durationMs, layers, warnings }, null, 2));
+}
+
+
+// ---------------------------------------------------------------------------------------
+// footage — acabamento de spec feito de takes gravados. A lógica é a IMPLEMENTAÇÃO ÚNICA do engine
+// (render/src/footage.ts → render/lib/engine.mjs, gerado por `npm run build:lib` em render/), a
+// mesma da plataforma e do POST /footage/finalize: corte puxado pra fronteira de palavra, clipes
+// seguidos do mesmo take sem sobreposição e legenda refeita da fala real (`karaoke` auto:true).
+// Aqui só se monta a lista de takes a partir dos arquivos em render/public/ (duração via ffprobe,
+// palavras do <take>.words.json). Rode depois de TODA mudança no spec.
+// ---------------------------------------------------------------------------------------
+
+async function cmdFootage(specPath, opts) {
+	const spec = await readJson(specPath);
+
+	// O take de cada clipe "dono" de cena (1º footage sem startMs/durationMs), casado pelo src.
+	const cache = new Map();
+	const takeFor = async (src) => {
+		if (cache.has(src)) return cache.get(src);
+		const abs = publicPath(specPath, src);
+		let take = null;
+		if (abs && existsSync(abs)) {
+			const durationMs = await probeDurationMs(abs);
+			const wordsFile = abs.replace(/\.[^.]+$/, ".words.json");
+			const words = existsSync(wordsFile) ? (await readJson(wordsFile)).words ?? [] : [];
+			if (durationMs) take = { id: src, src, durationMs, words, hasWords: existsSync(wordsFile) };
+		}
+		cache.set(src, take);
+
+		return take;
+	};
+
+	const report = [];
+	const reported = new Set();
+	for (const scene of spec.scenes ?? []) {
+		const main = (scene.layers ?? []).find((l) => l.type === "footage" && !l.startMs && !l.durationMs);
+		if (!main) continue;
+		const take = await takeFor(main.src);
+		if (!take) {
+			report.push(`cena ${scene.id}: take "${main.src}" não achado em render/public/ (URL externa fica sem acabamento)`);
+			reported.add(scene.id);
+		} else if (!take.hasWords) {
+			report.push(`cena ${scene.id}: sem ${main.src.replace(/\.[^.]+$/, ".words.json")} — rode tools/takes.mjs preparar`);
+			reported.add(scene.id);
+		}
+	}
+
+	const result = finalizeFootage(spec, [...cache.values()].filter(Boolean));
+	// Os avisos do engine repetem os daqui (mais acionáveis) para a mesma cena.
+	for (const w of result.warnings) if (![...reported].some((id) => w.startsWith(`cena ${id}:`))) report.push(w);
+
+	const out = opts.out ?? specPath;
+	await writeJson(out, result.spec);
+	console.log(
+		JSON.stringify(
+			{ out, clips: result.stats.clips, captionBlocks: result.stats.captionBlocks, durationMs: result.stats.durationMs, warnings: report },
+			null,
+			2,
+		),
+	);
 }
 
 const [cmd, ...rest] = process.argv.slice(2);
@@ -473,11 +577,12 @@ const commands = {
 			out: flag("out"),
 		}),
 	diff: () => cmdDiff(rest[0], rest[1]),
-	"sync-captions": () => cmdSyncCaptions(rest[0], { words: flag("words"), out: flag("out"), fitScenes: rest.includes("--fit-scenes") }),
+	footage: () => cmdFootage(rest[0], { out: flag("out") }),
+	"sync-captions": () => cmdSyncCaptions(rest[0], { words: flag("words"), out: flag("out"), fitScenes: rest.includes("--fit-scenes"), chunk: Number(flag("chunk") ?? 0) }),
 };
 
 if (!commands[cmd]) {
-	console.error("comandos: props | validate | check | variant | diff | sync-captions");
+	console.error("comandos: props | validate | check | variant | diff | sync-captions | footage");
 	process.exit(1);
 }
 

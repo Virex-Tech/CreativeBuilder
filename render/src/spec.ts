@@ -27,7 +27,7 @@ export const animPreset = z.enum([
 	"float",
 ]);
 
-export const textPreset = z.enum(["hook_stroke", "sub", "caption", "cta_label"]);
+export const textPreset = z.enum(["hook_stroke", "sub", "caption", "cta_label", "title_top"]);
 
 /**
  * Entrance effect for a scene's first frames. Never changes total duration or `startMs` —
@@ -48,11 +48,11 @@ export const textLayer = baseLayer.extend({
 	preset: textPreset.default("sub"),
 });
 
-/** Generated b-roll (Higgsfield / fal). `assetId` is filled once the asset exists. */
+/** Generated b-roll (Kie / Higgsfield / fal). `assetId` is the provider task id once the asset exists. */
 export const generativeVideoLayer = baseLayer.extend({
 	type: z.literal("generative_video"),
 	prompt: z.string().min(1),
-	provider: z.enum(["higgsfield", "fal"]).default("fal"),
+	provider: z.enum(["kie", "higgsfield", "fal"]).default("kie"),
 	assetId: z.string().optional(),
 	src: z.string().optional(),
 	fit: z.enum(["cover", "contain"]).default("cover"),
@@ -62,6 +62,32 @@ export const generativeVideoLayer = baseLayer.extend({
 	blur: z.number().min(0).max(80).default(0),
 	/** Escurecimento 0..1 por cima do clipe, para o que está na frente ganhar contraste. */
 	dim: z.number().min(0).max(1).default(0),
+});
+
+/**
+ * Footage filmed by a person (a "take"): the creator's own video, with its own sound.
+ *
+ * This is the UGC edit's raw material — the opposite of `generative_video`. Its audio plays by
+ * default because the speech IS the content; a take is trimmed with `startFromMs` and the
+ * layer/scene duration, never re-encoded per edit. `takeId` ties it to the transcript the
+ * server uses to rebuild the captions after every edit.
+ */
+export const footageLayer = baseLayer.extend({
+	type: z.literal("footage"),
+	takeId: z.string().optional(),
+	src: z.string().min(1),
+	/** In-point inside the take. The out-point is the layer (or scene) duration. */
+	startFromMs: z.number().int().min(0).default(0),
+	fit: z.enum(["cover", "contain"]).default("cover"),
+	/** 0..1 gain of the take's own sound. 0 mutes it (b-roll use of a take). */
+	volume: z.number().min(0).max(1).default(1),
+	/**
+	 * Static punch-in (1 = none). A jump cut between two clips of the same take reads as a
+	 * glitch at the same framing and as intentional at 1.1–1.2 — the standard UGC trick.
+	 */
+	zoom: z.number().min(1).max(1.6).default(1),
+	/** Mirror horizontally (front-camera takes are often flipped). */
+	mirror: z.boolean().default(false),
 });
 
 /** App screen recording, composited inside a device frame. */
@@ -104,6 +130,11 @@ export const karaokeLayer = baseLayer.extend({
 	wordEndsMs: z.array(z.number().int().positive()).optional(),
 	/** Distância do rodapé em % da altura. Padrão alto (perto do centro); baixe quando precisar. */
 	bottomPct: z.number().min(5).max(70).optional(),
+	/**
+	 * Written by the server from a take's transcript (not by a person or the model). Auto
+	 * captions are thrown away and rebuilt after every edit, so they always match the cut.
+	 */
+	auto: z.boolean().optional(),
 });
 
 /** Small legal line pinned to the bottom ("Dramatização..."). Required in health/fitness ads. */
@@ -222,6 +253,7 @@ export const listCardLayer = baseLayer.extend({
 export const layer = z.discriminatedUnion("type", [
 	textLayer,
 	generativeVideoLayer,
+	footageLayer,
 	appScreenLayer,
 	solidLayer,
 	badgeLayer,
@@ -281,7 +313,7 @@ export const specAudio = z.object({
 			/** The script, kept for regeneration and for caption alignment. */
 			script: z.string().optional(),
 			voiceId: z.string().optional(),
-			provider: z.enum(["higgsfield", "elevenlabs"]).optional(),
+			provider: z.enum(["kie", "higgsfield", "elevenlabs"]).optional(),
 			/** When the voiceover starts on the timeline. */
 			atMs: z.number().int().min(0).default(0),
 			/**
@@ -334,6 +366,17 @@ export const creativeSpec = z.object({
 	}),
 	brandKit: brandKit.default(BRAND_DEFAULTS),
 	audio: specAudio.optional(),
+	/**
+	 * Captions from the takes' real speech: the server splits each footage clip's words into
+	 * short blocks (auto karaoke layers) with exact word timings. Off = no auto captions.
+	 */
+	autoCaptions: z
+		.object({
+			enabled: z.boolean().default(true),
+			/** Words per caption block. 3–4 reads at a glance; more becomes a paragraph. */
+			maxWords: z.number().int().min(1).max(8).default(4),
+		})
+		.optional(),
 	scenes: z.array(scene).min(1),
 });
 
@@ -357,4 +400,13 @@ export function specDurationMs(spec: CreativeSpec): number {
 
 export function msToFrames(ms: number, fps: number): number {
 	return Math.max(1, Math.round((ms / 1000) * fps));
+}
+
+/**
+ * Where something STARTS on the timeline. Unlike a duration it can be 0 — `msToFrames` clamps
+ * to 1, which pushed every opening scene to frame 1 and left frame 0 as an empty background
+ * (a black first frame, which Instagram uses as the default Reels cover).
+ */
+export function msToStartFrame(ms: number, fps: number): number {
+	return Math.max(0, Math.round((ms / 1000) * fps));
 }

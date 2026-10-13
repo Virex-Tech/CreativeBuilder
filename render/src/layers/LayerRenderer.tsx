@@ -1,7 +1,9 @@
 import React from "react";
 import { AbsoluteFill, Img, interpolate, OffthreadVideo, useCurrentFrame, useVideoConfig } from "remotion";
 
-import { resolveAnim, resolveTextPreset } from "../presets/anims";
+import { layoutFor, type Layout } from "../formats";
+import { useMediaAspect } from "./mediaAspect";
+import { BADGE_TOP, badgeHeight, resolveAnim, resolveTextPreset, TOP_STACK_GAP } from "../presets/anims";
 import { resolveSrc } from "../resolveSrc";
 import { msToFrames, type BrandKit, type Layer } from "../spec";
 
@@ -9,6 +11,11 @@ interface Props {
 	layer: Layer;
 	brand: BrandKit;
 	durationInFrames: number;
+	/**
+	 * Set on a `title_top` text that shares the screen with a `badge` (same scene, overlapping
+	 * time): the title goes below the badge. `badgeWithLabel` picks the badge's height.
+	 */
+	belowBadge?: { badgeWithLabel: boolean };
 }
 
 /**
@@ -18,10 +25,13 @@ interface Props {
  * generative model. Models misspell words and mangle UI, and a single wrong letter is what
  * makes an ad read as AI slop. The generative providers only supply moving imagery.
  */
-export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames }) => {
+export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames, belowBadge }) => {
 	const frame = useCurrentFrame();
-	const { fps } = useVideoConfig();
+	const { fps, width, height } = useVideoConfig();
 	const anim = resolveAnim(layer.anim, frame, fps, durationInFrames);
+	// Every px below is in base 1080×1920 px, scaled to the composition (identity at 9:16).
+	const L = layoutFor(width, height);
+	const z = L.size;
 
 	const transform = `scale(${anim.scale}) translateY(${anim.translateY}px)`;
 
@@ -30,15 +40,20 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 			return <AbsoluteFill style={{ backgroundColor: layer.color, opacity: anim.opacity }} />;
 
 		case "text": {
-			const style = resolveTextPreset(layer.preset, brand);
+			const style = resolveTextPreset(layer.preset, brand, L);
+			if (belowBadge && layer.preset === "title_top") {
+				const underBadge = L.top(BADGE_TOP) + z(badgeHeight(belowBadge.badgeWithLabel) + TOP_STACK_GAP);
+				style.top = Math.max(style.top ?? 0, underBadge);
+			}
 
 			return (
 				<AbsoluteFill
 					style={{
-						justifyContent: style.bottom === undefined ? "center" : "flex-end",
+						justifyContent: style.top !== undefined ? "flex-start" : style.bottom === undefined ? "center" : "flex-end",
 						alignItems: "center",
-						padding: "0 60px",
+						padding: `0 ${L.x(60)}px`,
 						paddingBottom: style.bottom,
+						paddingTop: style.top,
 						opacity: anim.opacity,
 						transform,
 					}}
@@ -53,6 +68,10 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 							textShadow: style.textShadow,
 							maxWidth: style.maxWidth,
 							textAlign: style.textAlign,
+							background: style.background,
+							padding: style.padding,
+							borderRadius: style.borderRadius,
+							boxShadow: style.boxShadow,
 							// Long locales (PT/ES run 20-30% longer than EN) must shrink, not overflow.
 							overflowWrap: "break-word",
 						}}
@@ -91,72 +110,52 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 					label="b-roll"
 					detail={layer.prompt}
 					opacity={anim.opacity}
+					layout={L}
 				/>
 			);
 
-		case "app_screen_recording": {
-			const isImage = !!layer.src && !isVideoSrc(layer.src);
-			// A static screenshot with no explicit anim otherwise sits dead on screen — give it
-			// an automatic, subtle Ken Burns push so it reads as "alive" without a spec change.
-			const kenBurnsScale =
-				isImage && layer.anim === "none"
-					? interpolate(frame, [0, durationInFrames], [1, 1.08], { extrapolateRight: "clamp" })
-					: 1;
-
+		case "footage":
 			return (
-				<AbsoluteFill style={{ justifyContent: "center", alignItems: "center", transform }}>
-					<DeviceFrame enabled={layer.device !== "none"} brand={brand}>
-						{layer.src && isVideoSrc(layer.src) ? (
-							// Screen recordings carry UI sounds and mic noise; the spec's audio track owns sound.
-							<OffthreadVideo
-								src={resolveSrc(layer.src)}
-								trimBefore={layer.startFromMs ? msToFrames(layer.startFromMs, fps) : undefined}
-								muted
-								// `contain` mantém a gravação inteira: cortar a tela do app é pior do que
-								// sobrar um fio de fundo. O zoom de aproximação é papel do `anim`
-								// da cena, nunca de escalar o vídeo aqui dentro.
-								style={{
-									width: "100%",
-									height: "100%",
-									objectFit: layer.device === "none" ? "cover" : "contain",
-								}}
-							/>
-						) : layer.src ? (
-							// Clip the Ken Burns overscan so it never peeks outside the frame/device.
-							<div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
-								<Img
-									src={resolveSrc(layer.src)}
-									style={{
-										width: "100%",
-										height: "100%",
-										objectFit: "cover",
-										transform: `scale(${kenBurnsScale})`,
-									}}
-								/>
-							</div>
-						) : (
-							<PlaceholderLayer
-								brand={brand}
-								label="app screen"
-								detail={layer.assetId ?? "sem asset"}
-								opacity={anim.opacity}
-							/>
-						)}
-					</DeviceFrame>
+				<AbsoluteFill style={{ opacity: anim.opacity, transform, overflow: "hidden" }}>
+					<OffthreadVideo
+						src={resolveSrc(layer.src)}
+						trimBefore={layer.startFromMs ? msToFrames(layer.startFromMs, fps) : undefined}
+						volume={layer.volume}
+						muted={layer.volume === 0}
+						style={{
+							width: "100%",
+							height: "100%",
+							objectFit: layer.fit,
+							transform: `scale(${layer.mirror ? -layer.zoom : layer.zoom}, ${layer.zoom})`,
+						}}
+					/>
 				</AbsoluteFill>
 			);
-		}
+
+		case "app_screen_recording":
+			// Keyed by src: the size probe (and its render hold) belongs to one media file.
+			return (
+				<AppScreen
+					key={layer.src ?? "placeholder"}
+					layer={layer}
+					brand={brand}
+					layout={L}
+					durationInFrames={durationInFrames}
+					opacity={anim.opacity}
+					transform={transform}
+				/>
+			);
 
 		case "badge":
 			return (
 				<AbsoluteFill
-					style={{ justifyContent: "flex-start", alignItems: "center", paddingTop: 230 }}
+					style={{ justifyContent: "flex-start", alignItems: "center", paddingTop: L.top(BADGE_TOP) }}
 				>
 					<div
 						style={{
 							background: "rgba(10,10,12,0.88)",
-							borderRadius: 36,
-							padding: "22px 54px",
+							borderRadius: z(36),
+							padding: `${z(22)}px ${z(54)}px`,
 							textAlign: "center",
 							fontFamily: brand.fontFamily,
 							transform: `scale(${anim.scale})`,
@@ -166,9 +165,9 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 						{layer.label ? (
 							<div
 								style={{
-									fontSize: 34,
+									fontSize: z(34),
 									fontWeight: 700,
-									letterSpacing: 6,
+									letterSpacing: z(6),
 									color: brand.fg,
 									opacity: 0.9,
 								}}
@@ -178,11 +177,11 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 						) : null}
 						<div
 							style={{
-								fontSize: 84,
+								fontSize: z(84),
 								fontWeight: 900,
 								lineHeight: 1,
 								color: brand.accent,
-								marginTop: layer.label ? 6 : 0,
+								marginTop: layer.label ? z(6) : 0,
 							}}
 						>
 							{layer.value}
@@ -192,7 +191,7 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 			);
 
 		case "karaoke":
-			return <Karaoke layer={layer} brand={brand} durationInFrames={durationInFrames} />;
+			return <Karaoke layer={layer} brand={brand} durationInFrames={durationInFrames} layout={L} />;
 
 		case "image":
 			return (
@@ -502,16 +501,16 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 		case "disclaimer":
 			return (
 				<AbsoluteFill
-					style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 350 }}
+					style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: L.bottom(350) }}
 				>
 					<div
 						style={{
 							fontFamily: brand.fontFamily,
-							fontSize: 22,
+							fontSize: z(22),
 							fontWeight: 600,
 							color: brand.fg,
 							opacity: 0.85,
-							textShadow: "0 2px 8px rgba(0,0,0,0.9)",
+							textShadow: `0 ${z(2)}px ${z(8)}px rgba(0,0,0,0.9)`,
 							textAlign: "center",
 							maxWidth: "88%",
 						}}
@@ -535,9 +534,10 @@ const Karaoke: React.FC<{
 	layer: Extract<Layer, { type: "karaoke" }>;
 	brand: BrandKit;
 	durationInFrames: number;
-}> = ({ layer, brand, durationInFrames }) => {
+	layout: Layout;
+}> = ({ layer, brand, durationInFrames, layout }) => {
 	const frame = useCurrentFrame();
-	const { fps, height } = useVideoConfig();
+	const { fps } = useVideoConfig();
 	const words = layer.text.split(/\s+/).filter(Boolean);
 
 	const nowMs = (frame / fps) * 1000;
@@ -559,12 +559,10 @@ const Karaoke: React.FC<{
 			style={{
 				justifyContent: "flex-end",
 				alignItems: "center",
-				// Padrão mais alto que o rodapé clássico: a legenda briga menos com a interface
-				// do Instagram e fica perto do centro, que é onde o olho já está.
-				// Em px, calculado sobre a ALTURA: padding em % no CSS mede pela largura, e com
-				// 9:16 isso jogava a legenda de volta pro rodapé.
-				// Padrão: 800px do rodapé (logo abaixo do centro). `bottomPct` sobrescreve por cena.
-				paddingBottom: layer.bottomPct ? (layer.bottomPct / 100) * height : 700,
+				// Mais alta que o rodapé clássico: perto do centro, que é onde o olho já está.
+				// `layout.bottom` mantém a mesma proporção nos 3 formatos; `bottomPct` desce a
+				// legenda quando a cena tem elemento embaixo.
+				paddingBottom: layout.bottom(layer.bottomPct ? (layer.bottomPct / 100) * 1920 : 700),
 			}}
 		>
 			<div
@@ -612,7 +610,8 @@ const PlaceholderLayer: React.FC<{
 	label: string;
 	detail: string;
 	opacity: number;
-}> = ({ brand, label, detail, opacity }) => (
+	layout: Layout;
+}> = ({ brand, label, detail, opacity, layout }) => (
 	<AbsoluteFill
 		style={{
 			opacity,
@@ -622,9 +621,9 @@ const PlaceholderLayer: React.FC<{
 			justifyContent: "flex-start",
 			alignItems: "center",
 			// Below the badge zone (which now owns the top ~400px) and above the caption band.
-			paddingTop: 420,
-			paddingLeft: 60,
-			paddingRight: 60,
+			paddingTop: layout.top(420),
+			paddingLeft: layout.x(60),
+			paddingRight: layout.x(60),
 			border: `2px dashed ${brand.accent}`,
 		}}
 	>
@@ -637,19 +636,105 @@ const PlaceholderLayer: React.FC<{
 				maxWidth: "80%",
 			}}
 		>
-			<div style={{ fontSize: 28, letterSpacing: 4, textTransform: "uppercase" }}>{label}</div>
-			<div style={{ fontSize: 24, marginTop: 12, lineHeight: 1.3 }}>{detail}</div>
+			<div style={{ fontSize: layout.size(28), letterSpacing: layout.size(4), textTransform: "uppercase" }}>{label}</div>
+			<div style={{ fontSize: layout.size(24), marginTop: layout.size(12), lineHeight: 1.3 }}>{detail}</div>
 		</div>
 	</AbsoluteFill>
 );
 
 const isVideoSrc = (src: string): boolean => /\.(mp4|mov|m4v|webm)(\?|#|$)/i.test(src);
 
+/**
+ * Screen shapes a phone can plausibly have (w/h). Media in this range gets a screen of exactly its
+ * shape (nothing cropped, no bars); outside it (a landscape clip, a banner) the screen is clamped and
+ * the media is shown whole over a blurred copy of itself.
+ */
+const SCREEN_ASPECT_MIN = 9 / 21;
+const SCREEN_ASPECT_MAX = 9 / 15;
+
+const AppScreen: React.FC<{
+	layer: Extract<Layer, { type: "app_screen_recording" }>;
+	brand: BrandKit;
+	layout: Layout;
+	durationInFrames: number;
+	opacity: number;
+	transform: string;
+}> = ({ layer, brand, layout, durationInFrames, opacity, transform }) => {
+	const frame = useCurrentFrame();
+	const { fps } = useVideoConfig();
+	const src = layer.src ? resolveSrc(layer.src) : null;
+	const isVideo = !!layer.src && isVideoSrc(layer.src);
+	const inDevice = layer.device !== "none";
+	// Only a phone needs the media's shape; full-screen (device "none") stays a cover crop.
+	const mediaAspect = useMediaAspect(inDevice ? src : null, isVideo ? "video" : "image");
+	const screenAspect = mediaAspect === null ? null : Math.min(SCREEN_ASPECT_MAX, Math.max(SCREEN_ASPECT_MIN, mediaAspect));
+	const fitsExactly = screenAspect !== null && mediaAspect !== null && Math.abs(screenAspect - mediaAspect) < 0.005;
+	const fit = !inDevice || screenAspect === null || fitsExactly ? "cover" : "contain";
+
+	// A static screenshot with no explicit anim otherwise sits dead on screen — give it
+	// an automatic, subtle Ken Burns push so it reads as "alive" without a spec change.
+	const kenBurnsScale =
+		src && !isVideo && layer.anim === "none"
+			? interpolate(frame, [0, durationInFrames], [1, 1.08], { extrapolateRight: "clamp" })
+			: 1;
+
+	return (
+		<AbsoluteFill style={{ justifyContent: "center", alignItems: "center", transform }}>
+			<DeviceFrame enabled={inDevice} brand={brand} layout={layout} screenAspect={screenAspect}>
+				{src && isVideo ? (
+					// Screen recordings carry UI sounds and mic noise; the spec's audio track owns sound.
+					<div style={{ width: "100%", height: "100%", background: fit === "contain" ? "#000" : undefined }}>
+						<OffthreadVideo
+							src={src}
+							trimBefore={layer.startFromMs ? msToFrames(layer.startFromMs, fps) : undefined}
+							muted
+							style={{ width: "100%", height: "100%", objectFit: fit }}
+						/>
+					</div>
+				) : src ? (
+					// Clip the Ken Burns overscan so it never peeks outside the frame/device.
+					<div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
+						{fit === "contain" ? (
+							<Img
+								src={src}
+								style={{
+									position: "absolute",
+									inset: 0,
+									width: "100%",
+									height: "100%",
+									objectFit: "cover",
+									filter: `blur(${layout.size(28)}px) brightness(0.7)`,
+									transform: "scale(1.15)",
+								}}
+							/>
+						) : null}
+						<Img
+							src={src}
+							style={{
+								position: "relative",
+								width: "100%",
+								height: "100%",
+								objectFit: fit,
+								transform: `scale(${kenBurnsScale})`,
+							}}
+						/>
+					</div>
+				) : (
+					<PlaceholderLayer brand={brand} label="app screen" detail={layer.assetId ?? "sem asset"} opacity={opacity} layout={layout} />
+				)}
+			</DeviceFrame>
+		</AbsoluteFill>
+	);
+};
+
 const DeviceFrame: React.FC<{
 	enabled: boolean;
 	brand: BrandKit;
+	layout: Layout;
+	/** Shape (w/h) of the media's screen; null = the stock 9:19.5 phone (placeholder / unknown). */
+	screenAspect: number | null;
 	children: React.ReactNode;
-}> = ({ enabled, brand, children }) => {
+}> = ({ enabled, brand, layout, screenAspect, children }) => {
 	if (!enabled) return <>{children}</>;
 
 	// Mockup real da marca (PNG 1080x1920 com a área da tela vazada). A gravação entra POR BAIXO,
