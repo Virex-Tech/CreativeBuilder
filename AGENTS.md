@@ -133,7 +133,14 @@ no Instagram) — ver `docs/ESTUDIO.md`.
 | "[0:03] corta essa parte" (takes) | tira/encurta a cena desse trecho + `spec-tool footage` |
 | "legenda com 3 palavras" (takes) | `autoCaptions.maxWords: 3` + `spec-tool footage` |
 
-## Geração de b-roll e voz — Kie.ai (padrão) no agente
+## Geração de b-roll e voz
+
+> **Decisão da equipe (13/10/2026), vale para os criativos do OzemPro:**
+> **vídeo → Higgsfield** (seção "Alternativa: Higgsfield" abaixo) e
+> **voz → Google AI Studio** (`node tools/tts-gemini.mjs`, vozes Achernar e Orus).
+> A Kie.ai documentada abaixo continua valendo para a plataforma e para quem preferir pré-pago.
+
+### Kie.ai
 
 O b-roll de IA (camadas `generative_video`) e a voz são gerados **por este agente**, pela chave
 `KIE_API_KEY` do computador de quem está usando (pré-paga, sob demanda — cada pessoa cria a

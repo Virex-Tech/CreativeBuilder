@@ -127,6 +127,8 @@ Cores tiradas do ícone do app (gradiente roxo). Os blogs usam rosa/azul — **n
 - **fontFamily:** `"'Plus Jakarta Sans', Inter, system-ui, sans-serif"` (fonte dos sites). O renderer
   não embute fontes: sem a Plus Jakarta Sans instalada na máquina, o vídeo cai na fonte do sistema.
 - **Ícone:** `render/public/app/ozempro/icone.png` (1024×1024, panda com caneta) — use no CTA final.
+- **Ferramentas oficiais (13/10/2026):** vídeo/b-roll no **Higgsfield**; narração no **Google AI
+  Studio** (`tools/tts-gemini.mjs`). A Kie.ai fica como alternativa.
 - **Voz oficial (narração):** Google AI Studio (Gemini TTS) — **Achernar** para voz feminina e
   **Orus** para masculina. Gere com `node tools/tts-gemini.mjs` (chave `GEMINI_API_KEY` no `.env`).
   O estilo começa com "Promover" e pede fala rápida, animada, sem pausas; o script corta sozinho

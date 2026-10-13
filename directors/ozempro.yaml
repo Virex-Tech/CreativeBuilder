@@ -14,6 +14,8 @@ transitions:
   forbidden: [crossfade, zoom_blur]
 
 captions:
+  # legenda oficial dos vídeos do OzemPro (decisão de 13/10/2026) — a implementação do
+  # renderer que vale é esta, não a legenda em blocos do motor da plataforma
   style: karaoke_bold
   position: lower_third
   always_on: true               # som off é o default do feed
