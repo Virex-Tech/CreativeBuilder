@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { SpecRenderer } from "./SpecRenderer";
 import { creativeSpec, msToFrames, specDurationMs, type CreativeSpec } from "./spec";
-import defaultSpec from "../specs/tapfit-treino-aleatorio.json";
+import defaultSpec from "../specs/ozempro-apresentacao-5s.json";
 
 /**
  * A single registered composition whose dimensions and duration are DERIVED from the spec

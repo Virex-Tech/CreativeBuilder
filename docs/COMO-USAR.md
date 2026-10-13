@@ -4,7 +4,7 @@
 > Este documento é a referência dos comandos e campos — útil para quem quer entender ou rodar à mão.
 
 Tudo roda **local**: Claude Code (ou Codex) + **Higgsfield CLI** (vídeo, voz) + **Remotion**
-(edição e render). Sem plataforma web e sem API key. O criativo é um **`CreativeSpec`** (JSON) —
+(edição e render). Sem API key. O criativo é um **`CreativeSpec`** (JSON) —
 o agente nunca "edita vídeo", ele escreve e reescreve o spec. Contrato dos campos:
 [`render/src/spec.ts`](../render/src/spec.ts).
 
@@ -26,8 +26,8 @@ Instruções que o agente segue: [`.claude/skills/criativo/SKILL.md`](../.claude
 ```bash
 # 1. referência (opcional): arquivo ou link
 yt-dlp -f "bv*+ba/b" --merge-output-format mp4 -o entrada/ref.mp4 "<link>"
-node tools/ingest-reference.mjs entrada/ref.mp4            # frames nos cortes + audio.wav em references/<nome>/
-python tools/transcribe.py references/<nome>/audio.wav --lang pt   # o que é falado na referência
+node tools/ingest-reference.mjs entrada/ref.mp4            # frames nos cortes + audio.wav em .cache-ingestao/<nome>/
+python tools/transcribe.py .cache-ingestao/<nome>/audio.wav --lang pt   # o que é falado na referência
 
 # 2. spec: copie um modelo de render/specs/_modelos/ e preencha (contexto em apps/<slug>/contexto.md)
 
@@ -182,7 +182,7 @@ Servidor MCP **oficial** da Meta, já configurado em `.mcp.json`:
 | Segurança | Meta Business Suite → Configurações → Integrações → Ads MCP server: bloquear criar campanhas e editar orçamento |
 
 Fluxo: ranking com volume mínimo → vídeo do criativo → `ingest-reference` + `transcribe.py` → ficha em
-`referencias/<slug>/<ad_id>.md` → variações. A doc da Meta não garante métricas de vídeo nem URL do
+`analise/criativos/<ad_id>.md` → variações. A doc da Meta não garante métricas de vídeo nem URL do
 vídeo em todas as ferramentas — se faltar, usar o arquivo original.
 
 ### Opções para descobrir o que deu certo
@@ -195,19 +195,8 @@ vídeo em todas as ferramentas — se faltar, usar o arquivo original.
 | **`yt-dlp` em posts orgânicos** | views, likes, data e o vídeo de TikTok/YouTube | nenhum (Instagram costuma exigir cookies do navegador e falha com frequência) | grátis | ver o que bombou no orgânico |
 | **Biblioteca de Anúncios da Meta** | anúncios **ativos** de qualquer página + vídeo; sem métricas (sinais: tempo no ar, "N ads use this creative") | nenhum | grátis | olhar concorrentes — só consulta pontual: os termos da Meta proíbem coleta automatizada |
 | **TikTok Creative Center** (Top Ads) | anúncios em alta no TikTok por nicho | nenhum | grátis | referência de mercado; sem API |
-| **Plataforma web (futuro)** | ranking automático diário, vídeos vencedores baixados e analisados no servidor, time vê na web e o Claude local puxa as fichas | **token de leitura da Meta (System User, `ads_read`) guardado só no servidor** | VPS + manutenção | quando o volume pedir ranking automático sem ninguém pedir |
-
-**Sobre a plataforma:** o servidor já tem módulos de métricas e ingestão de referência (`server/`),
-mas está fora de uso. Um servidor não usa o login OAuth do MCP (que é por pessoa), por isso a
-coleta automática exige o token server-side. O formato das fichas (`referencias/<slug>/<ad_id>.md`)
-é o mesmo nos dois caminhos — dá para começar local e migrar sem perder nada.
 
 ## 12. Compartilhar
 
 Specs, contextos, clipes (`render/public/`) vão para o GitHub. Não vão: `entrada/`,
-`references/`, `render/out/` (MP4 finais — mande pelo canal da equipe).
-
----
-
-A plataforma web (`web/`, `server/`, `DEPLOY.md`, `docs/ATIVACAO-IA.md`) está **fora de uso** por
-enquanto.
+`.cache-ingestao/`, `render/out/` (MP4 finais — mande pelo canal da equipe).

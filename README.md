@@ -28,19 +28,13 @@ node tools/doctor.mjs
 
 ```
 apps/        contexto de produto de cada app (apps/<slug>/contexto.md) — o Claude lê antes de criar
-referencias/ criativos que deram certo: ranking e fichas por app (referencias/<slug>/)
+analise/     regras de análise do Meta (regras-meta-ads.md) e fichas dos criativos (analise/criativos/)
 directors/   regras de edição por app (ritmo, legendas, o que nunca fazer)
 render/      Remotion — renderer, specs (render/specs), modelos (render/specs/_modelos),
              material do app (public/app), b-roll (public/broll), voz (public/audio), sfx (public/sfx)
 tools/       spec-tool (validate, check, props, variant, diff, sync-captions), review,
              ingest-reference, transcribe, doctor
-entrada/     material bruto anexado (fora do git)
+entrada/     material bruto anexado, por app (fora do git)
+.cache-ingestao/  frames e áudio das referências analisadas (oculto, fora do git)
 .claude/     skill "criativo" e permissões do projeto para o Claude Code
 ```
-
-## Fora de uso (por enquanto)
-
-A plataforma web — `web/`, `server/`, [DEPLOY.md](DEPLOY.md), [docs/ATIVACAO-IA.md](docs/ATIVACAO-IA.md),
-[docs/architecture.md](docs/architecture.md) (arquitetura da plataforma) —
-está pausada. O fluxo oficial é o local acima. Ela fica como **opção futura** para coletar
-automaticamente os criativos que deram certo (ver `docs/COMO-USAR.md`, seção 11).

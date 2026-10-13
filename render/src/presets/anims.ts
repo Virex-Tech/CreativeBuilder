@@ -54,6 +54,31 @@ export function resolveAnim(
 					extrapolateRight: "clamp",
 				}),
 			};
+		case "shake": {
+			// Tremida curta e seca: marca a palavra-chave sem virar tremor de câmera.
+			const t = frame / fps;
+			const decay = Math.max(0, 1 - t / 0.6);
+			return {
+				...IDLE,
+				translateY: Math.sin(t * 60) * 14 * decay,
+				scale: 1 + Math.sin(t * 50) * 0.012 * decay,
+			};
+		}
+		case "zoom_punch": {
+			// Soco de zoom no primeiro quarto de segundo, depois assenta.
+			const s = spring({ frame, fps, config: { damping: 9, mass: 0.4, stiffness: 220 } });
+			return { ...IDLE, scale: 1.22 - s * 0.22 };
+		}
+		case "float": {
+			// Sobe e desce devagar — para emoji/sticker que fica alguns segundos na tela.
+			const t = frame / fps;
+			const entrada = spring({ frame, fps, config: { damping: 12, mass: 0.5 } });
+			return {
+				opacity: Math.min(1, entrada * 1.5),
+				scale: 0.8 + entrada * 0.2,
+				translateY: Math.sin(t * 2.2) * 16,
+			};
+		}
 		case "handheld_subtle": {
 			// Tiny irregular drift, so generated b-roll does not feel locked to a tripod.
 			const t = frame / fps;

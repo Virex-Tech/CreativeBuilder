@@ -12,11 +12,11 @@ npm run dev                                    # Remotion Studio, edição visua
 
 # vídeo
 npx remotion render src/index.ts Creative out/video.mp4 \
-  --props=./specs/props/tapfit-treino-aleatorio.json
+  --props=./specs/props/ozempro-apresentacao-5s.json
 
 # preview barato (um frame) — valida direção antes de gastar o render inteiro
 npx remotion still src/index.ts Creative out/frame.png --frame=30 \
-  --props=./specs/props/tapfit-treino-aleatorio.json
+  --props=./specs/props/ozempro-apresentacao-5s.json
 ```
 
 `--props` recebe o objeto de props (`{ "spec": { ... } }`), não o spec cru — por isso os
@@ -26,7 +26,7 @@ arquivos em `specs/props/` embrulham os de `specs/`.
 
 | Arquivo | Papel |
 |---|---|
-| `src/spec.ts` | schema zod do `CreativeSpec` — o contrato entre API, agentes e renderer |
+| `src/spec.ts` | schema zod do `CreativeSpec` — o contrato entre agentes e renderer |
 | `src/SpecRenderer.tsx` | a composição única: cenas → `Sequence`, layers → `Sequence` aninhada |
 | `src/layers/LayerRenderer.tsx` | renderiza cada layer (texto, b-roll, screen recording, sólido) |
 | `src/presets/anims.ts` | animações e estilos de texto nomeados, referenciados pelo spec |

@@ -2,29 +2,39 @@
 node_modules/
 
 # builds
-.next/
 dist/
 out/
 *.tsbuildinfo
 
-# segredos — o .env local tem senha de banco e JWT_SECRET
+# segredos
 .env
 .env.*
-!.env.example
 
-# artefatos de mídia: pesados e reproduzíveis a partir do spec
-storage/
-references/
+# frames e áudio extraídos pelo ingest-reference (reproduzíveis)
+.cache-ingestao/
+
+# MP4 e PNG renderizados
 render/out/
-render/api-*.png
-render/api-*.mp4
 render/public/test-*.mp3
+
+# material bruto anexado (vídeos/imagens) — o Claude copia para render/public só o que usar
+entrada/*
+!entrada/LEIA-ME.md
+
+# código aposentado, aguardando exclusão definitiva
+_descontinuado/
 
 # runtime
 *.log
 .DS_Store
 .playwright-mcp/
 
-# material bruto anexado (vídeos/imagens) — o Claude copia para render/public só o que usar
-entrada/*
-!entrada/LEIA-ME.md
+# mídia copiada para o renderer — original fica em entrada/, o Claude recopia quando precisa
+render/public/panda/*.mp4
+render/public/app/*/*.mp4
+render/public/app/*/*.mov
+render/public/broll/*.mp4
+render/public/audio/*.mp3
+render/public/audio/*.wav
+render/public/audio/*.json
+render/public/sfx/originais/

@@ -31,7 +31,7 @@ yt-dlp -f "bv*+ba/b" --merge-output-format mp4 -o /tmp/ref.mp4 "<link>"
 node tools/ingest-reference.mjs /tmp/ref.mp4
 ```
 
-Isso extrai frames nos cortes reais + áudio em `references/<nome>/` e escreve um
+Isso extrai frames nos cortes reais + áudio em `.cache-ingestao/<nome>/` e escreve um
 `manifest.json`. Então:
 
 1. **Leia os frames** (cada `.jpg`) e o `manifest.json`.
@@ -41,7 +41,7 @@ Isso extrai frames nos cortes reais + áudio em `references/<nome>/` e escreve u
 4. Preencha o `CreativeSpec` com o conteúdo do app, respeitando o `DirectorProfile`.
 5. Mostre o blueprint ao usuário antes de renderizar.
 
-Fala da referência: `python tools/transcribe.py references/<nome>/audio.wav --lang pt` dá o texto
+Fala da referência: `python tools/transcribe.py .cache-ingestao/<nome>/audio.wav --lang pt` dá o texto
 falado (sem tom, música ou efeitos). Views/curtidas não vêm da ingestão.
 
 ## Contexto do app
@@ -153,15 +153,13 @@ sem autorização explícita (as ferramentas de escrita estão em `deny` no `.cl
 Fluxo: `ads_get_ad_entities` (nível anúncio, as métricas daquela página) → diagnóstico pelas regras
 da equipe (Fase Zero, kill-switch, validação, escala) → detalhes do criativo → baixar o vídeo para
 `entrada/<slug>/meta-ads/` → `ingest-reference` + `transcribe.py` → ficha em
-`referencias/<slug>/<ad_id>.md` → variações de uma dimensão, respeitando o compliance do app.
+`analise/criativos/<ad_id>.md` → variações de uma dimensão, respeitando o compliance do app.
 Biblioteca de Anúncios da Meta: só consulta pontual pedida pelo usuário (termos proíbem coleta
 automatizada), sem métricas.
 
 ## Escopo: 100% local
 
-O fluxo oficial é **local**: Claude Code (ou outro agente) + Higgsfield CLI + Remotion, sem API key.
-A plataforma web (`web/`, `server/`, `DEPLOY.md`, `docs/ATIVACAO-IA.md`) está **fora de uso** — não
-sugira nem use como caminho padrão. Exceção documentada como **opção futura**: coleta automática
-de criativos vencedores no servidor (`docs/COMO-USAR.md`, seção 11) — só se o usuário pedir.
+O fluxo é **local**: Claude Code (ou outro agente) + Higgsfield CLI + Remotion, sem API key.
+Não há plataforma web nem servidor.
 Antes de entregar qualquer criativo: `node tools/spec-tool.mjs check` e
 `node tools/review.mjs` no MP4 (ver skill `criativo`, seção "Validar antes de entregar").

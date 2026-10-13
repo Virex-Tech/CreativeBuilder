@@ -33,7 +33,7 @@ node tools/ingest-reference.mjs "<caminho do vídeo>"
 ```
 
 Isso detecta os cortes reais e extrai um frame em cada um, mais o áudio, em
-`references/<nome>/`. Então:
+`.cache-ingestao/<nome>/`. Então:
 
 1. **Leia os frames** (Read em cada `.jpg` do manifest) e o `manifest.json`.
 2. Escreva o **blueprint**: para cada beat, o papel (`HOOK`/`PROBLEM`/`DEMO`/`PROOF`/`CTA`),
@@ -45,13 +45,13 @@ Isso detecta os cortes reais e extrai um frame em cada um, mais o áudio, em
 5. Mostre o blueprint ao usuário antes de renderizar.
 
 **Fala da referência:** você não ouve o `audio.wav`, mas pode transcrever:
-`python tools/transcribe.py references/<nome>/audio.wav --lang pt` → use o `text` (hook falado,
+`python tools/transcribe.py .cache-ingestao/<nome>/audio.wav --lang pt` → use o `text` (hook falado,
 narração). A transcrição não traz tom de voz, música nem efeitos — pergunte se forem relevantes.
 Views/curtidas não vêm da ingestão — use os números que o usuário der.
 
 **Contexto do app:** antes de escrever qualquer spec, leia `apps/<slug>/contexto.md` (o que o
 app faz, público, dores, funcionalidades, oferta, provas, tom, marca e **compliance**). As
-regras de "Compliance — NUNCA" vencem brief e referência, como o bloco `never` do director.
+regras da seção "Compliance" vencem brief e referência, como o bloco `never` do director.
 Use as cores/fonte da seção "Marca" no `brandKit`. Se o arquivo não existir, copie
 `apps/_modelo/contexto.md`, pergunte ao usuário o essencial (o que faz, público, dor, oferta)
 e salve antes de seguir. Nunca invente provas (números, avaliações, depoimentos).
@@ -61,6 +61,27 @@ e salve antes de seguir. Nunca invente provas (números, avaliações, depoiment
 Sem referência, use um spec existente em `render/specs/` como esqueleto e
 substitua o conteúdo. Pergunte o que faltar (app, oferta, duração, idioma) apenas se a
 resposta mudar o resultado — caso contrário assuma e diga o que assumiu.
+
+## Antes de montar qualquer criativo: peça o material
+
+Logo depois de fechar o roteiro e **antes** de escrever o spec, liste para o usuário o que precisa
+da parte dele, com o caminho da pasta e o nome do arquivo. Nunca comece a montar supondo que algo
+existe.
+
+A lista sai do roteiro, item por item:
+
+| Precisa de | Onde vai | Quem faz |
+|---|---|---|
+| gravação de tela do app | `entrada/<slug>/gravacoes/` | usuário |
+| filmagem com pessoa / selfie / POV | `entrada/<slug>/filmagens/` | usuário |
+| take de animação (panda) | `entrada/<slug>/panda/takes/` | usuário |
+| logo, ícone, print de notícia, figurinha | `entrada/<slug>/elementos/` | usuário |
+| trilha | `entrada/<slug>/musicas/` | usuário |
+| efeito sonoro | `render/public/sfx/` | usuário |
+| cartão, selo, contador, gráfico, barra, marca-texto, carimbo | desenhado no renderer | Claude |
+| narração | gerada (`tools/tts-gemini.mjs`) ou gravada pelo usuário | os dois |
+
+Diga também o que **já existe** e vai ser reaproveitado, para ele não subir de novo.
 
 ### 3. Renderizar
 
@@ -153,9 +174,9 @@ gerar.
 
 ## Material do app (gravação de tela e prints)
 
-O usuário coloca os arquivos em `render/public/app/<app>/` (ex: `render/public/app/tapfit/`).
+O usuário coloca os arquivos em `render/public/app/<app>/` (ex: `render/public/app/ozempro/`).
 Na layer `app_screen_recording`, `src` aponta para o caminho relativo a `public/`
-(ex: `"src": "app/tapfit/treino-aleatorio.mp4"`). Aceita **vídeo** (`.mp4/.mov/.m4v/.webm`,
+(ex: `"src": "app/ozempro/<arquivo>.mp4"`). Aceita **vídeo** (`.mp4/.mov/.m4v/.webm`,
 toca mudo dentro do mockup) ou **imagem** (`.png/.jpg`). `device: "none"` tira o mockup.
 
 Dois modos, escolha pelo que existe na pasta:
@@ -182,12 +203,12 @@ anúncio por esse servidor, mesmo que a ferramenta exista — a não ser que o u
    criativo do servidor → `video_id` → URL do arquivo). Baixe para `entrada/<slug>/meta-ads/<ad_id>.mp4`.
    Se o servidor não entregar a URL, peça o arquivo original ao usuário (Drive) ou use a Biblioteca
    de Anúncios pontualmente (abaixo).
-3. **Analisar:** `node tools/ingest-reference.mjs <mp4> --out references/<slug>-<ad_id>` +
+3. **Analisar:** `node tools/ingest-reference.mjs <mp4> --out .cache-ingestao/<slug>-<ad_id>` +
    `python tools/transcribe.py <mp4> --lang pt`. Leia frames e fala.
-4. **Ficha:** grave `referencias/<slug>/<ad_id>.md` (versionado): data, métricas, hook (texto e visual
+4. **Ficha:** grave `analise/criativos/<ad_id>.md` (versionado): data, métricas, hook (texto e visual
    dos 3s), estrutura por cena, formato (UGC/criadora, demo de app, texto na tela), CTA, transcrição
    resumida, **por que funcionou** (hipótese ligada às métricas) e o que variar. Sem vídeo no git.
-   Use o modelo `referencias/_modelo-ficha.md` e **atualize o índice** `referencias/<slug>/README.md`
+   Use o modelo `analise/criativos/_modelo-ficha.md` e **atualize o índice** `analise/criativos/README.md`
    (ranking + padrões que se repetem). Antes de criar do zero, leia esse índice: ele diz o que já
    funciona para o app.
 5. **Variar:** use a ficha como referência (Fluxo 1) e crie variações de **uma dimensão** cada.

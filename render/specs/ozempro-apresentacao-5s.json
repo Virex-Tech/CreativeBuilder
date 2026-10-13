@@ -101,9 +101,9 @@
 	],
 	"audio": {
 		"sfx": [
-			{ "src": "sfx/pop.mp3", "atMs": 0, "volume": 0.4 },
-			{ "src": "sfx/whoosh.mp3", "atMs": 1720, "volume": 0.4 },
-			{ "src": "sfx/pop.mp3", "atMs": 3600, "volume": 0.5 }
+			{ "src": "sfx/ding.mp3", "atMs": 0, "volume": 0.4 },
+			{ "src": "sfx/woosh_1.mp3", "atMs": 1720, "volume": 0.4 },
+			{ "src": "sfx/ding.mp3", "atMs": 3600, "volume": 0.5 }
 		]
 	}
 }

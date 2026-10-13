@@ -1,0 +1,497 @@
+{
+	"specVersion": "1",
+	"creativeId": "ozempro-risquinhos",
+	"appId": "ozempro",
+	"locale": "pt-BR",
+	"output": {
+		"kind": "video"
+	},
+	"format": {
+		"w": 1080,
+		"h": 1920,
+		"fps": 30
+	},
+	"brandKit": {
+		"bg": "#12091F",
+		"fg": "#FFFFFF",
+		"accent": "#8630E4",
+		"fontFamily": "'Plus Jakarta Sans', Inter, system-ui, sans-serif"
+	},
+	"audio": {
+		"voiceover": {
+			"src": "audio/ozempro-risquinhos-vo3.wav",
+			"atMs": 0,
+			"durationMs": 33460,
+			"provider": "higgsfield",
+			"script": "Sabe o que pode acontecer quando a conta do risquinho sair rada? Parte da dose pode ir pro lixo e cada mililitro foi pago caro. A balança pode travar e a culpa não é sua. Por isso, existe o OZEM Pro. Tem uma calculadora que mostra quantos risquinhos puxar pra dose que você usa. É só dizer o frasco, a concentração e a dose sem conta de cabeça. Registra o local de cada aplicação pra você fazer o rodízio e não aplicar sempre no mesmo lugar. E anota os efeitos colaterais do jeito que você sentiu com data e intensidade pra levar pro médico na consulta. Clica no link aqui embaixo, baixe o OZEM Pro e assume o controle do seu tratamento."
+		},
+		"sfx": [
+			{
+				"src": "sfx/click_hook.mp3",
+				"atMs": 0,
+				"volume": 0.55
+			},
+			{
+				"src": "sfx/money.mp3",
+				"atMs": 2820,
+				"volume": 0.35
+			},
+			{
+				"src": "sfx/mostrar_magia.mp3",
+				"atMs": 8760,
+				"volume": 0.4
+			},
+			{
+				"src": "sfx/click.mp3",
+				"atMs": 10160,
+				"volume": 0.5
+			},
+			{
+				"src": "sfx/click.mp3",
+				"atMs": 17860,
+				"volume": 0.5
+			},
+			{
+				"src": "sfx/click.mp3",
+				"atMs": 23020,
+				"volume": 0.5
+			},
+			{
+				"src": "sfx/ding.mp3",
+				"atMs": 28600,
+				"volume": 0.35
+			}
+		]
+	},
+	"scenes": [
+		{
+			"id": "hook",
+			"role": "HOOK",
+			"startMs": 0,
+			"durationMs": 2820,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "image",
+					"src": "panda/poster-hook.jpg",
+					"x": 50,
+					"y": 50,
+					"width": 100,
+					"anim": "none",
+					"durationMs": 400
+				},
+				{
+					"type": "generative_video",
+					"prompt": "Panda 3D confuso lendo bula no quarto",
+					"provider": "higgsfield",
+					"src": "panda/panda_perdido-lendo-bula-quarto.mp4",
+					"fit": "cover",
+					"startFromMs": 0
+				},
+				{
+					"type": "equation",
+					"y": 14,
+					"width": 86,
+					"startMs": 350,
+					"durationMs": 2300,
+					"anim": "pop_in",
+					"tiles": [
+						{
+							"text": "20 mg"
+						},
+						{
+							"text": "2 mL",
+							"op": "plus"
+						},
+						{
+							"text": "?",
+							"op": "equals",
+							"color": "#FFDDDD"
+						}
+					]
+				},
+				{
+					"type": "sticker",
+					"content": "Isso é o que acontece quando você erra os risquinhos",
+					"x": 50,
+					"y": 50,
+					"size": 60,
+					"width": 84,
+					"chip": true,
+					"rotate": 0,
+					"anim": "none",
+					"startMs": 0,
+					"durationMs": 2820
+				},
+				{
+					"type": "karaoke",
+					"text": "Sabe o que pode acontecer quando a conta do risquinho sai errada?",
+					"wordEndsMs": [
+						180,
+						280,
+						320,
+						500,
+						920,
+						1100,
+						1220,
+						1420,
+						1580,
+						1900,
+						2140,
+						2500
+					]
+				}
+			]
+		},
+		{
+			"id": "dor-lixo",
+			"role": "PROBLEM",
+			"startMs": 2820,
+			"durationMs": 3780,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "Panda 3D descartando material no lixo",
+					"provider": "higgsfield",
+					"src": "panda/panda_bravo-jogando-seringa-no-lixo-cozinha.mp4",
+					"fit": "cover",
+					"startFromMs": 0
+				},
+				{
+					"type": "karaoke",
+					"text": "Parte da dose pode ir pro lixo e cada mililitro foi pago caro.",
+					"wordEndsMs": [
+						400,
+						560,
+						800,
+						1000,
+						1140,
+						1220,
+						1500,
+						1660,
+						2000,
+						2560,
+						2760,
+						2980,
+						3500
+					]
+				}
+			]
+		},
+		{
+			"id": "dor-balanca",
+			"role": "PROBLEM",
+			"startMs": 6600,
+			"durationMs": 1160,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "Panda 3D frustrado na balança",
+					"provider": "higgsfield",
+					"src": "panda/panda_bravo-pulando-na-balanca-banheiro.mp4",
+					"fit": "cover",
+					"startFromMs": 0,
+					"anim": "zoom_punch"
+				},
+				{
+					"type": "karaoke",
+					"text": "Balança pode travar",
+					"wordEndsMs": [
+						300,
+						540,
+						880
+					]
+				}
+			]
+		},
+		{
+			"id": "culpa",
+			"role": "PROBLEM",
+			"startMs": 7760,
+			"durationMs": 1000,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "Panda 3D desanimado no sofá",
+					"provider": "higgsfield",
+					"src": "panda/panda_triste-deitado-no-sofa.mp4",
+					"fit": "cover",
+					"startFromMs": 0
+				},
+				{
+					"type": "karaoke",
+					"text": "E a culpa não é sua.",
+					"wordEndsMs": [
+						1,
+						10,
+						140,
+						340,
+						500,
+						680
+					]
+				}
+			]
+		},
+		{
+			"id": "virada",
+			"role": "POINT",
+			"startMs": 8760,
+			"durationMs": 1400,
+			"timing": "locked",
+			"transitionIn": "whip",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "Panda 3D pega o celular, surpreso",
+					"provider": "higgsfield",
+					"src": "panda/panda_mexendo-celular-sofa.mp4",
+					"fit": "cover",
+					"startFromMs": 0
+				},
+				{
+					"type": "karaoke",
+					"text": "Por isso, existe o OzemPro",
+					"wordEndsMs": [
+						240,
+						460,
+						700,
+						880,
+						1220
+					]
+				}
+			]
+		},
+		{
+			"id": "calc-a",
+			"role": "DEMO",
+			"startMs": 10160,
+			"durationMs": 4000,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "Panda 3D no celular, fundo desfocado da cena",
+					"provider": "higgsfield",
+					"src": "panda/fundo_mexendo-celular-sofa.mp4",
+					"fit": "cover",
+					"startFromMs": 0,
+					"blur": 0,
+					"dim": 0
+				},
+				{
+					"type": "app_screen_recording",
+					"src": "app/ozempro/calculadora-calcular-risquinho-na-seringa.mp4",
+					"device": "iphone15_mock",
+					"startFromMs": 0,
+					"anim": "none"
+				}
+			]
+		},
+		{
+			"id": "calc-b",
+			"role": "DEMO",
+			"startMs": 14160,
+			"durationMs": 3700,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "Panda 3D no celular, fundo desfocado da cena",
+					"provider": "higgsfield",
+					"src": "panda/fundo_mexendo-celular-sofa.mp4",
+					"fit": "cover",
+					"startFromMs": 3500,
+					"blur": 0,
+					"dim": 0
+				},
+				{
+					"type": "app_screen_recording",
+					"src": "app/ozempro/calculadora-calcular-risquinho-na-seringa.mp4",
+					"device": "iphone15_mock",
+					"startFromMs": 4000,
+					"anim": "none"
+				}
+			]
+		},
+		{
+			"id": "local-a",
+			"role": "DEMO",
+			"startMs": 17860,
+			"durationMs": 2520,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "Panda 3D no celular, fundo desfocado da cena",
+					"provider": "higgsfield",
+					"src": "panda/fundo_mexendo-celular-sofa-2.mp4",
+					"fit": "cover",
+					"startFromMs": 0,
+					"blur": 0,
+					"dim": 0
+				},
+				{
+					"type": "app_screen_recording",
+					"src": "app/ozempro/aplicacao_registrar-dose-e-local.mp4",
+					"device": "iphone15_mock",
+					"startFromMs": 3000,
+					"anim": "none"
+				}
+			]
+		},
+		{
+			"id": "local-b",
+			"role": "DEMO",
+			"startMs": 20380,
+			"durationMs": 2640,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "Panda 3D no celular, fundo desfocado da cena",
+					"provider": "higgsfield",
+					"src": "panda/fundo_mexendo-celular-sofa-2.mp4",
+					"fit": "cover",
+					"startFromMs": 2600,
+					"blur": 0,
+					"dim": 0
+				},
+				{
+					"type": "app_screen_recording",
+					"src": "app/ozempro/aplicacao_registrar-dose-e-local.mp4",
+					"device": "iphone15_mock",
+					"startFromMs": 5520,
+					"anim": "none"
+				}
+			]
+		},
+		{
+			"id": "efeitos-a",
+			"role": "DEMO",
+			"startMs": 23020,
+			"durationMs": 2740,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "Panda 3D no celular, fundo desfocado da cena",
+					"provider": "higgsfield",
+					"src": "panda/fundo_mexendo-celular-quarto.mp4",
+					"fit": "cover",
+					"startFromMs": 0,
+					"blur": 0,
+					"dim": 0
+				},
+				{
+					"type": "app_screen_recording",
+					"src": "app/ozempro/efeitos-colaterais_registrar-sintomas.mp4",
+					"device": "iphone15_mock",
+					"startFromMs": 0,
+					"anim": "none"
+				}
+			]
+		},
+		{
+			"id": "efeitos-b",
+			"role": "DEMO",
+			"startMs": 25760,
+			"durationMs": 2840,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "Panda 3D no celular, fundo desfocado da cena",
+					"provider": "higgsfield",
+					"src": "panda/fundo_mexendo-celular-quarto.mp4",
+					"fit": "cover",
+					"startFromMs": 2800,
+					"blur": 0,
+					"dim": 0
+				},
+				{
+					"type": "app_screen_recording",
+					"src": "app/ozempro/efeitos-colaterais_registrar-sintomas.mp4",
+					"device": "iphone15_mock",
+					"startFromMs": 2740,
+					"anim": "none"
+				}
+			]
+		},
+		{
+			"id": "cta-a",
+			"role": "CTA",
+			"startMs": 28600,
+			"durationMs": 1680,
+			"timing": "flex",
+			"transitionIn": "flash",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "Panda 3D tranquilo aplicando a canetinha",
+					"provider": "higgsfield",
+					"src": "panda/panda_aplicando-medicamento-na-barriga-sala.mp4",
+					"fit": "cover",
+					"startFromMs": 0
+				},
+				{
+					"type": "karaoke",
+					"text": "Clica no link aqui embaixo,",
+					"wordEndsMs": [
+						520,
+						680,
+						880,
+						1100,
+						1440
+					]
+				}
+			]
+		},
+		{
+			"id": "cta-b",
+			"role": "CTA",
+			"startMs": 30280,
+			"durationMs": 3180,
+			"timing": "locked",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "Panda 3D tranquilo, sorrindo",
+					"provider": "higgsfield",
+					"src": "panda/panda_aplicando-medicamento-na-barriga-sala.mp4",
+					"fit": "cover",
+					"startFromMs": 1680
+				},
+				{
+					"type": "karaoke",
+					"text": "baixe o OzemPro e assume o controle do seu tratamento.",
+					"wordEndsMs": [
+						280,
+						340,
+						680,
+						1040,
+						1440,
+						1560,
+						1940,
+						2160,
+						2320,
+						2820
+					]
+				}
+			]
+		}
+	]
+}

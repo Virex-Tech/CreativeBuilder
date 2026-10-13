@@ -1,6 +1,7 @@
 # DirectorProfile — OzemPro
 # Regras de edição que valem para TODO criativo do app. O bloco `never` vence brief e referência.
 # Contexto de produto, público e compliance completo: apps/ozempro/contexto.md
+# Estrutura obrigatória do roteiro (30-40s, virada aos 10s, 3 funcionalidades): apps/ozempro/roteiro-ugc.md
 director: ozempro_v1
 
 pacing:
@@ -15,8 +16,11 @@ transitions:
 captions:
   style: karaoke_bold
   position: lower_third
-  max_chars_per_line: 26
   always_on: true               # som off é o default do feed
+  max_words_on_screen: 3        # nunca mais que 3 palavras por vez
+  font: Montserrat              # peso semibold — não usar extra bold
+  stroke: soft_black_shadow     # sombra preta difusa, sem traço duro
+  highlight: purple_word        # a palavra falada fica roxa; as outras, brancas
 
 typography:
   hook: hook_stroke
@@ -35,20 +39,10 @@ b_roll_policy:
   prefer: asset_library         # gerar é fallback, não padrão
   generate_if_missing: true
 
-audience:
-  min_age: 18                   # Meta e TikTok: saúde/peso só 18+
-
 never:
-  # compliance de anúncio — detalhes e fontes em apps/ozempro/contexto.md
-  - "nome comercial de medicamento no vídeo (Ozempic, Wegovy, Mounjaro, Zepbound, Saxenda) — use 'tratamento com GLP-1' ou 'seu tratamento'"
-  - "promessa de emagrecimento, quilos perdidos ou resultado garantido"
-  - "antes e depois de corpo, foto de progresso em destaque ou close em barriga/partes do corpo"
-  - "hook que afirma a condição de saúde de quem assiste ('você que toma...', 'tomando Ozempic?')"
-  - "depoimento de pessoa sobre perda de peso"
-  - "aplicação da injeção na pele, agulha em close ou caneta como protagonista do vídeo"
-  - "sugerir dose, troca de medicamento ou uso sem médico"
-  - "preço ou comparação de planos"
+  # compliance (regra da equipe) — detalhes em apps/ozempro/contexto.md
+  - "nome completo do medicamento falado, escrito na tela ou na legenda (Mounjaro, Ozempic, Wegovy, Zepbound, tirzepatida...) — use moun moun, moun, tirze, canetinha, caneta, picadinha. Nos prints/gravações do app o nome pode aparecer"
+  # produção
   - "texto renderizado dentro de imagem gerada por IA"
   - "tela do app gerada por IA"
   - "mais de 2 frases por cena"
-  - "claim numérico sem fonte"

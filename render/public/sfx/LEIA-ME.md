@@ -1,39 +1,31 @@
-# sfx
+# sfx — efeitos sonoros dos criativos
 
-Efeitos sonoros gerados 100% com `ffmpeg` (ruído/tons sintéticos), sem baixar nada da
-internet — sem questão de direitos autorais. Picos abaixo de -6 dBFS (discretos, para não
-brigar com voiceover/música).
+No spec entram como `"src": "sfx/<arquivo>"`. Todos já estão tratados: silêncio do começo e do fim
+cortado e pico igualado em **-6 dB**, para o efeito nunca saltar por cima da narração.
+Os arquivos como vieram da equipe ficam em `originais/`.
 
-```bash
-# whoosh.mp3 (~350ms) — ruído rosa filtrado com "varredura" de frequência: uma camada grave
-# (lowpass) que desaparece e uma aguda (highpass+lowpass) que entra, simulando um sweep de
-# grave pra agudo, com fade de entrada/saída.
-ffmpeg -f lavfi -i "anoisesrc=color=pink:duration=0.35:sample_rate=44100" -filter_complex \
-"[0:a]asplit=2[a][b];[a]lowpass=f=1200,volume='max(0,1-t/0.35)':eval=frame[low];\
-[b]highpass=f=1200,lowpass=f=6000,volume='min(1,t/0.35)':eval=frame[high];\
-[low][high]amix=inputs=2:duration=longest,afade=t=in:d=0.02,afade=t=out:st=0.27:d=0.08,volume=0.35[out]" \
--map "[out]" -ac 1 -ar 44100 whoosh.mp3
+## O que temos (11/10/2026)
 
-# pop.mp3 (~120ms) — tom curto com vibrato (pitch bend) e decaimento exponencial.
-ffmpeg -f lavfi -i "sine=frequency=700:duration=0.12:sample_rate=44100" -af \
-"vibrato=f=10:d=0.6,volume='exp(-25*t)':eval=frame,afade=t=out:st=0.08:d=0.04,volume=0.4" \
--ac 1 pop.mp3
+| Arquivo | Duração | Para que serve |
+|---|---|---|
+| `camera_flash-hook.mp3` | 3,6s | hook sonoro de abertura (flash/câmera) |
+| `click_hook.mp3` | 0,6s | hook sonoro de abertura, mais seco |
+| `woosh_1.mp3` | 0,3s | transição entre cenas |
+| `woosh_2.mp3` | 0,3s | transição entre cenas (variação) |
+| `riser-transicao_suspense.mp3` | 1,0s | tensão subindo antes da virada |
+| `click.mp3` | 0,1s | marcação curta, toque de interface |
+| `ding.mp3` | 1,0s | destaque, item resolvido |
+| `mostrar_magia.mp3` | 1,2s | revelação, app aparecendo |
+| `error.mp3` | 0,5s | erro, susto, alerta |
+| `money.mp3` | 0,8s | dinheiro, custo, desperdício |
 
-# click.mp3 (~60ms) — ruído branco filtrado em agudo (highpass) com decaimento rápido.
-ffmpeg -f lavfi -i "anoisesrc=color=white:duration=0.06:sample_rate=44100" -af \
-"highpass=f=2000,volume='exp(-40*t)':eval=frame,volume=0.15" \
--ac 1 click.mp3
+**Falta:** um impacto grave seco (o "tum" do primeiro quadro) para o hook sonoro.
 
-# rise.mp3 (~700ms) — riser suave: mesmo truque do whoosh mas mais longo, com crescendo
-# geral (volume sobe com o tempo) em vez de fade só na ponta.
-ffmpeg -f lavfi -i "anoisesrc=color=pink:duration=0.7:sample_rate=44100" -filter_complex \
-"[0:a]asplit=2[a][b];[a]lowpass=f=2000,volume='max(0,1-t/0.7)':eval=frame[low];\
-[b]highpass=f=2000,volume='min(1,t/0.7)':eval=frame[high];\
-[low][high]amix=inputs=2:duration=longest,volume='min(1,t/0.7)':eval=frame,\
-afade=t=in:d=0.05,afade=t=out:st=0.6:d=0.1,volume=0.3[out]" \
--map "[out]" -ac 1 -ar 44100 rise.mp3
-```
+## Para adicionar mais
 
-## Volume
+Jogue o arquivo aqui (`.mp3` ou `.wav`), com nome minúsculo, sem acento e sem espaço. Bancos com
+uso liberado: Pixabay Sounds, Mixkit, Freesound (conferir licença). O Claude corta o silêncio e
+iguala o volume antes de usar.
 
-Os arquivos foram normalizados para **pico de -8 dB** (ffmpeg `volumedetect` + filtro `volume`), para ficarem audíveis sob a música com `volume` entre 0.4 e 0.6 no spec. Ao gerar um efeito novo, normalize igual.
+**Atenção no Windows:** `SOM.MP3` e `som.mp3` são o mesmo arquivo para o sistema. Mande sempre em
+minúsculo, senão um sobrescreve o outro.

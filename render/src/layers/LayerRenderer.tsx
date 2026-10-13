@@ -71,8 +71,19 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 					<OffthreadVideo
 						src={resolveSrc(layer.src)}
 						trimBefore={layer.startFromMs ? msToFrames(layer.startFromMs, fps) : undefined}
-						style={{ width: "100%", height: "100%", objectFit: layer.fit }}
+						style={{
+							width: "100%",
+							height: "100%",
+							objectFit: layer.fit,
+							// Desfoque + escurecimento transformam o clipe em fundo vivo atrás do
+							// mockup: a cena continua se mexendo sem disputar com a tela do app.
+							filter: layer.blur ? `blur(${layer.blur}px)` : undefined,
+							transform: layer.blur ? "scale(1.12)" : undefined,
+						}}
 					/>
+					{layer.dim ? (
+						<AbsoluteFill style={{ background: `rgba(10,5,20,${layer.dim})` }} />
+					) : null}
 				</AbsoluteFill>
 			) : (
 				<PlaceholderLayer
@@ -101,7 +112,14 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 								src={resolveSrc(layer.src)}
 								trimBefore={layer.startFromMs ? msToFrames(layer.startFromMs, fps) : undefined}
 								muted
-								style={{ width: "100%", height: "100%", objectFit: "cover" }}
+								// `contain` mantém a gravação inteira: cortar a tela do app é pior do que
+								// sobrar um fio de fundo. O zoom de aproximação é papel do `anim`
+								// da cena, nunca de escalar o vídeo aqui dentro.
+								style={{
+									width: "100%",
+									height: "100%",
+									objectFit: layer.device === "none" ? "cover" : "contain",
+								}}
 							/>
 						) : layer.src ? (
 							// Clip the Ken Burns overscan so it never peeks outside the frame/device.
@@ -176,6 +194,311 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames 
 		case "karaoke":
 			return <Karaoke layer={layer} brand={brand} durationInFrames={durationInFrames} />;
 
+		case "image":
+			return (
+				<AbsoluteFill>
+					<Img
+						src={resolveSrc(layer.src)}
+						style={{
+							position: "absolute",
+							left: `${layer.x}%`,
+							top: `${layer.y}%`,
+							width: `${layer.width}%`,
+							transform: `translate(-50%, -50%) rotate(${layer.rotate}deg) scale(${anim.scale}) translateY(${anim.translateY}px)`,
+							opacity: anim.opacity,
+							filter: "drop-shadow(0 18px 40px rgba(0,0,0,0.45))",
+						}}
+					/>
+				</AbsoluteFill>
+			);
+
+		case "hud": {
+			// Barra fixa no topo com slots que enchem — o "0/6" das referências. Dá sensação de
+			// progresso sem precisar narrar o progresso.
+			return (
+				<AbsoluteFill style={{ opacity: anim.opacity }}>
+					<div
+						style={{
+							position: "absolute",
+							top: `${layer.y}%`,
+							left: "50%",
+							transform: "translateX(-50%)",
+							display: "flex",
+							flexDirection: "column",
+							alignItems: "center",
+							gap: 12,
+							fontFamily: `Montserrat, ${brand.fontFamily}`,
+						}}
+					>
+						<div
+							style={{
+								display: "flex",
+								alignItems: "center",
+								gap: 14,
+								background: "rgba(10,6,18,0.88)",
+								borderRadius: 999,
+								padding: "12px 24px",
+								color: "#FFFFFF",
+								fontSize: 38,
+								fontWeight: 800,
+								letterSpacing: "0.02em",
+							}}
+						>
+							<span>{layer.label}</span>
+							<span style={{ color: brand.accent }}>{`${layer.filled}/${layer.slots}`}</span>
+						</div>
+						<div style={{ display: "flex", gap: 10 }}>
+							{Array.from({ length: layer.slots }).map((_, i) => (
+								<div
+									key={`slot-${String(i)}`}
+									style={{
+										width: 72,
+										height: 72,
+										borderRadius: 20,
+										background: i < layer.filled ? brand.accent : "rgba(255,255,255,0.22)",
+										border: `3px solid ${i < layer.filled ? brand.accent : "rgba(255,255,255,0.45)"}`,
+										boxShadow: i < layer.filled ? `0 8px 20px ${brand.accent}66` : "none",
+									}}
+								/>
+							))}
+						</div>
+					</div>
+				</AbsoluteFill>
+			);
+		}
+
+		case "equation": {
+			const operador = { none: "", plus: "+", equals: "=", arrow: "→" };
+			return (
+				<AbsoluteFill>
+					<div
+						style={{
+							position: "absolute",
+							left: `${layer.x}%`,
+							top: `${layer.y}%`,
+							width: `${layer.width}%`,
+							transform: `translate(-50%, -50%) scale(${anim.scale}) translateY(${anim.translateY}px)`,
+							opacity: anim.opacity,
+							background: "#FFFFFF",
+							borderRadius: 36,
+							padding: "26px 30px",
+							boxShadow: "0 26px 60px rgba(0,0,0,0.45)",
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+							gap: 18,
+							fontFamily: `Montserrat, ${brand.fontFamily}`,
+						}}
+					>
+						{layer.tiles.map((t, i) => (
+							<React.Fragment key={`tile-${String(i)}`}>
+								{t.op !== "none" ? (
+									<span style={{ fontSize: 64, fontWeight: 800, color: "#12091F" }}>
+										{operador[t.op]}
+									</span>
+								) : null}
+								<div
+									style={{
+										minWidth: 168,
+										height: 168,
+										borderRadius: 30,
+										background: t.color ?? "#F2ECFB",
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "center",
+										padding: 10,
+										color: "#12091F",
+										fontSize: 52,
+										fontWeight: 800,
+										textAlign: "center",
+										lineHeight: 1.05,
+										overflow: "hidden",
+									}}
+								>
+									{t.image ? (
+										<Img
+											src={resolveSrc(t.image)}
+											style={{ width: "100%", height: "100%", objectFit: "contain" }}
+										/>
+									) : (
+										t.text
+									)}
+								</div>
+							</React.Fragment>
+						))}
+					</div>
+				</AbsoluteFill>
+			);
+		}
+
+		case "list_card": {
+			return (
+				<AbsoluteFill>
+					<div
+						style={{
+							position: "absolute",
+							left: `${layer.x}%`,
+							top: `${layer.y}%`,
+							width: `${layer.width}%`,
+							transform: `translate(-50%, -50%) scale(${anim.scale}) translateY(${anim.translateY}px)`,
+							opacity: anim.opacity,
+							background: "#FFFFFF",
+							borderRadius: 30,
+							padding: "26px 30px 30px",
+							boxShadow: "0 26px 60px rgba(0,0,0,0.45)",
+							fontFamily: `Montserrat, ${brand.fontFamily}`,
+							color: "#12091F",
+						}}
+					>
+						{layer.title ? (
+							<div
+								style={{
+									fontSize: 34,
+									fontWeight: 800,
+									letterSpacing: "0.1em",
+									textTransform: "uppercase",
+									marginBottom: 16,
+									color: "#5B5668",
+								}}
+							>
+								{layer.title}
+							</div>
+						) : null}
+						{layer.items.map((it, i) => (
+							<div
+								key={`item-${String(i)}`}
+								style={{
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "space-between",
+									gap: 18,
+									padding: "10px 0",
+									borderBottom: i < layer.items.length - 1 ? "2px solid #EFE9F7" : "none",
+									position: "relative",
+								}}
+							>
+								<span style={{ fontSize: 50, fontWeight: 700 }}>
+									{it.check ? "✓ " : ""}
+									{it.label}
+								</span>
+								{it.value ? (
+									<span style={{ fontSize: 50, fontWeight: 800, color: "#5B5668" }}>{it.value}</span>
+								) : null}
+								{it.struck ? (
+									<div
+										style={{
+											position: "absolute",
+											left: -6,
+											right: -6,
+											top: "52%",
+											height: 6,
+											borderRadius: 4,
+											background: "#E53935",
+											transform: "rotate(-1.2deg)",
+										}}
+									/>
+								) : null}
+							</div>
+						))}
+					</div>
+				</AbsoluteFill>
+			);
+		}
+
+		case "card": {
+			const paleta = {
+				dark: { fundo: "rgba(18,9,31,0.92)", texto: "#FFFFFF", rotulo: brand.accent },
+				light: { fundo: "rgba(255,255,255,0.96)", texto: "#12091F", rotulo: brand.accent },
+				accent: { fundo: brand.accent, texto: "#FFFFFF", rotulo: "rgba(255,255,255,0.75)" },
+				alert: { fundo: "#C62828", texto: "#FFFFFF", rotulo: "rgba(255,255,255,0.8)" },
+			}[layer.variant];
+
+			return (
+				<AbsoluteFill>
+					<div
+						style={{
+							position: "absolute",
+							left: `${layer.x}%`,
+							top: `${layer.y}%`,
+							width: `${layer.width}%`,
+							transform: `translate(-50%, -50%) rotate(${layer.rotate}deg) scale(${anim.scale}) translateY(${anim.translateY}px)`,
+							opacity: anim.opacity,
+							background: paleta.fundo,
+							color: paleta.texto,
+							borderRadius: 32,
+							padding: "28px 34px 32px",
+							boxShadow: "0 24px 60px rgba(0,0,0,0.45)",
+							fontFamily: `Montserrat, ${brand.fontFamily}`,
+							display: "flex",
+							flexDirection: "column",
+							gap: 10,
+							alignItems: "flex-start",
+						}}
+					>
+						{layer.kicker ? (
+							<div
+								style={{
+									fontSize: 26,
+									fontWeight: 700,
+									letterSpacing: "0.12em",
+									textTransform: "uppercase",
+									color: paleta.rotulo,
+								}}
+							>
+								{layer.kicker}
+							</div>
+						) : null}
+						<div style={{ fontSize: 46, fontWeight: 700, lineHeight: 1.12 }}>{layer.title}</div>
+						{layer.value ? (
+							<div style={{ fontSize: 88, fontWeight: 800, lineHeight: 1 }}>{layer.value}</div>
+						) : null}
+						{layer.image ? (
+							<Img
+								src={resolveSrc(layer.image)}
+								style={{ width: "100%", marginTop: 6, objectFit: "contain" }}
+							/>
+						) : null}
+					</div>
+				</AbsoluteFill>
+			);
+		}
+
+		case "sticker": {
+			// Fica fora do mockup por construção: quem posiciona é o spec, e a regra do projeto
+			// é não usar sticker em cena que tem tela de app.
+			const base: React.CSSProperties = {
+				position: "absolute",
+				left: `${layer.x}%`,
+				top: `${layer.y}%`,
+				transform: `translate(-50%, -50%) rotate(${layer.rotate}deg) scale(${anim.scale}) translateY(${anim.translateY}px)`,
+				opacity: anim.opacity,
+				fontSize: layer.size,
+				fontFamily: `Montserrat, ${brand.fontFamily}`,
+				fontWeight: 800,
+				color: brand.fg,
+				whiteSpace: layer.width ? "normal" : "nowrap",
+				width: layer.width ? `${layer.width}%` : undefined,
+				boxSizing: "border-box" as const,
+				textAlign: "center",
+				lineHeight: 1.12,
+			};
+			const comChip: React.CSSProperties = layer.chip
+				? {
+						background: brand.accent,
+						borderRadius: 28,
+						padding: "20px 34px 26px",
+						boxShadow: "0 10px 30px rgba(0,0,0,0.35)",
+						textTransform: "uppercase",
+					}
+				: { textShadow: "0 6px 24px rgba(0,0,0,0.55)" };
+
+			return (
+				<AbsoluteFill>
+					<div style={{ ...base, ...comChip }}>{layer.content}</div>
+				</AbsoluteFill>
+			);
+		}
+
 		case "disclaimer":
 			return (
 				<AbsoluteFill
@@ -214,42 +537,71 @@ const Karaoke: React.FC<{
 	durationInFrames: number;
 }> = ({ layer, brand, durationInFrames }) => {
 	const frame = useCurrentFrame();
-	const { fps } = useVideoConfig();
+	const { fps, height } = useVideoConfig();
 	const words = layer.text.split(/\s+/).filter(Boolean);
 
 	const nowMs = (frame / fps) * 1000;
 	const totalMs = (durationInFrames / fps) * 1000;
 	// Even split when there is no voiceover alignment to read timings from.
 	const ends = layer.wordEndsMs ?? words.map((_, i) => ((i + 1) * totalMs) / words.length);
-	const activeIndex = ends.findIndex((end) => nowMs < end);
+	const found = ends.findIndex((end) => nowMs < end);
+	const activeIndex = found === -1 ? words.length - 1 : found;
+
+	// No máximo 4 palavras na tela: bloco inteiro de frase cansa e tira o ritmo. O grupo
+	// avança junto com a fala, então o olho lê o que está sendo dito e nada mais.
+	const POR_TELA = 3;
+	const grupo = Math.floor(activeIndex / POR_TELA);
+	const inicio = grupo * POR_TELA;
+	const visiveis = words.slice(inicio, inicio + POR_TELA);
 
 	return (
 		<AbsoluteFill
-			style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 420 }}
+			style={{
+				justifyContent: "flex-end",
+				alignItems: "center",
+				// Padrão mais alto que o rodapé clássico: a legenda briga menos com a interface
+				// do Instagram e fica perto do centro, que é onde o olho já está.
+				// Em px, calculado sobre a ALTURA: padding em % no CSS mede pela largura, e com
+				// 9:16 isso jogava a legenda de volta pro rodapé.
+				// Padrão: 800px do rodapé (logo abaixo do centro). `bottomPct` sobrescreve por cena.
+				paddingBottom: layer.bottomPct ? (layer.bottomPct / 100) * height : 700,
+			}}
 		>
 			<div
 				style={{
 					display: "flex",
 					flexWrap: "wrap",
 					justifyContent: "center",
-					gap: "0 18px",
-					maxWidth: "88%",
-					fontFamily: brand.fontFamily,
-					fontSize: 58,
+					alignItems: "center",
+					gap: "10px 14px",
+					maxWidth: "86%",
+					fontFamily: "Montserrat, " + brand.fontFamily,
+					fontSize: 62,
 					fontWeight: 800,
-					lineHeight: 1.15,
+					lineHeight: 1.1,
 					textAlign: "center",
-					textShadow: "0 4px 16px rgba(0,0,0,0.85)",
+					letterSpacing: "0.005em",
 				}}
 			>
-				{words.map((w, i) => (
-					<span
-						key={`${w}-${String(i)}`}
-						style={{ color: i === activeIndex ? brand.accent : brand.fg }}
-					>
-						{w}
-					</span>
-				))}
+				{visiveis.map((w, i) => {
+					const ativa = inicio + i === activeIndex;
+					return (
+						<span
+							key={`${w}-${String(inicio + i)}`}
+							style={{
+								// A palavra falada fica roxa; as outras, brancas.
+								color: ativa ? brand.accent : brand.fg,
+								padding: "4px 2px 8px",
+								// Sombra preta difusa em volta, em camadas — dá o contorno sem o
+								// traço duro do stroke, que deixa a legenda com cara de adesivo.
+								textShadow:
+									"0 0 10px rgba(0,0,0,0.95), 0 0 20px rgba(0,0,0,0.85), 0 4px 14px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.8)",
+							}}
+						>
+							{w}
+						</span>
+					);
+				})}
 			</div>
 		</AbsoluteFill>
 	);
@@ -300,21 +652,27 @@ const DeviceFrame: React.FC<{
 }> = ({ enabled, brand, children }) => {
 	if (!enabled) return <>{children}</>;
 
+	// Mockup real da marca (PNG 1080x1920 com a área da tela vazada). A gravação entra POR BAIXO,
+	// exatamente no retângulo da tela; a moldura por cima faz o recorte dos cantos e mantém o
+	// notch. Medidas tiradas do próprio arquivo: tela x 117..961, y 126..1870.
+	const TELA = { left: "10.83%", top: "2.81%", width: "78.24%", height: "94.64%" };
+
 	return (
 		<div
 			style={{
-				width: "78%",
-				aspectRatio: "9 / 19.5",
-				borderRadius: 64,
-				padding: 12,
-				background: "#111",
-				boxShadow: `0 40px 120px ${brand.accent}55, 0 0 0 2px #2a2a2a`,
-				overflow: "hidden",
+				position: "relative",
+				height: "90%",
+				aspectRatio: "1080 / 1920",
+				filter: `drop-shadow(0 40px 90px ${brand.accent}66)`,
 			}}
 		>
-			<div style={{ width: "100%", height: "100%", borderRadius: 52, overflow: "hidden" }}>
+			<div style={{ position: "absolute", ...TELA, overflow: "hidden", background: "#000" }}>
 				{children}
 			</div>
+			<Img
+				src={resolveSrc("mockups/iphone-roxo-vazado.png")}
+				style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+			/>
 		</div>
 	);
 };

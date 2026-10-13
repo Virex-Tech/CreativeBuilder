@@ -101,7 +101,7 @@ async function main() {
 
 	const video = resolve(args.video);
 	const name = basename(video).replace(/\.[^.]+$/, "").replace(/[^\w.-]+/g, "_");
-	const outDir = resolve(args.out ?? join("references", name));
+	const outDir = resolve(args.out ?? join(".cache-ingestao", name));
 	await mkdir(join(outDir, "frames"), { recursive: true });
 
 	const meta = await probe(video);

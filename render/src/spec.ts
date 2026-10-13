@@ -22,6 +22,9 @@ export const animPreset = z.enum([
 	"punch_in",
 	"tilt_scroll",
 	"handheld_subtle",
+	"shake",
+	"zoom_punch",
+	"float",
 ]);
 
 export const textPreset = z.enum(["hook_stroke", "sub", "caption", "cta_label"]);
@@ -55,6 +58,10 @@ export const generativeVideoLayer = baseLayer.extend({
 	fit: z.enum(["cover", "contain"]).default("cover"),
 	/** Skip this much of the source clip — use a long attached video without pre-cutting it. */
 	startFromMs: z.number().int().min(0).default(0),
+	/** Desfoque em px — para o clipe virar fundo atrás do mockup, sem roubar a atenção. */
+	blur: z.number().min(0).max(80).default(0),
+	/** Escurecimento 0..1 por cima do clipe, para o que está na frente ganhar contraste. */
+	dim: z.number().min(0).max(1).default(0),
 });
 
 /** App screen recording, composited inside a device frame. */
@@ -95,6 +102,8 @@ export const karaokeLayer = baseLayer.extend({
 	text: z.string().min(1),
 	/** Per-word end times in ms, relative to the layer. Optional; even split when absent. */
 	wordEndsMs: z.array(z.number().int().positive()).optional(),
+	/** Distância do rodapé em % da altura. Padrão alto (perto do centro); baixe quando precisar. */
+	bottomPct: z.number().min(5).max(70).optional(),
 });
 
 /** Small legal line pinned to the bottom ("Dramatização..."). Required in health/fitness ads. */
@@ -103,12 +112,125 @@ export const disclaimerLayer = baseLayer.extend({
 	text: z.string().min(1),
 });
 
+
+/**
+ * Elemento solto sobre a cena (emoji, seta, selo curto) para dar dinamismo onde não há tela
+ * de app — é o que impede o olho de parar no meio do vídeo. Nunca entra por cima do mockup:
+ * a tela do app é a prova do produto e não pode ser coberta.
+ */
+export const stickerLayer = baseLayer.extend({
+	type: z.literal("sticker"),
+	/** Emoji, seta (→ ← ↑ ↓) ou texto curto. */
+	content: z.string().min(1),
+	/** Posição em % do quadro, do canto superior esquerdo. */
+	x: z.number().min(0).max(100).default(50),
+	y: z.number().min(0).max(100).default(28),
+	/** Tamanho em px da fonte do elemento. */
+	size: z.number().int().positive().default(180),
+	/** Caixa roxa atrás (para selo de texto). */
+	chip: z.boolean().default(false),
+	/** Largura máxima em % do quadro — com ela o texto quebra em várias linhas. */
+	width: z.number().min(10).max(96).optional(),
+	rotate: z.number().min(-45).max(45).default(0),
+});
+
+
+/**
+ * Cartão de dado sobre a cena — o vocabulário visual das referências: retângulo de cantos
+ * arredondados com um rótulo pequeno, um título em negrito e, às vezes, um número grande.
+ * Vive na faixa de cima do quadro; nunca sobre a tela do app.
+ */
+export const cardLayer = baseLayer.extend({
+	type: z.literal("card"),
+	/** Rótulo pequeno acima do título (opcional). */
+	kicker: z.string().optional(),
+	title: z.string().min(1),
+	/** Número ou destaque grande embaixo do título (opcional). */
+	value: z.string().optional(),
+	variant: z.enum(["dark", "light", "accent", "alert"]).default("dark"),
+	/** Centro do cartão em % do quadro. */
+	x: z.number().min(0).max(100).default(50),
+	y: z.number().min(0).max(100).default(18),
+	/** Largura em % do quadro. */
+	width: z.number().min(10).max(96).default(68),
+	/** Imagem opcional dentro do cartão (logo, ícone, print). */
+	image: z.string().optional(),
+	rotate: z.number().min(-20).max(20).default(0),
+});
+
+
+/** Imagem solta sobre a cena (logo, print recortado, ícone). Sem cartão em volta. */
+export const imageLayer = baseLayer.extend({
+	type: z.literal("image"),
+	src: z.string().min(1),
+	x: z.number().min(0).max(100).default(50),
+	y: z.number().min(0).max(100).default(18),
+	/** Largura em % do quadro. */
+	width: z.number().min(4).max(100).default(26),
+	rotate: z.number().min(-20).max(20).default(0),
+});
+
+/** Barra fixa no topo com slots que vão sendo preenchidos ("3/6"). */
+export const hudLayer = baseLayer.extend({
+	type: z.literal("hud"),
+	label: z.string().min(1),
+	slots: z.number().int().min(1).max(10).default(3),
+	filled: z.number().int().min(0).max(10).default(0),
+	y: z.number().min(0).max(100).default(6),
+});
+
+/** Cartão branco com "equação" de blocos: A + B = C. Cada bloco é texto ou imagem. */
+export const equationLayer = baseLayer.extend({
+	type: z.literal("equation"),
+	tiles: z
+		.array(
+			z.object({
+				text: z.string().optional(),
+				image: z.string().optional(),
+				color: z.string().optional(),
+				/** Operador que vem ANTES deste bloco. */
+				op: z.enum(["none", "plus", "equals", "arrow"]).default("none"),
+			}),
+		)
+		.min(2)
+		.max(5),
+	x: z.number().min(0).max(100).default(50),
+	y: z.number().min(0).max(100).default(16),
+	width: z.number().min(30).max(96).default(74),
+});
+
+/** Lista tipo recibo: linhas com valor, podendo vir riscadas em vermelho. */
+export const listCardLayer = baseLayer.extend({
+	type: z.literal("list_card"),
+	title: z.string().optional(),
+	items: z
+		.array(
+			z.object({
+				label: z.string().min(1),
+				value: z.string().optional(),
+				struck: z.boolean().default(false),
+				check: z.boolean().default(false),
+			}),
+		)
+		.min(1)
+		.max(6),
+	x: z.number().min(0).max(100).default(50),
+	y: z.number().min(0).max(100).default(20),
+	width: z.number().min(30).max(96).default(72),
+});
+
 export const layer = z.discriminatedUnion("type", [
 	textLayer,
 	generativeVideoLayer,
 	appScreenLayer,
 	solidLayer,
 	badgeLayer,
+	stickerLayer,
+	cardLayer,
+	imageLayer,
+	hudLayer,
+	equationLayer,
+	listCardLayer,
 	karaokeLayer,
 	disclaimerLayer,
 ]);

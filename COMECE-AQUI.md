@@ -9,7 +9,7 @@ conversa com o **Claude Code** em português e ele faz o trabalho. Siga na ordem
 
 O CreativeBuilder cria **vídeos de anúncio para apps** (formato Reels/TikTok, 1080×1920).
 
-Você pede, por exemplo, *"faz um criativo de 20s pro TapFit sobre não saber o que treinar"*,
+Você pede, por exemplo, *"faz um criativo de 20s pro OzemPro sobre o medo de errar a dose na seringa"*,
 e o Claude Code:
 
 1. escreve o roteiro do vídeo (cenas, textos, tempos);
@@ -148,7 +148,7 @@ PowerShell**, entre de novo na pasta (`cd C:\Projects\creativebuilder`) e rode
 5. Na caixa de texto do painel do Claude Code (embaixo, onde está escrito algo como
    *"Ask Claude"*), escreva e aperte Enter:
 
-   > renderiza um preview do criativo de exemplo tapfit-treino-aleatorio e me mostra
+   > renderiza um preview do criativo de exemplo ozempro-apresentacao-5s e me mostra
 
 6. Espere. Ele vai rodar alguns comandos — se aparecer um pedido de permissão, leia e clique em
    **Allow**. A primeira vez demora um ou dois minutos.
@@ -199,22 +199,22 @@ embaixo destacando cada palavra falada.
 
 Ele busca os números reais (gasto, compras, CPA, ROAS, CTR, retenção do vídeo), aplica as regras da
 equipe em `analise/regras-meta-ads.md`, baixa o vídeo, analisa cenas e fala e guarda uma ficha em
-`referencias/`. Ele **só analisa** — não mexe em nada no Gerenciador.
+`analise/criativos/`. Ele **só analisa** — não mexe em nada no Gerenciador.
 
 **Criativo a partir de uma referência** (vídeo que você viu e quer usar de modelo)
-> faz um criativo pro TapFit usando esta referência: https://www.instagram.com/reel/...
+> faz um criativo pro OzemPro usando esta referência: https://www.instagram.com/reel/...
 
 Pode também arrastar o arquivo de vídeo para a pasta do projeto e dizer o nome.
 
 **Criativo a partir de uma ideia**
-> cria um criativo de 20s pro TapFit: pessoa que perde tempo decidindo o treino, mostra o app
-> sorteando o treino, fecha com "baixe grátis"
+> cria um criativo de 20s pro OzemPro: pessoa com medo de errar a dose na seringa, mostra a
+> Calculadora de Doses no app, fecha com "baixe grátis"
 
 **Usando a tela do app**
 1. Grave a tela do celular (ou tire prints).
-2. Copie os arquivos para `C:\Projects\creativebuilder\render\public\app\tapfit\`.
+2. Copie os arquivos para `C:\Projects\creativebuilder\render\public\app\ozempro\`.
 3. Peça:
-> usa a gravação treino-sorteado.mp4 na cena de demo
+> usa a gravação calculadora-de-doses.mp4 na cena de demo
 
 **Anexando seus vídeos e imagens**
 
@@ -254,7 +254,7 @@ Cuidados:
 - As regras de cada app continuam valendo (ex: no OzemPro, nada de close no corpo).
 
 **Variações** (para testar o que funciona melhor)
-> gera 3 variações do hook do criativo tapfit-treino-aleatorio
+> gera 3 variações do hook do criativo ozempro-apresentacao-5s
 
 > faz a versão em espanhol
 
@@ -273,7 +273,7 @@ Ele traduz adaptando (não ao pé da letra), gera a voz no idioma e sincroniza a
 > troca o b-roll da cena 1 por um homem correndo na esteira
 
 **Locução e legenda palavra por palavra** (a palavra falada fica destacada na cor do app)
-> cria uma locução em português pro criativo tapfit-5-semanas e sincroniza a legenda com a voz
+> cria uma locução em português pro criativo ozempro-apresentacao-5s e sincroniza a legenda com a voz
 
 > usa a minha gravação entrada/ozempro/narracao.m4a como locução e deixa a legenda destacando
 > palavra por palavra
@@ -306,17 +306,17 @@ Quanto mais contexto, melhor o resultado. Um pedido completo diz:
 
 - **App:** o nome basta. O contexto de cada app (o que faz, público, dores, oferta, marca e
   regras de anúncio) fica em `apps/<app>/contexto.md` e o Claude lê sozinho. Apps prontos:
-  `apps/ozempro/` (o TapFit dos exemplos é só demonstração e ainda não tem contexto). Para um app novo, peça: *"cria o contexto do app X"* — ele usa o modelo
+  `apps/ozempro/`. Para um app novo, peça: *"cria o contexto do app X"* — ele usa o modelo
   `apps/_modelo/` e te pergunta o que faltar.
 - **Ideia ou referência:** o ângulo do vídeo, ou o link/arquivo que serve de modelo.
 - **Formato:** duração (ex: 20s), formato (9:16 padrão, ou 4:5), idioma.
 - **Material:** se vai usar gravação de tela do app (e o nome do arquivo).
 - **CTA:** a frase final (ex: "baixe grátis").
 
-> cria um criativo de 20s pro TapFit. O app sorteia treinos de academia pra quem não sabe o
-> que treinar; público são mulheres de 20 a 35 que treinam sozinhas. Usa a referência
+> cria um criativo de 20s pro OzemPro. O app calcula a dose certa pra quem fraciona a caneta;
+> público é quem usa GLP-1 e tem medo de errar a dose. Usa a referência
 > https://www.tiktok.com/@.../video/... como modelo de ritmo. Mostra a gravação
-> treino-sorteado.mp4 na demo. Fecha com "7 dias grátis".
+> calculadora-de-doses.mp4 na demo. Fecha com "baixe grátis".
 
 ### Limites de hoje
 
@@ -324,7 +324,7 @@ Quanto mais contexto, melhor o resultado. Um pedido completo diz:
   a música ou os efeitos sonoros. Se forem importantes, descreva no pedido.
 - **Views e curtidas não são lidas automaticamente.** Se a referência performou bem, diga os
   números no pedido.
-- **Referências analisadas ficam só no seu computador** (pasta `references/`, não vai pro
+- **Referências analisadas ficam só no seu computador** (pasta `.cache-ingestao/`, não vai pro
   GitHub). Para outra pessoa usar a mesma referência, mande o link.
 
 ---
@@ -358,12 +358,13 @@ Os MP4 finais (`render/out/`) **não** vão para o GitHub — mande pelo canal d
 | Pasta | O que tem |
 |---|---|
 | `apps/<app>/contexto.md` | **contexto de cada app** (produto, público, oferta, marca, regras de anúncio) |
-| `referencias/<app>/` | **criativos que deram certo**: ranking (`README.md`) e uma ficha por anúncio |
+| `analise/` | `regras-meta-ads.md` (regras de análise) e `criativos/`: **criativos que deram certo**, ranking (`README.md`) e uma ficha por anúncio |
+| `entrada/<app>/` | material bruto (gravações, prints, filmagens, fotos, músicas, referências, meta-ads) — fora do git |
 | `render/specs/` | os roteiros dos criativos (arquivos `.json`) |
 | `render/public/app/<app>/` | **você coloca** gravações de tela e prints do app |
 | `render/public/broll/` | clipes gerados no Higgsfield |
 | `render/out/` | **vídeos finais** (MP4) e previews |
-| `references/` | referências analisadas (frames e áudio) — fica só no seu computador |
+| `.cache-ingestao/` | referências analisadas (frames e áudio) — fica só no seu computador |
 | `directors/` | regras de edição de cada app (ritmo, legendas) |
 | `tools/` | ferramentas que o Claude usa (inclui `doctor.mjs`) |
 | `.claude/` | instruções e permissões do Claude Code para este projeto — não mexa |

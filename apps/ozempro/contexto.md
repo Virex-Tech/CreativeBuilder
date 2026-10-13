@@ -1,7 +1,7 @@
 # Contexto do app — OzemPro
 
 > O Claude Code lê este arquivo antes de escrever qualquer criativo do OzemPro. A seção
-> **Compliance — NUNCA** vence qualquer brief ou referência. Regras de edição (ritmo, legenda):
+> **Compliance** vence qualquer brief ou referência. Regras de edição (ritmo, legenda):
 > `directors/ozempro.yaml`.
 >
 > Fontes: `AppsBrain/nucleo-server/prisma/ozempro-kb.json` (produto), `asc-translator/apps/ozempro`
@@ -104,8 +104,9 @@ em PDF · chat com o panda · comunidade.
 
 ## Ângulos de criativo
 
-Todos respeitam a seção Compliance. O anúncio vende **organização do tratamento**, nunca o remédio
-nem o emagrecimento.
+Todos respeitam a seção Compliance (nome do medicamento só por apelido). Os criativos validados da
+CA01 (set/2026) estão em `analise/criativos/` — o ângulo campeão é o medo de errar a dose na
+seringa → Calculadora de Doses.
 
 | Ângulo | Hook de exemplo | Estrutura sugerida |
 |---|---|---|
@@ -125,46 +126,24 @@ Cores tiradas do ícone do app (gradiente roxo). Os blogs usam rosa/azul — **n
 - Variações do roxo do ícone: escuro `#5C1CCB` · médio `#6A23D6` · claro `#9E40EA`
 - **fontFamily:** `"'Plus Jakarta Sans', Inter, system-ui, sans-serif"` (fonte dos sites). O renderer
   não embute fontes: sem a Plus Jakarta Sans instalada na máquina, o vídeo cai na fonte do sistema.
-- **Ícone:** `render/public/app/ozempro/icone.png` (1024×1024, panda com caneta) — use no CTA final,
-  pequeno; a caneta não pode ser protagonista (ver Compliance).
+- **Ícone:** `render/public/app/ozempro/icone.png` (1024×1024, panda com caneta) — use no CTA final.
+- **Voz oficial (narração):** Google AI Studio (Gemini TTS) — **Achernar** para voz feminina e
+  **Orus** para masculina. Gere com `node tools/tts-gemini.mjs` (chave `GEMINI_API_KEY` no `.env`).
+  O estilo começa com "Promover" e pede fala rápida, animada, sem pausas; o script corta sozinho
+  todo silêncio interno, inclusive respiração.
 - Logo grande (3105×3105): `ozempro-blogs/ozempro-blogs/sites/ozemblog/public/logo.png` — não copiado.
 
-## Compliance — NUNCA
+## Compliance
 
-Anunciar app ligado a medicamento de prescrição é a área mais restrita das plataformas. Regras
-levantadas em 13/09/2026 (Meta, TikTok, ANVISA, CONAR) — **na dúvida, não use**.
+Regra única, definida pela equipe em 14/09/2026:
 
-1. **Nome comercial de medicamento no vídeo ou na legenda** (Ozempic, Wegovy, Mounjaro, Zepbound,
-   Saxenda...). Use "tratamento com GLP-1" ou "seu tratamento".
-   *Por quê:* ANVISA RDC 96/2008 art. 27 proíbe propaganda ao público de medicamento sob prescrição
-   (e art. 8º pega propaganda indireta); a ANVISA já autuou redes de farmácia por posts sobre
-   Mounjaro (mai/2025). Moderação da Meta/TikTok barra por palavra-chave. Novo Nordisk processa
-   ativamente uso comercial das marcas.
-2. **Promessa de emagrecimento**, quilos perdidos, "resultado garantido", "fácil".
-   *Por quê:* TikTok Weight Management (endurecida em ago/2026); Meta Health & Wellness; CONAR
-   Anexo G proíbe prometer resultado.
-3. **Antes e depois, foto de progresso em destaque, close em barriga ou partes do corpo**,
-   mensagens que façam a pessoa se sentir mal com o corpo.
-   *Por quê:* Meta proíbe foco em partes do corpo e autoimagem negativa; TikTok idem.
-4. **Hook que afirma a condição de saúde de quem assiste** ("Você que toma GLP-1...",
-   "Tomando Ozempic?"). Descreva a situação, não a pessoa.
-   *Por quê:* Meta proíbe implicar conhecimento de atributo de saúde do usuário.
-5. **Depoimento de pessoa sobre perda de peso.**
-   *Por quê:* CONAR Anexo G veda testemunhal de leigos em tratamento de emagrecimento.
-6. **Injeção sendo aplicada, agulha em close, caneta como protagonista.**
-   *Por quê:* boa prática — dispara revisão de medicamento na moderação.
-7. **Sugerir dose, troca de medicamento, uso sem médico ou que o app substitui o médico.**
-8. **Preço, desconto ou comparação de planos.**
-9. **Números, avaliações ou depoimentos sem fonte real.**
+- **Nunca falar, escrever na tela ou colocar na legenda o nome completo do medicamento**
+  (Mounjaro, Ozempic, Wegovy, Zepbound, tirzepatida, semaglutida...). No lugar, use os apelidos:
+  **moun moun, moun, tirze, canetinha, caneta, picadinha** etc.
+- **Pode:** o nome do medicamento aparecer nos prints e gravações de tela do aplicativo (ex.: o
+  seletor de medicamento da Calculadora de Doses).
 
-**Sempre:**
-
-- Público **18+** na campanha (Meta e TikTok para saúde/peso).
-- Mostrar o app como **diário/organizador**.
-
-> **Risco do negócio, não do criativo:** o próprio nome "OzemPro" e as keywords da loja citam
-> Ozempic/Mounjaro. A pesquisa aponta risco de marca registrada no nome do produto. Decisão da
-> liderança com advogado — não resolva isso num criativo.
+Qualquer outra restrição só entra aqui quando a equipe definir.
 
 ## Material disponível
 
