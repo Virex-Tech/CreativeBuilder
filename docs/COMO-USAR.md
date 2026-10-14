@@ -3,12 +3,9 @@
 > **Primeira vez?** Comece por [`COMECE-AQUI.md`](../COMECE-AQUI.md) (instalação e uso sem jargão).
 > Este documento é a referência dos comandos e campos — útil para quem quer entender ou rodar à mão.
 
-<<<<<<< HEAD
-Tudo roda **local**: Claude Code (ou Codex) + **Higgsfield CLI** (vídeo, voz) + **Remotion**
-(edição e render). Sem API key. O criativo é um **`CreativeSpec`** (JSON) —
-o agente nunca "edita vídeo", ele escreve e reescreve o spec. Contrato dos campos:
-[`render/src/spec.ts`](../render/src/spec.ts).
-=======
+> **Decisão da equipe (13/10/2026) para os criativos do OzemPro:** vídeo no **Higgsfield** e
+> narração no **Google AI Studio** (`tools/tts-gemini.mjs`). A Kie.ai abaixo é a alternativa.
+
 Tudo roda **local**: Claude Code (ou Codex) + **Kie.ai** (vídeo, voz, pré-paga, sob demanda) +
 **Remotion** (edição e render). Sem plataforma web. A chave da Kie.ai fica só no computador de
 cada pessoa (variável de ambiente `KIE_API_KEY`) — nunca no repositório. O criativo é um
@@ -19,7 +16,6 @@ O **Higgsfield** continua disponível como alternativa guardada (mensalidade fix
 que zeram) — ver seção 5, "Alternativa: Higgsfield". A Kie.ai é o padrão porque cobra só o que
 for gerado e o crédito não expira, o que combina melhor com um volume incerto (até ~130
 clipes/mês, com meses sem uso).
->>>>>>> 5505af8b7907d586351ea3f73f519149771fea1e
 
 Instruções que o agente segue: [`.claude/skills/criativo/SKILL.md`](../.claude/skills/criativo/SKILL.md)
 (Claude Code) e [`AGENTS.md`](../AGENTS.md) (Codex e outros).
@@ -272,8 +268,6 @@ vídeo em todas as ferramentas — se faltar, usar o arquivo original.
 | **`yt-dlp` em posts orgânicos** | views, likes, data e o vídeo de TikTok/YouTube | nenhum (Instagram costuma exigir cookies do navegador e falha com frequência) | grátis | ver o que bombou no orgânico |
 | **Biblioteca de Anúncios da Meta** | anúncios **ativos** de qualquer página + vídeo; sem métricas (sinais: tempo no ar, "N ads use this creative") | nenhum | grátis | olhar concorrentes — só consulta pontual: os termos da Meta proíbem coleta automatizada |
 | **TikTok Creative Center** (Top Ads) | anúncios em alta no TikTok por nicho | nenhum | grátis | referência de mercado; sem API |
-<<<<<<< HEAD
-=======
 | **Biblioteca da Meta oficial** (`tools/biblioteca.mjs`) | anúncios **ativos** de concorrentes que rodam na UE/UK, dias no ar, alcance UE; `baixar <link>` pega o vídeo de qualquer anúncio escolhido | token com acesso à Ad Library API (`META_AD_LIBRARY_TOKEN`) | grátis | alternativa grátis ao TrendTrack; o link manual cobre concorrente só-Brasil |
 | **TrendTrack** (`tools/trendtrack.mjs`) | anúncios **ativos** de concorrentes com dias no ar, alcance, copy, transcrição e o vídeo | chave `TRENDTRACK_API_KEY` (workspace com Public API) | plano pago; crédito por anúncio devolvido | achar o que está vencendo nos concorrentes e recriar a estrutura (skill `criativo`, seção TrendTrack) |
 | **Plataforma web (futuro)** | ranking automático diário, vídeos vencedores baixados e analisados no servidor, time vê na web e o Claude local puxa as fichas | **token de leitura da Meta (System User, `ads_read`) guardado só no servidor** | VPS + manutenção | quando o volume pedir ranking automático sem ninguém pedir |
@@ -282,14 +276,10 @@ vídeo em todas as ferramentas — se faltar, usar o arquivo original.
 mas está fora de uso. Um servidor não usa o login OAuth do MCP (que é por pessoa), por isso a
 coleta automática exige o token server-side. O formato das fichas (`referencias/<slug>/<ad_id>.md`)
 é o mesmo nos dois caminhos — dá para começar local e migrar sem perder nada.
->>>>>>> 5505af8b7907d586351ea3f73f519149771fea1e
 
 ## 12. Compartilhar
 
 Specs, contextos, clipes (`render/public/`) vão para o GitHub. Não vão: `entrada/`,
-<<<<<<< HEAD
-`.cache-ingestao/`, `render/out/` (MP4 finais — mande pelo canal da equipe).
-=======
 `references/`, `render/out/` (MP4 finais — mande pelo canal da equipe) e `render/public/takes/`
 (takes gravados: vídeo de pessoa real e pesado — para outra pessoa renderizar, mande os arquivos
 ou use o Estúdio da plataforma).
@@ -327,4 +317,3 @@ Arquivos em `render/public/takes/` (fora do git).
 
 O mesmo fluxo de takes, com calendário por conta, aprovação e publicação no Instagram, está na
 plataforma em `/estudio` — ver [`docs/ESTUDIO.md`](ESTUDIO.md).
->>>>>>> 5505af8b7907d586351ea3f73f519149771fea1e

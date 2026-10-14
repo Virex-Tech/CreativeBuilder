@@ -29,7 +29,6 @@ _descontinuado/
 .DS_Store
 .playwright-mcp/
 
-<<<<<<< HEAD
 # mídia copiada para o renderer — original fica em entrada/, o Claude recopia quando precisa
 render/public/panda/*.mp4
 render/public/app/*/*.mp4
@@ -39,7 +38,6 @@ render/public/audio/*.mp3
 render/public/audio/*.wav
 render/public/audio/*.json
 render/public/sfx/originais/
-=======
 # material bruto anexado (vídeos/imagens) — o Claude copia para render/public só o que usar
 entrada/*
 !entrada/LEIA-ME.md
@@ -52,4 +50,3 @@ render/public/takes/
 
 # OAuth do Higgsfield (server-side) — NUNCA versionar
 .higgsfield-server/
->>>>>>> 5505af8b7907d586351ea3f73f519149771fea1e

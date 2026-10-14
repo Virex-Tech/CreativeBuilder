@@ -34,15 +34,6 @@ apps/        contexto de produto de cada app (apps/<slug>/contexto.md) — o Cla
 analise/     regras de análise do Meta (regras-meta-ads.md) e fichas dos criativos (analise/criativos/)
 directors/   regras de edição por app (ritmo, legendas, o que nunca fazer)
 render/      Remotion — renderer, specs (render/specs), modelos (render/specs/_modelos),
-<<<<<<< HEAD
-             material do app (public/app), b-roll (public/broll), voz (public/audio), sfx (public/sfx)
-tools/       spec-tool (validate, check, props, variant, diff, sync-captions), review,
-             ingest-reference, transcribe, doctor
-entrada/     material bruto anexado, por app (fora do git)
-.cache-ingestao/  frames e áudio das referências analisadas (oculto, fora do git)
-.claude/     skill "criativo" e permissões do projeto para o Claude Code
-```
-=======
              material do app (public/app), b-roll (public/broll), voz (public/audio), sfx (public/sfx),
              takes gravados preparados (public/takes)
 tools/       spec-tool (validate, check, props, variant, diff, sync-captions, footage), review,
@@ -61,4 +52,3 @@ Além do fluxo local, a plataforma (`web/` + `server/`, no ar em creativebuilder
 - **Concorrentes** (`/apps/<id>/concorrentes`) — vencedores → criativo próprio → rascunho pausado na Meta.
 
 Deploy e arquitetura: [DEPLOY.md](DEPLOY.md), [docs/architecture.md](docs/architecture.md).
->>>>>>> 5505af8b7907d586351ea3f73f519149771fea1e

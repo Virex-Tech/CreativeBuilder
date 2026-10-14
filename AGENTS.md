@@ -251,10 +251,6 @@ automatizada), sem métricas.
 
 ## Concorrentes vencedores → criativo → rascunho na Meta
 
-<<<<<<< HEAD
-O fluxo é **local**: Claude Code (ou outro agente) + Higgsfield CLI + Remotion, sem API key.
-Não há plataforma web nem servidor.
-=======
 Pipeline em 3 etapas: **01** achar os anúncios vencedores dos concorrentes →
 **02** recriar a estrutura para o app (Fluxo 1 + Kie.ai + render) → **03** subir o MP4 para a Meta
 como anúncio **pausado** (rascunho). Chave `TRENDTRACK_API_KEY` no computador de cada pessoa
@@ -316,6 +312,5 @@ O acabamento de takes tem **uma implementação só**: `render/src/footage.ts` (
 (commitadas; `npm run check:lib` falha se estiverem velhas, e o build Docker do render também). Mude
 só `render/src/footage.ts`, rode `build:lib` e `npm test` em `render/`. O mesmo acabamento está no
 serviço de render como `POST /footage/finalize` (contrato em `render/README.md`).
->>>>>>> 5505af8b7907d586351ea3f73f519149771fea1e
 Antes de entregar qualquer criativo: `node tools/spec-tool.mjs check` e
 `node tools/review.mjs` no MP4 (ver skill `criativo`, seção "Validar antes de entregar").
