@@ -680,7 +680,13 @@ const AppScreen: React.FC<{
 
 	return (
 		<AbsoluteFill style={{ justifyContent: "center", alignItems: "center", transform }}>
-			<DeviceFrame enabled={inDevice} brand={brand} layout={layout} screenAspect={screenAspect}>
+			<DeviceFrame
+				enabled={inDevice}
+				neutral={layer.device === "phone"}
+				brand={brand}
+				layout={layout}
+				screenAspect={screenAspect}
+			>
 				{src && isVideo ? (
 					// Screen recordings carry UI sounds and mic noise; the spec's audio track owns sound.
 					<div style={{ width: "100%", height: "100%", background: fit === "contain" ? "#000" : undefined }}>
@@ -729,13 +735,21 @@ const AppScreen: React.FC<{
 
 const DeviceFrame: React.FC<{
 	enabled: boolean;
+	/** device "phone": the neutral CSS phone instead of the brand mockup PNG. */
+	neutral: boolean;
 	brand: BrandKit;
 	layout: Layout;
 	/** Shape (w/h) of the media's screen; null = the stock 9:19.5 phone (placeholder / unknown). */
 	screenAspect: number | null;
 	children: React.ReactNode;
-}> = ({ enabled, brand, layout, screenAspect, children }) => {
+}> = ({ enabled, neutral, brand, layout, screenAspect, children }) => {
 	if (!enabled) return <>{children}</>;
+	if (neutral)
+		return (
+			<NeutralPhone brand={brand} layout={layout} screenAspect={screenAspect}>
+				{children}
+			</NeutralPhone>
+		);
 
 	// Mockup real da marca (PNG 1080x1920 com a área da tela vazada). A gravação entra POR BAIXO,
 	// exatamente no retângulo da tela; a moldura por cima faz o recorte dos cantos e mantém o
@@ -758,6 +772,49 @@ const DeviceFrame: React.FC<{
 				src={resolveSrc("mockups/iphone-roxo-vazado.png")}
 				style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
 			/>
+		</div>
+	);
+};
+
+/** Phone mock proportions and how much of the frame it may take (tuned on 1080×1920). */
+const DEVICE_ASPECT = 9 / 19.5;
+const DEVICE_MAX_W = 0.78;
+/** 78% of 1080 at 9/19.5 is 1825.2px tall = 95.0625% of 1920 — the same cap for any height. */
+const DEVICE_MAX_H = (DEVICE_MAX_W * 1080) / DEVICE_ASPECT / 1920;
+const DEVICE_BASE_W = DEVICE_MAX_W * 1080;
+
+/** The brand-free phone (dark bezel, accent glow): the frame every app can use. */
+const NeutralPhone: React.FC<{
+	brand: BrandKit;
+	layout: Layout;
+	screenAspect: number | null;
+	children: React.ReactNode;
+}> = ({ brand, layout, screenAspect, children }) => {
+	// Width-bound on 9:16 (78% of the width); height-bound on shorter frames, where 78% of the
+	// width would push the phone off the top and bottom of a 4:5 or 1:1 canvas.
+	const aspect = screenAspect ?? DEVICE_ASPECT;
+	const byWidth = DEVICE_MAX_W * layout.w;
+	const byHeight = DEVICE_MAX_H * layout.h * aspect;
+	const width = byWidth <= byHeight + 0.01 ? byWidth : byHeight;
+	const k = width / DEVICE_BASE_W;
+
+	return (
+		<div
+			style={{
+				width,
+				// Content-box: width/height are the SCREEN inside the bezel padding; a media-shaped
+				// screen gets the media's shape, so cover crops nothing.
+				...(screenAspect === null ? { aspectRatio: "9 / 19.5" } : { height: width / screenAspect }),
+				borderRadius: 64 * k,
+				padding: 12 * k,
+				background: "#111",
+				boxShadow: `0 ${40 * k}px ${120 * k}px ${brand.accent}55, 0 0 0 2px #2a2a2a`,
+				overflow: "hidden",
+			}}
+		>
+			<div style={{ width: "100%", height: "100%", borderRadius: 52 * k, overflow: "hidden" }}>
+				{children}
+			</div>
 		</div>
 	);
 };

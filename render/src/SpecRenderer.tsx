@@ -1,6 +1,7 @@
 import React from "react";
 import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig } from "remotion";
 
+import "./fonts";
 import { AudioTracks } from "./layers/AudioTracks";
 import { LayerRenderer } from "./layers/LayerRenderer";
 import { resolveTransition } from "./presets/anims";

@@ -95,7 +95,11 @@ export const appScreenLayer = baseLayer.extend({
 	type: z.literal("app_screen_recording"),
 	assetId: z.string().optional(),
 	src: z.string().optional(),
-	device: z.enum(["iphone15_mock", "none"]).default("iphone15_mock"),
+	/**
+	 * iphone15_mock = mockup PNG da marca (roxo, OzemPro); phone = celular neutro desenhado em CSS,
+	 * para quem usa o motor com outras marcas (PayPosts); none = tela cheia.
+	 */
+	device: z.enum(["iphone15_mock", "phone", "none"]).default("iphone15_mock"),
 	/** Skip this much of the recording. Ignored for images. */
 	startFromMs: z.number().int().min(0).default(0),
 });

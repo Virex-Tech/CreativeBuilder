@@ -62,6 +62,8 @@ arquivos em `specs/props/` embrulham os de `specs/`.
   inteiros, sem corte lateral nem faixa. Mídia fora do formato de celular (9:21–9:15, ex. imagem
   quadrada ou horizontal) aparece inteira sobre uma cópia desfocada dela mesma (vídeo: fundo preto).
   Sem `src` (placeholder), o celular é o 9:19.5 de sempre. `device: "none"` continua tela cheia em cover.
+  `iphone15_mock` usa o mockup PNG da marca (`public/mockups/iphone-roxo-vazado.png`);
+  `device: "phone"` é o celular neutro em CSS (moldura escura + brilho do `accent`), para outras marcas.
 - Início de cena/voz/sfx usa `msToStartFrame` (pode ser 0); `msToFrames` (mínimo 1) é só para
   duração — usar o segundo para início deixava o frame 0 de todo vídeo vazio.
 

@@ -19,6 +19,9 @@ Os arquivos como vieram da equipe ficam em `originais/`.
 | `error.mp3` | 0,5s | erro, susto, alerta |
 | `money.mp3` | 0,8s | dinheiro, custo, desperdício |
 
+Legado (specs antigos do PayPosts ainda apontam para eles — não apagar): `whoosh.mp3`,
+`pop.mp3`, `rise.mp3`.
+
 **Falta:** um impacto grave seco (o "tum" do primeiro quadro) para o hook sonoro.
 
 ## Para adicionar mais
