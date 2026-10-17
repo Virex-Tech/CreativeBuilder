@@ -1,0 +1,966 @@
+{
+	"specVersion": "1",
+	"creativeId": "panda-30jours-fr",
+	"appId": "ozempro",
+	"locale": "fr-FR",
+	"output": {
+		"kind": "video"
+	},
+	"format": {
+		"w": 1080,
+		"h": 1920,
+		"fps": 30
+	},
+	"brandKit": {
+		"bg": "#12091F",
+		"fg": "#FFFFFF",
+		"accent": "#8630E4",
+		"fontFamily": "'Plus Jakarta Sans', Inter, system-ui, sans-serif"
+	},
+	"audio": {
+		"voiceover": {
+			"src": "audio/ozempro-fr-30jours-vo.wav",
+			"atMs": 0,
+			"durationMs": 24403,
+			"script": "Qu'est-ce qui se passe dans ton corps pendant les 30 premiers jours avec le stylo ? Jour 1. Le stylo dans la main. Sans savoir à quoi s'attendre, ni quoi surveiller. Jour 7. Nausées. Pas d'appétit. C'est le moment où la plupart abandonnent, sans comprendre que c'est exactement là que le corps s'adapte. Jour 14. Noter chaque symptôme, chaque schéma, chaque changement dans une application aide à voir ce qui se passe vraiment. Jour 30. Le traitement a fait son travail. Comprendre son propre parcours, c'est ce qui a tout rendu plus clair. Clique sur le lien et télécharge OzemPro pour suivre ton traitement avec plus de clarté."
+		},
+		"sfx": [
+			{
+				"src": "sfx/click_hook.mp3",
+				"atMs": 0,
+				"volume": 0.55
+			},
+			{
+				"src": "sfx/click.mp3",
+				"atMs": 2500,
+				"volume": 0.45
+			},
+			{
+				"src": "sfx/click.mp3",
+				"atMs": 5680,
+				"volume": 0.45
+			},
+			{
+				"src": "sfx/mostrar_magia.mp3",
+				"atMs": 11320,
+				"volume": 0.4
+			},
+			{
+				"src": "sfx/click.mp3",
+				"atMs": 16420,
+				"volume": 0.45
+			},
+			{
+				"src": "sfx/ding.mp3",
+				"atMs": 21000,
+				"volume": 0.35
+			}
+		]
+	},
+	"scenes": [
+		{
+			"id": "hook-a",
+			"role": "HOOK",
+			"startMs": 0,
+			"durationMs": 1140,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "take de animação do panda",
+					"provider": "higgsfield",
+					"src": "panda/panda_aplicando-medicamento-na-barriga-sala.mp4",
+					"fit": "cover",
+					"startFromMs": 0
+				},
+				{
+					"type": "karaoke",
+					"text": "Qu'est-ce qui se",
+					"startMs": 0,
+					"durationMs": 340,
+					"wordEndsMs": [
+						130,
+						260,
+						340
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "passe dans ton",
+					"startMs": 340,
+					"durationMs": 320,
+					"wordEndsMs": [
+						120,
+						220,
+						320
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "corps",
+					"startMs": 660,
+					"durationMs": 480,
+					"wordEndsMs": [
+						160
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				}
+			]
+		},
+		{
+			"id": "hook-b",
+			"role": "HOOK",
+			"startMs": 1140,
+			"durationMs": 1360,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "take de animação do panda",
+					"provider": "higgsfield",
+					"src": "panda/panda_gordo-olhando-no-espelho-quarto.mp4",
+					"fit": "cover",
+					"startFromMs": 0
+				},
+				{
+					"type": "counter",
+					"from": 1,
+					"to": 30,
+					"suffix": " JOURS",
+					"label": "les premiers",
+					"x": 50,
+					"y": 11,
+					"size": 120,
+					"chip": true,
+					"countMs": 900,
+					"startMs": 0,
+					"anim": "pop_in",
+					"animOut": "pop_out"
+				},
+				{
+					"type": "karaoke",
+					"text": "pendant les 30",
+					"startMs": 0,
+					"durationMs": 220,
+					"wordEndsMs": [
+						1,
+						2,
+						220
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "premiers jours avec",
+					"startMs": 220,
+					"durationMs": 520,
+					"wordEndsMs": [
+						240,
+						380,
+						520
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "le stylo ?",
+					"startMs": 740,
+					"durationMs": 620,
+					"wordEndsMs": [
+						140,
+						360,
+						490
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				}
+			]
+		},
+		{
+			"id": "jour-01",
+			"role": "PROBLEM",
+			"startMs": 2500,
+			"durationMs": 3180,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "take de animação do panda",
+					"provider": "higgsfield",
+					"src": "panda/panda_perdido-lendo-bula-quarto.mp4",
+					"fit": "cover",
+					"startFromMs": 1500
+				},
+				{
+					"type": "sticker",
+					"content": "JOUR 01",
+					"x": 50,
+					"y": 17,
+					"size": 62,
+					"chip": false,
+					"anim": "pop_in",
+					"animOut": "fade_out",
+					"startMs": 0,
+					"durationMs": 2200
+				},
+				{
+					"type": "karaoke",
+					"text": "Jour 1.",
+					"startMs": 0,
+					"durationMs": 540,
+					"wordEndsMs": [
+						280,
+						540
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "Le stylo dans",
+					"startMs": 540,
+					"durationMs": 620,
+					"wordEndsMs": [
+						280,
+						540,
+						620
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "la main.",
+					"startMs": 1160,
+					"durationMs": 220,
+					"wordEndsMs": [
+						100,
+						220
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "Sans savoir à",
+					"startMs": 1380,
+					"durationMs": 620,
+					"wordEndsMs": [
+						280,
+						480,
+						620
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "quoi s'attendre,",
+					"startMs": 2000,
+					"durationMs": 280,
+					"wordEndsMs": [
+						60,
+						280
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "ni quoi surveiller.",
+					"startMs": 2280,
+					"durationMs": 900,
+					"wordEndsMs": [
+						220,
+						340,
+						660
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				}
+			]
+		},
+		{
+			"id": "jour-07-a",
+			"role": "PROBLEM",
+			"startMs": 5680,
+			"durationMs": 2120,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "take de animação do panda",
+					"provider": "higgsfield",
+					"src": "panda/panda_empurrando-comida-pra-longe-cozinha.mp4",
+					"fit": "cover",
+					"startFromMs": 300
+				},
+				{
+					"type": "sticker",
+					"content": "JOUR 07",
+					"x": 50,
+					"y": 17,
+					"size": 62,
+					"chip": false,
+					"anim": "pop_in",
+					"animOut": "fade_out",
+					"startMs": 0,
+					"durationMs": 2000
+				},
+				{
+					"type": "karaoke",
+					"text": "Jour 7.",
+					"startMs": 0,
+					"durationMs": 260,
+					"wordEndsMs": [
+						60,
+						260
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "Nausées. Pas d'appétit.",
+					"startMs": 260,
+					"durationMs": 1860,
+					"wordEndsMs": [
+						520,
+						1040,
+						1450
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				}
+			]
+		},
+		{
+			"id": "jour-07-b",
+			"role": "PROBLEM",
+			"startMs": 7800,
+			"durationMs": 3520,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "take de animação do panda",
+					"provider": "higgsfield",
+					"src": "panda/panda_triste-deitado-no-sofa.mp4",
+					"fit": "cover",
+					"startFromMs": 0
+				},
+				{
+					"type": "karaoke",
+					"text": "C'est le moment",
+					"startMs": 0,
+					"durationMs": 360,
+					"wordEndsMs": [
+						110,
+						220,
+						360
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "où la plupart",
+					"startMs": 360,
+					"durationMs": 340,
+					"wordEndsMs": [
+						120,
+						200,
+						340
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "abandonnent, sans comprendre",
+					"startMs": 700,
+					"durationMs": 1040,
+					"wordEndsMs": [
+						600,
+						740,
+						1040
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "que c'est exactement",
+					"startMs": 1740,
+					"durationMs": 760,
+					"wordEndsMs": [
+						160,
+						460,
+						760
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "là que le",
+					"startMs": 2500,
+					"durationMs": 400,
+					"wordEndsMs": [
+						260,
+						300,
+						400
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "corps s'adapte.",
+					"startMs": 2900,
+					"durationMs": 620,
+					"wordEndsMs": [
+						100,
+						360
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				}
+			]
+		},
+		{
+			"id": "jour-14-1",
+			"role": "DEMO",
+			"startMs": 11320,
+			"durationMs": 1820,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "fundo desfocado atrás do mockup",
+					"provider": "higgsfield",
+					"src": "panda/fundo_mexendo-celular-sofa.mp4",
+					"fit": "cover",
+					"startFromMs": 0,
+					"blur": 0,
+					"dim": 0
+				},
+				{
+					"type": "app_screen_recording",
+					"src": "app/ozempro/fr/efeitos-colaterais_registrar-sintomas.mp4",
+					"device": "iphone15_mock",
+					"startFromMs": 0
+				},
+				{
+					"type": "sticker",
+					"content": "JOUR 14",
+					"x": 50,
+					"y": 4,
+					"size": 48,
+					"chip": false,
+					"anim": "pop_in",
+					"animOut": "fade_out",
+					"startMs": 0,
+					"durationMs": 1500
+				},
+				{
+					"type": "karaoke",
+					"text": "Jour 14.",
+					"startMs": 0,
+					"durationMs": 460,
+					"wordEndsMs": [
+						80,
+						460
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "Noter chaque symptôme,",
+					"startMs": 460,
+					"durationMs": 1360,
+					"wordEndsMs": [
+						680,
+						860,
+						1260
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				}
+			]
+		},
+		{
+			"id": "jour-14-2",
+			"role": "DEMO",
+			"startMs": 13140,
+			"durationMs": 1300,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "fundo desfocado atrás do mockup",
+					"provider": "higgsfield",
+					"src": "panda/fundo_mexendo-celular-sofa.mp4",
+					"fit": "cover",
+					"startFromMs": 1820,
+					"blur": 0,
+					"dim": 0
+				},
+				{
+					"type": "app_screen_recording",
+					"src": "app/ozempro/fr/tratamento-grafico_medicamento-grafico_evolucao-IMC.mp4",
+					"device": "iphone15_mock",
+					"startFromMs": 0
+				},
+				{
+					"type": "karaoke",
+					"text": "chaque schéma,",
+					"startMs": 0,
+					"durationMs": 340,
+					"wordEndsMs": [
+						100,
+						340
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "chaque changement",
+					"startMs": 340,
+					"durationMs": 960,
+					"wordEndsMs": [
+						320,
+						680
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				}
+			]
+		},
+		{
+			"id": "jour-14-3",
+			"role": "DEMO",
+			"startMs": 14440,
+			"durationMs": 1980,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "fundo desfocado atrás do mockup",
+					"provider": "higgsfield",
+					"src": "panda/fundo_mexendo-celular-sofa.mp4",
+					"fit": "cover",
+					"startFromMs": 3120,
+					"blur": 0,
+					"dim": 0
+				},
+				{
+					"type": "app_screen_recording",
+					"src": "app/ozempro/fr/aplicacao_registrar-dose-e-local.mp4",
+					"device": "iphone15_mock",
+					"startFromMs": 0
+				},
+				{
+					"type": "karaoke",
+					"text": "dans une application,",
+					"startMs": 0,
+					"durationMs": 360,
+					"wordEndsMs": [
+						1,
+						2,
+						360
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "aide à voir",
+					"startMs": 360,
+					"durationMs": 800,
+					"wordEndsMs": [
+						540,
+						620,
+						800
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "ce qui se",
+					"startMs": 1160,
+					"durationMs": 260,
+					"wordEndsMs": [
+						140,
+						220,
+						260
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "passe vraiment.",
+					"startMs": 1420,
+					"durationMs": 560,
+					"wordEndsMs": [
+						120,
+						340
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				}
+			]
+		},
+		{
+			"id": "jour-30",
+			"role": "PROOF",
+			"startMs": 16420,
+			"durationMs": 4580,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "take de animação do panda",
+					"provider": "higgsfield",
+					"src": "panda/panda_musculoso-olhando-no-espelho-quarto.mp4",
+					"fit": "cover",
+					"startFromMs": 0
+				},
+				{
+					"type": "sticker",
+					"content": "JOUR 30",
+					"x": 50,
+					"y": 17,
+					"size": 62,
+					"chip": false,
+					"anim": "pop_in",
+					"animOut": "fade_out",
+					"startMs": 0,
+					"durationMs": 2400
+				},
+				{
+					"type": "karaoke",
+					"text": "Jour 30.",
+					"startMs": 0,
+					"durationMs": 320,
+					"wordEndsMs": [
+						80,
+						320
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "Le traitement a",
+					"startMs": 320,
+					"durationMs": 640,
+					"wordEndsMs": [
+						300,
+						580,
+						640
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "fait son travail.",
+					"startMs": 960,
+					"durationMs": 440,
+					"wordEndsMs": [
+						80,
+						160,
+						440
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "Comprendre son propre",
+					"startMs": 1400,
+					"durationMs": 1180,
+					"wordEndsMs": [
+						860,
+						960,
+						1180
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "parcours, c'est ce",
+					"startMs": 2580,
+					"durationMs": 820,
+					"wordEndsMs": [
+						520,
+						670,
+						820
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "qui a tout",
+					"startMs": 3400,
+					"durationMs": 340,
+					"wordEndsMs": [
+						80,
+						180,
+						340
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "rendu plus clair.",
+					"startMs": 3740,
+					"durationMs": 840,
+					"wordEndsMs": [
+						240,
+						340,
+						500
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				}
+			]
+		},
+		{
+			"id": "cta-a",
+			"role": "CTA",
+			"startMs": 21000,
+			"durationMs": 1720,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "take de animação do panda",
+					"provider": "higgsfield",
+					"src": "panda/panda_musculoso-mexendo-celular-sala.mp4",
+					"fit": "cover",
+					"startFromMs": 0
+				},
+				{
+					"type": "sticker",
+					"content": "CLIQUE SUR LE LIEN · TÉLÉCHARGE L'APPLI",
+					"x": 50,
+					"y": 46,
+					"size": 52,
+					"width": 80,
+					"chip": true,
+					"anim": "pop_in",
+					"startMs": 100
+				},
+				{
+					"type": "karaoke",
+					"text": "Clique sur le",
+					"startMs": 0,
+					"durationMs": 480,
+					"wordEndsMs": [
+						240,
+						360,
+						480
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "lien et télécharge",
+					"startMs": 480,
+					"durationMs": 760,
+					"wordEndsMs": [
+						140,
+						380,
+						760
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "OzemPro",
+					"startMs": 1240,
+					"durationMs": 480,
+					"wordEndsMs": [
+						240
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				}
+			]
+		},
+		{
+			"id": "cta-b",
+			"role": "CTA",
+			"startMs": 22720,
+			"durationMs": 1683,
+			"timing": "flex",
+			"transitionIn": "cut",
+			"layers": [
+				{
+					"type": "generative_video",
+					"prompt": "fundo desfocado atrás do mockup",
+					"provider": "higgsfield",
+					"src": "panda/fundo_mexendo-celular-sofa-2.mp4",
+					"fit": "cover",
+					"startFromMs": 0,
+					"blur": 0,
+					"dim": 0
+				},
+				{
+					"type": "app_screen_recording",
+					"src": "app/ozempro/fr/pagina_inicial-resumo_geral.mp4",
+					"device": "iphone15_mock",
+					"startFromMs": 0
+				},
+				{
+					"type": "karaoke",
+					"text": "pour suivre ton",
+					"startMs": 0,
+					"durationMs": 460,
+					"wordEndsMs": [
+						160,
+						320,
+						460
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "traitement avec plus",
+					"startMs": 460,
+					"durationMs": 620,
+					"wordEndsMs": [
+						300,
+						440,
+						620
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				},
+				{
+					"type": "karaoke",
+					"text": "de clarté.",
+					"startMs": 1080,
+					"durationMs": 603,
+					"wordEndsMs": [
+						120,
+						400
+					],
+					"bottomPct": 41.7,
+					"size": 58,
+					"style": "plain",
+					"maxWords": 3
+				}
+			]
+		}
+	]
+}

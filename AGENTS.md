@@ -203,10 +203,210 @@ som só quando a cena pede (ver a limitação de áudio acima). Baixe o resultad
 
 ## Material do app (gravação de tela e prints)
 
-Arquivos do app ficam em `render/public/app/<app>/`. Na layer `app_screen_recording`, use
-`"src": "app/<app>/<arquivo>"` — vídeo (`.mp4/.mov/.m4v/.webm`, toca mudo no mockup) ou
+Arquivos do app ficam em `render/public/app/<app>/<idioma>/` — **só o material do app é separado
+por idioma** (`br`, `ltm`, `en`, `fr`, `tr`); panda, filmagens, referências, músicas e sfx são compartilhados.
+Na layer `app_screen_recording`, use `"src": "app/<app>/<idioma>/<arquivo>"` — vídeo (`.mp4/.mov/.m4v/.webm`, toca mudo no mockup) ou
 imagem (`.png/.jpg`). Sem material do app, não use essa layer: faça o criativo com b-roll +
 texto + CTA. Nunca gere a tela do app com modelo generativo.
+
+## Borrar o nome dos medicamentos nas gravações (regra da equipe, 16/10/2026)
+
+**Todo nome de medicamento tem de ficar ilegível em toda gravação de tela, em todos os idiomas.**
+**Só o nome**: mg, números, botões e o resto da interface ficam legíveis. Tela meio borrada não
+se entrega.
+
+Ferramenta: `tools/borrar-ocr.mjs`. Ela lê **cada quadro** com OCR (tesseract.js, roda na
+máquina, sem API e sem crédito), acha onde está escrito o nome e borra exatamente ali. Sem
+interpolar, sem rastrear: por isso o borrão acompanha a rolagem sozinho e some quando o nome sai
+da tela.
+
+```bash
+node tools/borrar-ocr.mjs <video> --so-ler --idioma fra        # só relata o que achou
+node tools/borrar-ocr.mjs <video> --saida <out.mp4> --idioma fra
+node tools/borrar-ocr.mjs <out.mp4> --so-ler --idioma fra      # VALIDAR: tem de achar 0 nomes
+```
+
+`--idioma` usa os códigos do tesseract (`por`, `fra`, `eng`, `spa`, `tur`; vários com `+`).
+`--nomes` troca a lista de marcas. `--raio` muda a força do borrão.
+
+**A validação é automática e não se pula:** rodar `--so-ler` no vídeo **de saída**. Se ele achar
+qualquer nome, o borrão falhou naquele quadro.
+
+### Custo medido (16/10/2026, gravação de 10s a 30fps)
+
+- 1,4 s por quadro (duas leituras: imagem normal e invertida) → **~7 min por 10 s de vídeo**.
+- **Resolução cheia é obrigatória.** Em `--escala 0.5` o texto fica com 18 px e o OCR acha o nome
+  em só 36 de 300 quadros. Em resolução cheia, 290 de 300.
+- **Não dá para pular quadros parados**: medido, **0%** dos quadros são idênticos ao anterior —
+  a gravação tem ruído de compressão.
+
+### Duas coisas que a ferramenta já resolve sozinha
+
+- **Chip selecionado** (texto branco em fundo preto) o OCR não lê. Por isso ela lê também a
+  imagem **invertida**, e o borrão de cada linha vai **do fim da última palavra que não é nome**
+  até o fim do último nome — assim o chip que o OCR perder entra no meio, e o "Ignorer" (que não
+  é medicamento) continua legível.
+- **Mais de uma ocorrência por quadro**: borra todas, inclusive a tabela no fim do vídeo.
+
+### Por que o quadro é ACHATADO antes de ler (16/10/2026 — o achado que destravou tudo)
+
+**O Tesseract converte a imagem para preto e branco usando um único corte de brilho, e isso
+acontece ANTES de tentar reconhecer qualquer letra.** Num quadro em que um modal branco cobre
+parte da tela e o resto fica escurecido, o branco domina o corte e **toda a camada escurecida
+vira "fundo"** — o nome fica legível para o olho e invisível para o OCR. O mesmo vale para texto
+branco sobre chip colorido.
+
+A solução é tirar a iluminação da imagem antes de entregar: dividir o quadro por uma cópia bem
+borrada dele mesmo. Isso remove qualquer variação suave de luz e deixa só o desenho das letras.
+
+```
+[0:v]format=gray,split=2[a][b];[b]gblur=sigma=60[bg];
+[a][bg]blend=all_mode=divide,eq=contrast=1.6:brightness=-0.25
+```
+
+Medido no quadro 45 da aplicação em inglês (modal escurecendo a tela):
+
+| O que foi entregue ao OCR | Palavras lidas | Achou o nome escurecido? |
+|---|---|---|
+| imagem crua, quadro inteiro | 6 | não |
+| imagem crua, invertida | 6 | não |
+| imagem crua, contraste reforçado | 4 | não |
+| imagem crua, `normalize` | — | não |
+| **imagem achatada, quadro inteiro** | **50** | **sim, 91%** |
+
+E no chip roxo selecionado do estoque em br: a imagem crua lia só os chips vizinhos; a achatada
+lê também o selecionado.
+
+**O achatamento é só para LER.** O borrão é aplicado nos pixels originais; o vídeo entregue é a
+imagem real, sem nenhum tratamento.
+
+**O que foi tentado e não resolve:** cortar o quadro em faixas horizontais funciona, mas o número
+de faixas depende de quanta área clara a tela tem (3 faixas bastavam em br e liam ZERO em en), é
+mais lento e não tem vantagem sobre achatar. `rectangle` do tesseract.js não serve: a binarização
+continua sendo da imagem toda.
+
+### Nada de arrastar caixa entre quadros
+
+Houve uma versão que, ao não achar o nome num quadro, reaproveitava a caixa do quadro anterior.
+Com o OCR falhando muito isso parecia ajudar; com a leitura em faixas virou só defeito — a caixa
+fica parada enquanto o conteúdo rola e passa a borrar o que não deve (cobriu "Constipação" no
+histórico do tratamento, em 16/10/2026). **Cada quadro é lido por si:** acha a palavra, borra ali.
+
+### Lixo do OCR não segura o borrão
+
+O borrão de cada linha vai do fim da última palavra que **não** é nome até o fim do último nome.
+Só conta como palavra quem tem **3 letras ou mais**: o OCR cospe tokens como `)` e `”»` entre os
+chips, e tratá-los como palavra empurrava o borrão para a direita, deixando o nome à esquerda
+exposto. Sem nenhuma palavra de verdade à esquerda, o borrão começa na margem (2% da largura).
+
+### A comparação tolera erro de leitura
+
+Em texto de baixo contraste o OCR troca letra: "Mounjaro" vira "Mouniaro", "Mournjaro",
+"Mounjara". A comparação aceita **uma letra errada a cada cinco** (distância de edição). Testado:
+reconhece essas variações e rejeita "Medicamento", "Comunidade", "Constipação", "Caneta".
+
+### Quais telas têm nome (levantado em 16/10/2026, nas 18 gravações em br)
+
+**Só 5 das 18 telas mostram nome de medicamento.** Nos outros idiomas, rode o borrão completo
+**só nessas cinco** e confirme as demais com `--amostra`, que é 5x mais rápido:
+
+| Tela | Onde o nome aparece |
+|---|---|
+| `calculadora-...` | seletor "Medicamento (opcional)" |
+| `comunidade-...` | manchetes das notícias e posts do feed |
+| `estoque-...` | seletor de medicamento da unidade |
+| `aplicacao-...` | campo "Medicamento" do registro |
+| `tratamento-...` | histórico "Aplicado ▓▓▓" |
+
+Sem nome: chat, água, atividade, efeitos colaterais, evolução, intestino, medidas, página
+inicial, peso, receitas, registro refeição, resumo, suplementos.
+
+```bash
+node tools/borrar-ocr.mjs <tela com nome> --saida <out> --idioma por     # borrão completo
+node tools/borrar-ocr.mjs <tela sem nome> --so-ler --amostra 10 --idioma por   # só confirmar
+```
+
+**Quando o resultado é zero, use o arquivo ORIGINAL** em vez do recodificado — recodificar sem
+borrar nada só perde qualidade.
+
+**Confirme olhando, mesmo com zero.** A validação por OCR compartilha os pontos cegos do OCR.
+Em 16/10/2026 a página inicial deu 1 quadro com nome e era **falso positivo** (fragmento curto
+da lista casando com outra palavra).
+
+**Só canetinhas** (decisão da equipe, 16/10/2026). A tela de suplementos mostra o texto de
+exemplo "Ex: Ômega 3, Metformina" — Metformina **não** se borra: não é GLP-1.
+
+### As duas versões de cada gravação
+
+```
+render/public/app/ozempro/<idioma>/
+  tela-cheia/<nome>.mp4   ← borrada, canto reto — para app em tela cheia (device: "none")
+  mockup/<nome>.mp4       ← borrada + cantos arredondados — para device: "iphone15_mock"
+```
+
+Os cantos saem de `render/public/mockups/cantos-1080x2340.png` (raio 135, medido a partir do
+recorte do mockup: tela de 845 px com raio ~62, e a gravação entra em escala 0,782). Aplicar é
+um passe de ffmpeg:
+
+```bash
+ffmpeg -i <borrada>.mp4 -i render/public/mockups/cantos-1080x2340.png   -filter_complex "[0:v][1:v]overlay=0:0" -c:v libx264 -crf 18 -pix_fmt yuv420p -an <mockup>.mp4
+```
+
+Gravação de iPhone não traz o canto arredondado; a de Android trazia. Sem a máscara, o conteúdo
+claro encosta na curva da moldura e denuncia o encaixe.
+
+### O que NÃO funciona (tentado e descartado em 16/10/2026)
+
+- **Medir a posição em alguns pontos e interpolar.** Falhou três vezes. A tela não só rola, ela
+  muda, e 2% de erro já deixa o nome legível.
+- **Caixa alta para cobrir o caminho da rolagem.** Borra metade da tela. Reprovado.
+- **Rastrear o deslocamento da tela** (`tools/borrar.mjs rastrear`). Confunde-se quando o
+  conteúdo muda, não só rola.
+- **Procurar um rótulo vizinho** ao nome (`tools/borrar.mjs seguir`). Perde a âncora na rolagem
+  rápida e quando ela passa sob o cabeçalho fixo.
+- **`find_rect`/`cover_rect` do ffmpeg.** O chip muda de aparência ao ser selecionado e o filtro
+  só acha um objeto por quadro.
+
+`tools/borrar.mjs` continua para borrão manual de região fixa, quando a tela não rola.
+
+## A tela tem que ser a tela que a narração diz
+
+Escolher `startFromMs` pelo começo do arquivo é erro. A gravação não segue a ordem da fala: a da
+calculadora começa pelo **resultado** e só depois desce para o formulário; a de registrar
+aplicação só mostra o **corpo e o local** aos ~7s; a de estoque só mostra a **caneta carregada**
+nos últimos 0,8s.
+
+Antes de escrever o `startFromMs` de cada cena:
+
+```bash
+node tools/recorte.mjs amostra render/public/app/<app>/<idioma>/<gravacao>.mp4
+```
+
+A grade de 6 quadros vem com os tempos. Escolha o trecho **pelo que ele mostra**, casando com a
+frase daquela cena.
+
+**Se o trecho certo for mais curto que a cena**, congele o quadro como imagem e use na mesma
+layer (`app_screen_recording` aceita `.png`), com `anim: "punch_in"` para não ficar parado:
+
+```bash
+node tools/recorte.mjs cortar <gravacao>.mp4 --em 7.85 --saida render/public/app/<app>/<idioma>/<nome>.png
+```
+
+Erros desse tipo passam no `check` e no `validate` — só aparecem olhando o still com a legenda
+em cima. Foi o que aconteceu em 15/10/2026, duas vezes no mesmo criativo.
+
+## Imagem como elemento (Pexels e recorte do app)
+
+Elemento de imagem usa o layer `image` (`radius`, `border`, `label`). Duas fontes:
+
+```bash
+node tools/pexels.mjs buscar foto "<termo>" --n 5 --orientacao portrait
+node tools/recorte.mjs amostra <gravacao do app>.mp4          # grade de 6 quadros com tempos
+node tools/recorte.mjs cortar  <gravacao do app>.mp4 --em 2.14 --area 4,11,92,30   --saida render/public/elementos/<nome>.png
+```
+
+Recorte de tela só entra em cena **sem** o mockup: quando o celular está em quadro, nada vai por
+cima dele. Detalhes e o que está reprovado: `apps/<app>/elementos-playbook.md`.
 
 ## Material anexado (`entrada/` ou Google Drive)
 

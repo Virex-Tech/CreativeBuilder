@@ -224,3 +224,108 @@ Este catálogo é **vocabulário de consulta**, não estoque.
 
 Já construído alguma vez: cartão, equação, lista com risco, HUD, sticker, imagem, legenda karaokê,
 fundo desfocado, mockup de celular.
+
+## O que o renderer sabe fazer (14/10/2026)
+
+Até 14/10 este playbook descrevia elementos que **o renderer não sabia desenhar** — contador,
+gráfico que se traça, barra que cresce, círculo à mão, tachado ao vivo, cor por significado.
+Estavam aqui porque saíram das referências, não porque existiam. Agora existem. Esta é a lista
+real; o que não está aqui, não dá para pedir.
+
+| Layer | O que faz | Campos que importam |
+|---|---|---|
+| `syringe_ruler` | **régua da seringa**: traços numerados, com faixa acesa no intervalo da dose. Os números são desenhados pelo renderer, nunca saem tortos | `from`/`to`, `step`, `labelEvery`, `highlightFrom`/`highlightTo`, `label`, `drawMs` |
+| `scribble` | **traço desenhado à mão** que nasce da ponta e corre até o fim | `shape`: circle · arrow · underline · cross · bracket · zigzag; `drawMs`, `color`, `stroke` |
+| `counter` | número que **corre** de um valor a outro | `from`, `to`, `decimals`, `prefix`/`suffix`, `countMs`, `chip` |
+| `bar` | barra que **cresce** até a porcentagem | `value`, `valueText`, `growMs`, `color` |
+| `line_chart` | gráfico de linha que **se desenha**; linha reta = platô | `points` (0..100), `endLabel`, `drawMs` |
+| `list_card` | recibo; linhas entram **uma a uma** e o tachado **risca ao vivo** | `staggerMs`, `strikeAtMs`, `variant` (light/dark), item com `check`/`icon`/`color` |
+| `hud` | barra com slots que **acendem um a um** | `fillStaggerMs`, `color`, `x`, `y` |
+| `card` | cartão de dado | `variant`: dark · light · accent · alert · **ok** (verde) · **warn** (amarelo), ou `color` livre |
+| `sticker` | selo/chip de texto | `color`, `textColor`, `icon` |
+| `equation` | A + B = C | `tiles` |
+| `badge`, `image`, `text` | selo do topo, imagem solta, texto com preset | `color` no badge |
+
+**Cor agora é livre em todo elemento** (`color`), então a gramática de cor desta página vale de
+verdade: roxo `#8630E4` solução · vermelho `#E53935` erro · verde `#1FA84F` confirmado ·
+amarelo `#FFD600` alerta.
+
+**Todo elemento pode sair animado**: `animOut` = `fade_out` · `pop_out` · `slide_down` ·
+`wipe_out`. Sem isso o elemento corta seco, que é o que separa criativo montado de criativo
+editado — nas referências nada desaparece de um quadro para o outro.
+
+**A legenda varia por cena** (`karaoke`): `style` = `plain` (padrão da casa) · `box` (caixa cheia
+atrás da palavra falada) · `pop` (a palavra cresce no instante em que é dita); mais `size`
+(corpo em px), `maxWords`, `activeColor` e `emphasis` (palavras que ficam maiores e coloridas o
+tempo todo, mesmo sem estarem sendo ditas). Hook pede corpo maior e `pop`; texto corrido pede
+`plain` menor.
+
+## Imagem como elemento (14/10/2026)
+
+Duas fontes, as duas pelo layer `image` (`radius`, `border`, `label`, `color`):
+
+**1. Foto do Pexels** — b-roll parado, licença livre para uso comercial:
+
+```bash
+node tools/pexels.mjs buscar foto "fita metrica cintura" --n 5 --orientacao portrait
+node tools/pexels.mjs baixar foto <id> --out render/public/elementos/<nome>.jpg
+```
+
+**2. Recorte da tela do app** — mostra UMA coisa do app (o número da dose, o card da refeição,
+o gráfico) numa cena em que o celular não está em quadro:
+
+```bash
+node tools/recorte.mjs amostra render/public/app/ozempro/<gravacao>.mp4
+node tools/recorte.mjs cortar render/public/app/ozempro/<gravacao>.mp4   --em 2.14 --area 4,11,92,30 --saida render/public/elementos/<nome>.png
+```
+
+`amostra` monta uma grade de 6 quadros com os tempos, para escolher o instante; `--area` é
+x,y,largura,altura **em % da origem**. O comando imprime o trecho de spec pronto.
+
+No spec:
+
+```json
+{ "type": "image", "src": "elementos/ozempro-calc-25ui.png", "x": 50, "y": 30,
+  "width": 64, "radius": 26, "border": true, "label": "quanto puxar", "anim": "pop_in" }
+```
+
+**Regra:** recorte de tela é elemento para cena **sem** o mockup. Quando o celular está em
+quadro, o foco é ele e nada entra por cima — a tela do app é a prova do produto.
+
+**Vídeo dentro de elemento não existe** e não é para usar por enquanto (decisão de 14/10). Só
+imagem.
+
+## Reprovado pela equipe
+
+- **Círculo à mão (`scribble` com `shape: "circle"`)** — testado em 14/10/2026 e reprovado: não
+  acrescenta sentido à cena. Não usar. As outras formas do `scribble` (seta, sublinhado, X,
+  colchete, zigue-zague) ainda não foram testadas com a equipe.
+- **Emoji solto flutuando** — reprovado em 07/10/2026 (ver acima).
+- **Cartão com frase solta** — reprovado em 11/10/2026: lê como legenda extra, não como elemento.
+
+## Usado em 15/10/2026 — criativo dos risquinhos com a Xanda
+
+Dois elementos, e só dois, no bloco da pessoa:
+
+1. **`syringe_ruler` sem destaque** durante o hook, na faixa de baixo (y 86), logo abaixo da mão
+   que segura a seringa. É a dúvida virando imagem: a escala aparece, mas sem resposta.
+2. **Recorte da tela do app** (`image` com `border` e `label`) no momento em que ela diz "eu dou
+   essa dica" — o card "PUXE ATÉ 25 UI" responde a pergunta do hook **antes** de o vídeo cortar
+   para o mockup. Recorte feito com `tools/recorte.mjs`.
+
+Nas cenas do app, nenhum elemento: o foco é a tela.
+
+A régua entrou sem `highlightFrom`/`highlightTo` de propósito — com a faixa acesa ela daria a
+resposta cedo demais e mataria a tensão do hook.
+
+## Armadilha: elemento que atravessa mais de uma cena (15/10/2026)
+
+Layer é por cena. Um elemento que precisa ficar na tela durante **duas ou mais cenas** é
+repetido — uma cópia em cada cena. Quando isso acontece:
+
+**Só a última cópia leva `animOut`.** Se todas levarem, o elemento desaparece e reaparece a cada
+corte, e lê como bug de render. Foi exatamente o que aconteceu em 15/10/2026 com o hook de texto
+que atravessava `hook-a` e `hook-b`: ele piscava no corte.
+
+Mesma lógica para `anim` de entrada: só a **primeira** cópia anima a entrada; as seguintes
+entram com `anim: "none"`, senão o elemento "nasce" de novo a cada corte.

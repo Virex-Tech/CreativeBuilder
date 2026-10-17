@@ -50,3 +50,12 @@ render/public/takes/
 
 # OAuth do Higgsfield (server-side) — NUNCA versionar
 .higgsfield-server/
+
+# gravacoes do app ja borradas (tela-cheia/ e mockup/, por idioma) — 170 MB, o original esta
+# em entrada/<idioma>/gravacoes/ e o Claude regenera com tools/borrar-ocr.mjs
+render/public/app/**/*.mp4
+render/public/app/**/*.png
+!render/public/app/*/icone.png
+
+# dados de idioma que o tesseract.js baixa sozinho na primeira execucao
+*.traineddata

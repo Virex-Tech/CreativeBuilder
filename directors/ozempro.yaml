@@ -1,7 +1,7 @@
 # DirectorProfile — OzemPro
 # Regras de edição que valem para TODO criativo do app. O bloco `never` vence brief e referência.
 # Contexto de produto, público e compliance completo: apps/ozempro/contexto.md
-# Estrutura obrigatória do roteiro (30-40s, virada aos 10s, 3 funcionalidades): apps/ozempro/roteiro-ugc.md
+# Estrutura do roteiro — tres formatos (flash, narrado, viral): apps/ozempro/roteiro-ugc.md
 director: ozempro_v1
 
 pacing:
@@ -12,6 +12,11 @@ pacing:
 transitions:
   allowed: [hard_cut, match_cut]
   forbidden: [crossfade, zoom_blur]
+
+# Faixas verticais (15/10/2026). Fora de 18..82 as redes sociais cobrem com a propria interface.
+safe_band_pct: [18, 82]
+anchor_y_pct: { lower: 75, center: 50, upper: 25 }
+caption_off_on_app_screen: true     # cena com mockup em tela cheia nao leva legenda
 
 captions:
   # legenda oficial dos vídeos do OzemPro (decisão de 13/10/2026) — a implementação do
@@ -48,3 +53,25 @@ never:
   - "texto renderizado dentro de imagem gerada por IA"
   - "tela do app gerada por IA"
   - "mais de 2 frases por cena"
+
+# Desvios por formato (regra da equipe, 14/10/2026). O que nao aparece aqui segue o padrao acima.
+formats:
+  flash:                          # formato original: locucao nossa + telas rapidas
+    duration_ms: [30000, 40000]
+    turn_at_ms: 10000
+  narrado:                        # pessoa real fala, depois vira voz em off
+    duration_ms: [28000, 43000]
+    turn_at_ms: [6000, 9000]      # a virada e o proprio corte para o app
+    cut_every_ms: [5000, 7000]    # plano longo; a tela DENTRO do mockup troca a cada 1000-3000
+    screen_change_ms: [1000, 3000]
+    overlay_only_while_person_speaks: true   # nenhum texto sobre a gravacao de tela
+    person_returns: false                    # a pessoa sai de cena e nao volta, nem no CTA
+    one_screen_per_spoken_sentence: true
+  viral:                          # sem fala, texto na tela, musica
+    duration_ms: [10000, 20000]
+    turn_at_ms: [3000, 6000]
+    cut_every_ms: [3000, 7000]
+    captions: none                # sem karaoke: blocos de texto que trocam inteiros
+    text_block: { words: [6, 12], lines: [2, 3], box: purple_solid_rounded }
+    features_shown: 1             # uma ferramenta so; a regra das 3 funcionalidades nao se aplica
+    cta: written                  # CTA escrito entre 12000 e 15000, nao falado

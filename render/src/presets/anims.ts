@@ -18,6 +18,43 @@ const IDLE: AnimState = { opacity: 1, scale: 1, translateY: 0 };
  * AI picks from a vocabulary the brand already approved, and changing how "pop_in" feels
  * updates every creative at once instead of requiring a rewrite of a thousand specs.
  */
+/**
+ * Como o elemento sai, nos últimos quadros da sua vida. Multiplica o estado de entrada.
+ *
+ * Sem isto todo elemento some de um quadro para o outro. Nas referências nada corta seco:
+ * o que entrou com peso sai com peso.
+ */
+export function resolveExit(
+	animOut: Layer["animOut"] | undefined,
+	frame: number,
+	fps: number,
+	durationInFrames: number,
+): AnimState {
+	if (!animOut || animOut === "none") return IDLE;
+	const dur = Math.max(1, Math.round(fps * 0.28));
+	const inicio = durationInFrames - dur;
+	if (frame < inicio) return IDLE;
+	const t = interpolate(frame, [inicio, durationInFrames], [0, 1], {
+		extrapolateLeft: "clamp",
+		extrapolateRight: "clamp",
+		easing: Easing.in(Easing.quad),
+	});
+
+	switch (animOut) {
+		case "fade_out":
+			return { opacity: 1 - t, scale: 1, translateY: 0 };
+		case "pop_out":
+			return { opacity: 1 - t, scale: 1 + t * 0.18, translateY: 0 };
+		case "slide_down":
+			return { opacity: 1 - t, scale: 1, translateY: t * 70 };
+		case "wipe_out":
+			// Sai encolhendo para o lado de quem leu por último.
+			return { opacity: 1 - t, scale: 1 - t * 0.25, translateY: 0 };
+		default:
+			return IDLE;
+	}
+}
+
 export function resolveAnim(
 	anim: Layer["anim"],
 	frame: number,

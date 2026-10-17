@@ -1,6 +1,6 @@
 {
 	"specVersion": "1",
-	"creativeId": "ozempro-risquinhos",
+	"creativeId": "panda-risquinhos-br",
 	"appId": "ozempro",
 	"locale": "pt-BR",
 	"output": {
@@ -288,7 +288,7 @@
 				},
 				{
 					"type": "app_screen_recording",
-					"src": "app/ozempro/calculadora-calcular-risquinho-na-seringa.mp4",
+					"src": "app/ozempro/br/mockup/calculadora-calcular-risquinho-na-seringa.mp4",
 					"device": "iphone15_mock",
 					"startFromMs": 0,
 					"anim": "none"
@@ -315,7 +315,7 @@
 				},
 				{
 					"type": "app_screen_recording",
-					"src": "app/ozempro/calculadora-calcular-risquinho-na-seringa.mp4",
+					"src": "app/ozempro/br/mockup/calculadora-calcular-risquinho-na-seringa.mp4",
 					"device": "iphone15_mock",
 					"startFromMs": 4000,
 					"anim": "none"
@@ -342,7 +342,7 @@
 				},
 				{
 					"type": "app_screen_recording",
-					"src": "app/ozempro/aplicacao_registrar-dose-e-local.mp4",
+					"src": "app/ozempro/br/mockup/aplicacao_registrar-dose-e-local.mp4",
 					"device": "iphone15_mock",
 					"startFromMs": 3000,
 					"anim": "none"
@@ -369,7 +369,7 @@
 				},
 				{
 					"type": "app_screen_recording",
-					"src": "app/ozempro/aplicacao_registrar-dose-e-local.mp4",
+					"src": "app/ozempro/br/mockup/aplicacao_registrar-dose-e-local.mp4",
 					"device": "iphone15_mock",
 					"startFromMs": 5520,
 					"anim": "none"
@@ -396,7 +396,7 @@
 				},
 				{
 					"type": "app_screen_recording",
-					"src": "app/ozempro/efeitos-colaterais_registrar-sintomas.mp4",
+					"src": "app/ozempro/br/mockup/efeitos-colaterais_registrar-sintomas.mp4",
 					"device": "iphone15_mock",
 					"startFromMs": 0,
 					"anim": "none"
@@ -423,7 +423,7 @@
 				},
 				{
 					"type": "app_screen_recording",
-					"src": "app/ozempro/efeitos-colaterais_registrar-sintomas.mp4",
+					"src": "app/ozempro/br/mockup/efeitos-colaterais_registrar-sintomas.mp4",
 					"device": "iphone15_mock",
 					"startFromMs": 2740,
 					"anim": "none"

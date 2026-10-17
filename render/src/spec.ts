@@ -27,6 +27,8 @@ export const animPreset = z.enum([
 	"float",
 ]);
 
+export const animOutPreset = z.enum(["none", "fade_out", "pop_out", "slide_down", "wipe_out"]);
+
 export const textPreset = z.enum(["hook_stroke", "sub", "caption", "cta_label", "title_top"]);
 
 /**
@@ -40,6 +42,11 @@ const baseLayer = z.object({
 	startMs: z.number().int().min(0).optional(),
 	durationMs: z.number().int().positive().optional(),
 	anim: animPreset.default("none"),
+	/**
+	 * Como o elemento SAI. Sem isto todo elemento corta seco, que é o que separa um criativo
+	 * montado de um criativo editado — nas referências nada desaparece de um quadro para o outro.
+	 */
+	animOut: animOutPreset.optional(),
 });
 
 export const textLayer = baseLayer.extend({
@@ -114,6 +121,8 @@ export const badgeLayer = baseLayer.extend({
 	type: z.literal("badge"),
 	label: z.string().default(""),
 	value: z.string().min(1),
+	/** Cor da caixa; sem isto usa o roxo da marca. */
+	color: z.string().optional(),
 });
 
 /**
@@ -130,6 +139,20 @@ export const karaokeLayer = baseLayer.extend({
 	wordEndsMs: z.array(z.number().int().positive()).optional(),
 	/** Distância do rodapé em % da altura. Padrão alto (perto do centro); baixe quando precisar. */
 	bottomPct: z.number().min(5).max(70).optional(),
+	/**
+	 * Como a palavra falada é destacada. `plain` = só cor (padrão histórico do app);
+	 * `box` = caixa cheia atrás da palavra, como nas referências; `pop` = a palavra cresce
+	 * no instante em que é dita. A escolha é por cena: fala calma pede `plain`, pico pede `pop`.
+	 */
+	style: z.enum(["plain", "box", "pop"]).default("plain"),
+	/** Corpo da fonte em px (base 1080×1920). Sem isto, 62. Suba no hook, desça no texto corrido. */
+	size: z.number().int().min(28).max(130).optional(),
+	/** Palavras por tela. Sem isto, 3. */
+	maxWords: z.number().int().min(1).max(6).optional(),
+	/** Cor da palavra ativa. Sem isto, o accent da marca. */
+	activeColor: z.string().optional(),
+	/** Palavras que ganham destaque permanente (maiores e coloridas), mesmo sem estarem ativas. */
+	emphasis: z.array(z.string()).optional(),
 	/**
 	 * Written by the server from a take's transcript (not by a person or the model). Auto
 	 * captions are thrown away and rebuilt after every edit, so they always match the cut.
@@ -160,6 +183,12 @@ export const stickerLayer = baseLayer.extend({
 	size: z.number().int().positive().default(180),
 	/** Caixa roxa atrás (para selo de texto). */
 	chip: z.boolean().default(false),
+	/** Cor da caixa (ou do texto, quando `chip` é falso). Sem isto, roxo da marca. */
+	color: z.string().optional(),
+	/** Cor do texto dentro da caixa. */
+	textColor: z.string().optional(),
+	/** Emoji ou ícone curto exibido antes do texto, em tamanho maior. */
+	icon: z.string().optional(),
 	/** Largura máxima em % do quadro — com ela o texto quebra em várias linhas. */
 	width: z.number().min(10).max(96).optional(),
 	rotate: z.number().min(-45).max(45).default(0),
@@ -178,7 +207,9 @@ export const cardLayer = baseLayer.extend({
 	title: z.string().min(1),
 	/** Número ou destaque grande embaixo do título (opcional). */
 	value: z.string().optional(),
-	variant: z.enum(["dark", "light", "accent", "alert"]).default("dark"),
+	variant: z.enum(["dark", "light", "accent", "alert", "ok", "warn"]).default("dark"),
+	/** Sobrescreve a cor de fundo da variante. */
+	color: z.string().optional(),
 	/** Centro do cartão em % do quadro. */
 	x: z.number().min(0).max(100).default(50),
 	y: z.number().min(0).max(100).default(18),
@@ -190,7 +221,13 @@ export const cardLayer = baseLayer.extend({
 });
 
 
-/** Imagem solta sobre a cena (logo, print recortado, ícone). Sem cartão em volta. */
+/**
+ * Imagem sobre a cena: foto do Pexels, recorte de uma tela do app, logo, ícone.
+ *
+ * O recorte de tela é feito por `tools/recorte.mjs` e entra aqui como elemento — serve para
+ * mostrar UM pedaço do app (o número da dose, o card da refeição) nas cenas em que o mockup
+ * inteiro não está em cena. Sobre o mockup, nunca: a tela do app é a prova e não se cobre.
+ */
 export const imageLayer = baseLayer.extend({
 	type: z.literal("image"),
 	src: z.string().min(1),
@@ -199,6 +236,14 @@ export const imageLayer = baseLayer.extend({
 	/** Largura em % do quadro. */
 	width: z.number().min(4).max(100).default(26),
 	rotate: z.number().min(-20).max(20).default(0),
+	/** Cantos arredondados em px. 0 = quadrado (logo/ícone com fundo transparente). */
+	radius: z.number().min(0).max(80).default(0),
+	/** Moldura em volta — dá a leitura de "recorte", não de imagem colada. */
+	border: z.boolean().default(false),
+	/** Legenda curta embaixo da imagem. */
+	label: z.string().optional(),
+	/** Cor da moldura e da legenda. Sem isto, o accent da marca. */
+	color: z.string().optional(),
 });
 
 /** Barra fixa no topo com slots que vão sendo preenchidos ("3/6"). */
@@ -208,6 +253,11 @@ export const hudLayer = baseLayer.extend({
 	slots: z.number().int().min(1).max(10).default(3),
 	filled: z.number().int().min(0).max(10).default(0),
 	y: z.number().min(0).max(100).default(6),
+	x: z.number().min(0).max(100).default(50),
+	/** Cor dos slots preenchidos. */
+	color: z.string().optional(),
+	/** Enche um slot por vez, a cada N ms, em vez de já nascer cheio. */
+	fillStaggerMs: z.number().int().min(0).max(2000).optional(),
 });
 
 /** Cartão branco com "equação" de blocos: A + B = C. Cada bloco é texto ou imagem. */
@@ -241,6 +291,10 @@ export const listCardLayer = baseLayer.extend({
 				value: z.string().optional(),
 				struck: z.boolean().default(false),
 				check: z.boolean().default(false),
+				/** Emoji/ícone no lugar do check. */
+				icon: z.string().optional(),
+				/** Cor do check/ícone desta linha. */
+				color: z.string().optional(),
 			}),
 		)
 		.min(1)
@@ -248,9 +302,116 @@ export const listCardLayer = baseLayer.extend({
 	x: z.number().min(0).max(100).default(50),
 	y: z.number().min(0).max(100).default(20),
 	width: z.number().min(30).max(96).default(72),
+	variant: z.enum(["light", "dark"]).default("light"),
+	/** Aparece uma linha por vez, a cada N ms — o olho acompanha o que a voz diz. */
+	staggerMs: z.number().int().min(0).max(1500).default(0),
+	/** Risca a linha `struck` ao vivo, N ms depois dela aparecer. */
+	strikeAtMs: z.number().int().min(0).optional(),
+});
+
+/**
+ * Rabisco desenhado à mão por cima da cena: círculo, seta, sublinhado, X ou colchete.
+ * O traço se DESENHA ao longo de `drawMs` — é o elemento que mais aparece nas referências
+ * e o que mais afasta o vídeo da cara de template.
+ */
+export const scribbleLayer = baseLayer.extend({
+	type: z.literal("scribble"),
+	shape: z.enum(["circle", "arrow", "underline", "cross", "bracket", "zigzag"]).default("circle"),
+	x: z.number().min(0).max(100).default(50),
+	y: z.number().min(0).max(100).default(50),
+	width: z.number().min(5).max(100).default(40),
+	height: z.number().min(3).max(100).default(22),
+	color: z.string().default("#E53935"),
+	/** Espessura do traço em px (base 1080×1920). */
+	stroke: z.number().min(4).max(40).default(14),
+	/** Tempo que o traço leva para se desenhar. */
+	drawMs: z.number().int().min(80).max(3000).default(500),
+	rotate: z.number().min(-45).max(45).default(0),
+});
+
+/** Número que sobe (ou desce) de `from` a `to` — "contador" do vocabulário das referências. */
+export const counterLayer = baseLayer.extend({
+	type: z.literal("counter"),
+	from: z.number().default(0),
+	to: z.number(),
+	/** Casas decimais. */
+	decimals: z.number().int().min(0).max(2).default(0),
+	prefix: z.string().optional(),
+	suffix: z.string().optional(),
+	label: z.string().optional(),
+	x: z.number().min(0).max(100).default(50),
+	y: z.number().min(0).max(100).default(30),
+	size: z.number().int().min(40).max(260).default(140),
+	color: z.string().optional(),
+	/** Caixa atrás do número. */
+	chip: z.boolean().default(true),
+	countMs: z.number().int().min(150).max(4000).default(900),
+});
+
+/** Barra que cresce até `value`% — progresso, meta batida, comparação. */
+export const barLayer = baseLayer.extend({
+	type: z.literal("bar"),
+	label: z.string().optional(),
+	value: z.number().min(0).max(100),
+	valueText: z.string().optional(),
+	x: z.number().min(0).max(100).default(50),
+	y: z.number().min(0).max(100).default(30),
+	width: z.number().min(20).max(96).default(66),
+	color: z.string().optional(),
+	growMs: z.number().int().min(150).max(3000).default(700),
+});
+
+/** Gráfico de linha que se desenha. `flat: true` mantém a linha reta — o platô. */
+export const lineChartLayer = baseLayer.extend({
+	type: z.literal("line_chart"),
+	/** Valores 0..100 (0 = base). Dois pontos ou mais. */
+	points: z.array(z.number().min(0).max(100)).min(2).max(12),
+	label: z.string().optional(),
+	endLabel: z.string().optional(),
+	x: z.number().min(0).max(100).default(50),
+	y: z.number().min(0).max(100).default(30),
+	width: z.number().min(20).max(96).default(62),
+	height: z.number().min(8).max(50).default(22),
+	color: z.string().optional(),
+	drawMs: z.number().int().min(150).max(4000).default(800),
+});
+
+/**
+ * Régua de seringa desenhada: os traços numerados, com uma faixa acesa no intervalo da dose.
+ *
+ * É o assunto do criativo de fracionamento virando imagem. Os números são desenhados pelo
+ * renderer (nunca saem tortos como em imagem generativa) e a faixa cresce para o olho ir até
+ * ela. Vive numa faixa livre do quadro, perto da mão que segura a seringa — nunca sobre o
+ * mockup do app.
+ */
+export const syringeRulerLayer = baseLayer.extend({
+	type: z.literal("syringe_ruler"),
+	/** Começo e fim da escala impressa na seringa (ex.: 0 a 100 UI). */
+	from: z.number().default(0),
+	to: z.number().default(100),
+	/** Distância entre traços pequenos (a seringa de 100 UI costuma ter de 2 em 2). */
+	step: z.number().min(0.5).default(2),
+	/** Traço com número escrito, de quantos em quantos. */
+	labelEvery: z.number().min(1).default(10),
+	/** Intervalo que acende. Sem isto, a régua aparece sem destaque. */
+	highlightFrom: z.number().optional(),
+	highlightTo: z.number().optional(),
+	/** Texto curto acima da faixa acesa (ex.: "puxe até 25"). */
+	label: z.string().optional(),
+	x: z.number().min(0).max(100).default(50),
+	y: z.number().min(0).max(100).default(86),
+	width: z.number().min(30).max(96).default(84),
+	color: z.string().optional(),
+	/** Tempo que a faixa leva para crescer até o intervalo. */
+	drawMs: z.number().int().min(80).max(3000).default(520),
 });
 
 export const layer = z.discriminatedUnion("type", [
+	syringeRulerLayer,
+	scribbleLayer,
+	counterLayer,
+	barLayer,
+	lineChartLayer,
 	textLayer,
 	generativeVideoLayer,
 	footageLayer,

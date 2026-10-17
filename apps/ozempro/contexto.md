@@ -108,6 +108,12 @@ Todos respeitam a seção Compliance (nome do medicamento só por apelido). Os c
 CA01 (set/2026) estão em `analise/criativos/` — o ângulo campeão é o medo de errar a dose na
 seringa → Calculadora de Doses.
 
+**Três formatos liberados** (estrutura de cada um em `roteiro-ugc.md`): **flash** (30–40s, locução
+nossa), **narrado** (28–43s, pessoa real falando e depois em off) e **viral** (10–20s, sem fala, só
+texto e música). Medidos nas 13 referências do app em `analise/criativos/narrado-01..07.md` e
+`viral-01..06.md`. Nas 13, a dor mais testada é **risquinhos/fracionamento** (5 vídeos), depois
+**platô** (3) — o que confirma o ângulo campeão da CA01.
+
 | Ângulo | Hook de exemplo | Estrutura sugerida |
 |---|---|---|
 | Organização das doses | "Dose, local e horário. Tudo registrado." | hook texto → Registrar Aplicação → Próxima dose → CTA |
@@ -145,6 +151,13 @@ Regra única, definida pela equipe em 14/09/2026:
 - **Pode:** o nome do medicamento aparecer nos prints e gravações de tela do aplicativo (ex.: o
   seletor de medicamento da Calculadora de Doses).
 
+**Apelidos por idioma** (a regra é a mesma; o que muda é a palavra):
+
+| Idioma | Use |
+|---|---|
+| pt-BR | moun moun · moun · tirze · canetinha · caneta · picadinha |
+| fr | **le stylo · mon stylo · la piqûre · ma piqûre** (decisão da equipe, 14/10/2026) |
+
 Qualquer outra restrição só entra aqui quando a equipe definir.
 
 ## Material disponível
@@ -152,7 +165,18 @@ Qualquer outra restrição só entra aqui quando a equipe definir.
 - `render/public/app/ozempro/icone.png` — ícone do app.
 - `render/public/broll/ozempro-apresentacao-5s-hook.mp4` — b-roll gerado (mulher na cozinha com
   caderno → celular).
-- **Gravações de tela e prints:** a equipe coloca em `entrada/ozempro/gravacoes/` e
-  `entrada/ozempro/prints/`, com o nome no padrão de `entrada/LEIA-ME.md`
-  (`<recurso>_<o-que-mostra>_<idioma>_<plataforma>`). O Claude copia o trecho usado para
-  `render/public/app/ozempro/`. Ainda não há nenhuma.
+- **Gravações de tela e prints — separados por idioma** (decisão de 14/10/2026). A equipe
+  coloca em `entrada/ozempro/<idioma>/gravacoes/` e `.../prints/` (`pt`, `fr`, ...), com o
+  **mesmo nome de arquivo** em todos os idiomas. O Claude copia o trecho usado para
+  `render/public/app/ozempro/<idioma>/`, e no spec o `src` fica
+  `app/ozempro/<idioma>/<arquivo>`. Catálogo do português em `material.md`;
+  instruções do francês em `entrada/ozempro/fr/LEIA-ME.md`.
+- **O resto é compartilhado entre idiomas:** takes do panda, filmagens, referências, músicas,
+  b-roll, sfx e o ícone do app (`render/public/app/ozempro/icone.png`) valem para qualquer
+  idioma e não se duplicam.
+- **Filmagens de pessoas reais:** `entrada/ozempro/filmagens/` — catálogo em
+  `material-filmagens.md`. Abrem os criativos nos formatos **narrado** e **viral**.
+- **Takes do panda:** `entrada/ozempro/panda/` — catálogo em `material-panda.md`. Servem no lugar
+  da pessoa real na abertura dos três formatos.
+- **Referências de vídeo do app:** `entrada/ozempro/referencias/` — 13 analisadas, fichas em
+  `analise/criativos/narrado-*.md` e `viral-*.md`.
