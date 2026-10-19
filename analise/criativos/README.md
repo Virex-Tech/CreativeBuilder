@@ -19,6 +19,18 @@ Soma de todos os anúncios ativos com o mesmo número (regras em `analise/regras
 | 32 | UGC + Registrar Aplicação e local (15s) — pouco volume | "Se você faz uso do moun moun" | 92,52 | 2 | 46,26 | 2,69 | [32](32.md) |
 | 26 | UGC + Jornada + refeição por foto (24s) — pouco volume | "6 meses de moun e só agora descubro isso" | 53,65 | 1 | 53,65 | 2,80 | [26](26.md) |
 
+## Etiquetas por embalagem (desde 18/10/2026)
+
+Cada ficha nova leva a seção "Etiquetas" (embalagem, dor, hook, produção, fonte, mercado), e o
+nome do anúncio no Gerenciador leva as mesmas etiquetas depois do número
+(`apps/ozempro/formatos.md`, "Nome do anúncio"). O status de cada embalagem no catálogo
+(nunca testado · em teste · validado · reprovado) é atualizado a partir destas fichas.
+
+Etiquetas dos validados acima, pelo que a ficha descreve (a equipe confirma):
+105 · 98 · 112 = E33 truque rápido / E56 demonstração, D1-risquinhos, narrado-viral ·
+57 · 77 · 32 = E56 demonstração, D3-rodízio, narrado · 87 = E59 dia na vida, narrado ·
+95 = **E77 foto do produto, estático** (único estático validado) · 26 = E56, D2, narrado.
+
 ## Modelo que se repete
 
 1. **Hook (0–4s):** mulher comum em casa (cozinha/quarto), celular na mão; pergunta de dor específica

@@ -500,7 +500,7 @@
 				},
 				{
 					"type": "app_screen_recording",
-					"src": "app/ozempro/fr/efeitos-colaterais_registrar-sintomas.mp4",
+					"src": "app/ozempro/fr/mockup/efeitos-colaterais_registrar-sintomas.mp4",
 					"device": "iphone15_mock",
 					"startFromMs": 0
 				},
@@ -567,7 +567,7 @@
 				},
 				{
 					"type": "app_screen_recording",
-					"src": "app/ozempro/fr/tratamento-grafico_medicamento-grafico_evolucao-IMC.mp4",
+					"src": "app/ozempro/fr/mockup/tratamento-grafico_medicamento-grafico_evolucao-IMC.mp4",
 					"device": "iphone15_mock",
 					"startFromMs": 0
 				},
@@ -621,7 +621,7 @@
 				},
 				{
 					"type": "app_screen_recording",
-					"src": "app/ozempro/fr/aplicacao_registrar-dose-e-local.mp4",
+					"src": "app/ozempro/fr/mockup/aplicacao_registrar-dose-e-local.mp4",
 					"device": "iphone15_mock",
 					"startFromMs": 0
 				},
@@ -912,7 +912,7 @@
 				},
 				{
 					"type": "app_screen_recording",
-					"src": "app/ozempro/fr/pagina_inicial-resumo_geral.mp4",
+					"src": "app/ozempro/fr/mockup/pagina_inicial-resumo_geral.mp4",
 					"device": "iphone15_mock",
 					"startFromMs": 0
 				},

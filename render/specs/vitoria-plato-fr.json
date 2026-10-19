@@ -1,0 +1,615 @@
+{
+ "specVersion": "1",
+ "creativeId": "vitoria-plato-fr",
+ "appId": "ozempro",
+ "locale": "fr-FR",
+ "output": {},
+ "format": {
+  "w": 1080,
+  "h": 1920,
+  "fps": 30
+ },
+ "brandKit": {
+  "bg": "#12091F",
+  "fg": "#FFFFFF",
+  "accent": "#8630E4",
+  "fontFamily": "Montserrat, Inter, system-ui, sans-serif"
+ },
+ "audio": {
+  "voiceover": {
+   "src": "audio/ozempro-plato-fr-vo.wav",
+   "atMs": 0,
+   "durationMs": 29700,
+   "script": "J'ai failli abandonner le stylo quand je suis tombée sur le plateau. Mais j'ai eu de la chance, j'ai trouvé l'appli OzemPro, et elle m'a aidée à voir ce que je faisais mal. Sur le graphique j'ai vu la ligne plate, et j'ai vu que je n'atteignais pas mon objectif de protéines de la journée. J'ai commencé à prendre mon assiette en photo. Et elle calcule la quantité de protéines, de fibres et de graisses du repas. Et la partie qui me faisait le plus peur : calculer les graduations. Je saisis le flacon et la dose, et elle me montre exactement jusqu'où tirer pour ne pas me tromper. J'enregistre l'endroit où j'ai piqué, et elle me prévient du jour de la prochaine injection. Fini le doute sur le côté que j'ai utilisé la semaine dernière. J'ai laissé le lien en bas pour que tu télécharges l'appli. Ne perds pas de temps."
+  },
+  "sfx": [
+   {
+    "src": "sfx/click_hook.mp3",
+    "atMs": 0,
+    "volume": 0.55
+   },
+   {
+    "src": "sfx/click.mp3",
+    "atMs": 7360,
+    "volume": 0.5
+   },
+   {
+    "src": "sfx/mostrar_magia.mp3",
+    "atMs": 11620,
+    "volume": 0.38
+   },
+   {
+    "src": "sfx/click.mp3",
+    "atMs": 17840,
+    "volume": 0.45
+   },
+   {
+    "src": "sfx/click.mp3",
+    "atMs": 21800,
+    "volume": 0.45
+   },
+   {
+    "src": "sfx/ding.mp3",
+    "atMs": 26960,
+    "volume": 0.35
+   }
+  ]
+ },
+ "scenes": [
+  {
+   "id": "hook",
+   "role": "HOOK",
+   "startMs": 0,
+   "durationMs": 2580,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "footage",
+     "takeId": "vitoria-12seg-v6",
+     "src": "takes/vitoria-12seg-v6.mp4",
+     "startFromMs": 0,
+     "mirror": true,
+     "zoom": 1,
+     "volume": 0
+    },
+    {
+     "type": "sticker",
+     "content": "3 SEMAINES SANS BOUGER AVEC LE STYLO",
+     "x": 50,
+     "y": 73,
+     "size": 72,
+     "width": 86,
+     "chip": true,
+     "anim": "none",
+     "animOut": "pop_out",
+     "startMs": 0
+    }
+   ]
+  },
+  {
+   "id": "sorte",
+   "role": "PROBLEM",
+   "startMs": 2580,
+   "durationMs": 3480,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "footage",
+     "takeId": "vitoria-12seg-v6",
+     "src": "takes/vitoria-12seg-v6.mp4",
+     "startFromMs": 2580,
+     "mirror": true,
+     "zoom": 1.08,
+     "volume": 0
+    },
+    {
+     "type": "image",
+     "src": "elementos/logo-ozempro.png",
+     "x": 83,
+     "y": 36,
+     "width": 18,
+     "anim": "pop_in",
+     "animOut": "fade_out",
+     "startMs": 1620,
+     "durationMs": 2200
+    },
+    {
+     "type": "karaoke",
+     "text": "Mais j 'ai",
+     "startMs": 0,
+     "durationMs": 280,
+     "wordEndsMs": [
+      180,
+      280,
+      280
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "eu de la",
+     "startMs": 280,
+     "durationMs": 180,
+     "wordEndsMs": [
+      60,
+      120,
+      180
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "chance d 'y",
+     "startMs": 460,
+     "durationMs": 300,
+     "wordEndsMs": [
+      160,
+      280,
+      300
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "trouver l 'appli",
+     "startMs": 760,
+     "durationMs": 440,
+     "wordEndsMs": [
+      160,
+      320,
+      440
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "aux M -Pro",
+     "startMs": 1200,
+     "durationMs": 540,
+     "wordEndsMs": [
+      240,
+      400,
+      540
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "et elle m",
+     "startMs": 1740,
+     "durationMs": 520,
+     "wordEndsMs": [
+      280,
+      400,
+      520
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "'a aidé à",
+     "startMs": 2260,
+     "durationMs": 260,
+     "wordEndsMs": [
+      20,
+      140,
+      260
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "voir ce que",
+     "startMs": 2520,
+     "durationMs": 340,
+     "wordEndsMs": [
+      140,
+      240,
+      340
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "je faisais mal.",
+     "startMs": 2860,
+     "durationMs": 380,
+     "wordEndsMs": [
+      40,
+      260,
+      380
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    }
+   ]
+  },
+  {
+   "id": "grafico",
+   "role": "DEMO",
+   "startMs": 6060,
+   "durationMs": 1300,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "footage",
+     "takeId": "vitoria-12seg-v6",
+     "src": "takes/vitoria-12seg-v6.mp4",
+     "startFromMs": 1500,
+     "mirror": true,
+     "zoom": 1.15,
+     "volume": 0
+    },
+    {
+     "type": "image",
+     "src": "elementos/ozempro-peso-linha-reta-fr.png",
+     "x": 50,
+     "y": 70,
+     "width": 68,
+     "radius": 20,
+     "border": true,
+     "anim": "pop_in",
+     "animOut": "fade_out",
+     "startMs": 100
+    }
+   ]
+  },
+  {
+   "id": "proteina",
+   "role": "DEMO",
+   "startMs": 7360,
+   "durationMs": 2960,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 0,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/fr/mockup/meta-do-dia.png",
+     "device": "iphone15_mock",
+     "anim": "punch_in"
+    }
+   ]
+  },
+  {
+   "id": "foto",
+   "role": "DEMO",
+   "startMs": 10320,
+   "durationMs": 1300,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 2960,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/fr/mockup/registro_alimentacao-macros_por_foto.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 1135
+    }
+   ]
+  },
+  {
+   "id": "macros",
+   "role": "DEMO",
+   "startMs": 11620,
+   "durationMs": 3300,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 4260,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/fr/mockup/macros-da-refeicao.png",
+     "device": "iphone15_mock",
+     "anim": "punch_in"
+    }
+   ]
+  },
+  {
+   "id": "medo",
+   "role": "DEMO",
+   "startMs": 14920,
+   "durationMs": 2920,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "footage",
+     "takeId": "vitoria-12seg-v6",
+     "src": "takes/vitoria-12seg-v6.mp4",
+     "startFromMs": 8200,
+     "mirror": true,
+     "zoom": 1.12,
+     "volume": 0
+    },
+    {
+     "type": "syringe_ruler",
+     "from": 0,
+     "to": 100,
+     "step": 2,
+     "labelEvery": 10,
+     "highlightFrom": 0,
+     "highlightTo": 25,
+     "x": 50,
+     "y": 75,
+     "width": 86,
+     "anim": "slide_up",
+     "animOut": "fade_out",
+     "startMs": 500
+    },
+    {
+     "type": "karaoke",
+     "text": "Et la partie",
+     "startMs": 0,
+     "durationMs": 360,
+     "wordEndsMs": [
+      100,
+      200,
+      360
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "qui me faisait",
+     "startMs": 360,
+     "durationMs": 380,
+     "wordEndsMs": [
+      140,
+      220,
+      380
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "le plus peur,",
+     "startMs": 740,
+     "durationMs": 540,
+     "wordEndsMs": [
+      140,
+      280,
+      540
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "calculer les graduations.",
+     "startMs": 1480,
+     "durationMs": 1020,
+     "wordEndsMs": [
+      440,
+      560,
+      1020
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    }
+   ]
+  },
+  {
+   "id": "calc-form",
+   "role": "DEMO",
+   "startMs": 17840,
+   "durationMs": 1080,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 7560,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/fr/mockup/calculadora-calcular-risquinho-na-seringa.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 4267
+    }
+   ]
+  },
+  {
+   "id": "calc-resultado",
+   "role": "DEMO",
+   "startMs": 18920,
+   "durationMs": 2880,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 8640,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/fr/mockup/calculadora-calcular-risquinho-na-seringa.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 0
+    }
+   ]
+  },
+  {
+   "id": "local",
+   "role": "DEMO",
+   "startMs": 21800,
+   "durationMs": 1020,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 11520,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/fr/mockup/aplicacao_registrar-dose-e-local.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 6505
+    }
+   ]
+  },
+  {
+   "id": "proxima",
+   "role": "DEMO",
+   "startMs": 22820,
+   "durationMs": 2240,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 12540,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/fr/mockup/pagina_inicial-resumo_geral.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 0
+    }
+   ]
+  },
+  {
+   "id": "lado",
+   "role": "PROOF",
+   "startMs": 25060,
+   "durationMs": 1900,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 14780,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/fr/mockup/tratamento-grafico_medicamento-grafico_evolucao-IMC.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 206
+    }
+   ]
+  },
+  {
+   "id": "cta",
+   "role": "CTA",
+   "startMs": 26960,
+   "durationMs": 2740,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 16680,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/fr/mockup/pagina_inicial-resumo_geral.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 1600
+    }
+   ]
+  }
+ ]
+}

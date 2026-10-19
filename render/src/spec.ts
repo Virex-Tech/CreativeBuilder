@@ -13,6 +13,26 @@ import { z } from "zod";
 
 export const sceneRole = z.enum(["HOOK", "PROBLEM", "DEMO", "PROOF", "CTA", "POINT"]);
 
+/**
+ * APARÊNCIA do texto, separada da animação (19/10/2026).
+ *
+ * O catálogo de referência trata cada estilo como uma cena fechada ("texto impacto", "texto com
+ * contorno"). Aqui é um campo: a mesma aparência vale para o hook, para o título e para o selo,
+ * e combina com qualquer `anim`/`animOut`. Nove aparências × as entradas = muito mais do que
+ * nove cenas prontas dariam.
+ */
+export const textLook = z.enum([
+	"plain",            // como sempre foi — é o padrão, nada muda nos specs antigos
+	"impact",           // peso máximo, caixa alta, sombra dura
+	"outline_glow",     // contorno aceso em volta da letra
+	"translucent_box",  // caixa de vidro fosco atrás
+	"chromatic",        // franja vermelha e ciano deslocada
+	"glitch",           // a cor pula entre quadros
+	"doodle",           // escrito à mão (Caveat)
+	"red_word",         // uma palavra em vermelho: marque com *asteriscos*
+	"spotlight_off",    // o texto some e sobra um brilho
+]);
+
 /** Named animation presets. The spec references behaviour by name, never by raw easing. */
 export const animPreset = z.enum([
 	"none",
@@ -25,6 +45,12 @@ export const animPreset = z.enum([
 	"shake",
 	"zoom_punch",
 	"float",
+	// Entradas de texto (19/10/2026). Valem em qualquer layer, mas foram desenhadas para texto:
+	"typewriter",   // uma letra por vez
+	"spring",       // entra passando do ponto e volta
+	"twist",        // entra girando no eixo Y
+	"exhale",       // abre grande e assenta
+	"rising_glow",  // sobe acendendo
 ]);
 
 export const animOutPreset = z.enum(["none", "fade_out", "pop_out", "slide_down", "wipe_out"]);
@@ -53,6 +79,10 @@ export const textLayer = baseLayer.extend({
 	type: z.literal("text"),
 	content: z.string().min(1),
 	preset: textPreset.default("sub"),
+	/** Aparência. Sem isto, `plain` — nenhum spec antigo muda. */
+	look: textLook.optional(),
+	/** Cor da palavra marcada com *asteriscos* quando `look` é `red_word`. */
+	lookColor: z.string().optional(),
 });
 
 /** Generated b-roll (Kie / Higgsfield / fal). `assetId` is the provider task id once the asset exists. */
@@ -192,6 +222,9 @@ export const stickerLayer = baseLayer.extend({
 	/** Largura máxima em % do quadro — com ela o texto quebra em várias linhas. */
 	width: z.number().min(10).max(96).optional(),
 	rotate: z.number().min(-45).max(45).default(0),
+	/** Aparência do texto do selo. Sem isto, `plain`. */
+	look: textLook.optional(),
+	lookColor: z.string().optional(),
 });
 
 
@@ -329,6 +362,153 @@ export const scribbleLayer = baseLayer.extend({
 	rotate: z.number().min(-45).max(45).default(0),
 });
 
+/**
+ * APONTADOR: o "olha aqui" do criativo.
+ *
+ * Quase todo criativo nosso mostra a tela do app e precisa dirigir o olho para um ponto dela.
+ * Até 19/10/2026 não havia com o quê — o `scribble` (traço à mão) foi reprovado pela equipe.
+ * O apontador é limpo, de interface, não rabiscado.
+ *
+ * Uma layer, dezesseis formas, e elas se combinam com cor, tamanho e as animações de entrada e
+ * saída do `baseLayer`. `text` só é usado por `banner` e `number`.
+ *
+ * Regra de uso: o apontador aponta PARA FORA de si — encoste-o na coisa, não em cima dela. Sobre
+ * o mockup do celular não entra nada (ver elementos-playbook.md).
+ */
+export const pointerLayer = baseLayer.extend({
+	type: z.literal("pointer"),
+	shape: z.enum([
+		"curved_arrow",   // seta curva, a mais usada
+		"side_arrow",     // seta reta, entra pela lateral
+		"down_arrow",     // seta de cima para baixo, bate e para
+		"tap",            // toque: círculo com onda saindo
+		"highlighter",    // marca-texto que varre da esquerda
+		"underline",      // sublinhado que cresce
+		"box",            // retângulo de destaque que se desenha
+		"banner",         // faixa com texto e bico apontando
+		"number",         // bolha numerada (passo 1, 2, 3)
+		"check",          // check verde
+		"cross",          // X vermelho
+		"exclamation",    // exclamação
+		"question",       // interrogação
+		"rays",           // raios saindo do ponto
+		"spotlight",      // escurece o resto e abre um buraco de luz
+		"toggle",         // alternador ligando
+	]).default("curved_arrow"),
+	x: z.number().min(0).max(100).default(50),
+	y: z.number().min(0).max(100).default(50),
+	/** Tamanho em % da largura do quadro. */
+	size: z.number().min(4).max(100).default(18),
+	/** Sem cor, usa o accent da marca. `check` e `cross` têm cor própria. */
+	color: z.string().optional(),
+	rotate: z.number().min(-180).max(180).default(0),
+	/** Texto de `banner` e `number`. */
+	text: z.string().optional(),
+	/** Tempo que a forma leva para se desenhar/entrar. */
+	drawMs: z.number().int().min(80).max(3000).default(420),
+});
+
+/**
+ * PAINÉIS DE SAÚDE E COMIDA (19/10/2026).
+ *
+ * Seis layers que o OzemPro usa toda hora e que o vocabulário não tinha: onde se aplica, o que
+ * se come, o que trocar, quanto é demais, e os sinais de alerta. Todas desenhadas pelo renderer
+ * — nada de imagem generativa, que erra letra e número.
+ *
+ * Como sempre: ficam numa faixa livre do quadro e nunca sobre o mockup do celular.
+ */
+
+/** Corpo visto de frente com os pontos de aplicação; o ponto escolhido acende. */
+export const bodyMapLayer = baseLayer.extend({
+	type: z.literal("body_map"),
+	/**
+	 * Pontos acesos. `abdomen_*` são os da bula; `thigh`/`arm` completam.
+	 *
+	 * Esquerda e direita seguem a tela do app, não a anatomia: `_r` acende do lado direito de
+	 * quem assiste, igual ao seletor "Abdomen Inf. Der." do OzemPro. Não "corrigir" para o lado
+	 * do paciente — ia desencontrar do produto.
+	 */
+	spots: z
+		.array(z.enum(["abdomen_ul", "abdomen_ur", "abdomen_ll", "abdomen_lr", "thigh_l", "thigh_r", "arm_l", "arm_r"]))
+		.default([]),
+	/** Texto curto abaixo do corpo (ex.: "abdômen inferior direito"). */
+	label: z.string().optional(),
+	x: z.number().min(0).max(100).default(50),
+	y: z.number().min(0).max(100).default(45),
+	width: z.number().min(15).max(90).default(46),
+	color: z.string().optional(),
+	/** Tempo até o ponto acender. */
+	drawMs: z.number().int().min(100).max(3000).default(600),
+});
+
+/** Prato dividido em fatias, cada uma com nome e proporção — "metade legume, um quarto proteína". */
+export const plateLayer = baseLayer.extend({
+	type: z.literal("plate"),
+	slices: z
+		.array(z.object({ label: z.string(), percent: z.number().min(1).max(100), color: z.string().optional() }))
+		.min(2)
+		.max(5),
+	x: z.number().min(0).max(100).default(50),
+	y: z.number().min(0).max(100).default(42),
+	width: z.number().min(20).max(90).default(56),
+	drawMs: z.number().int().min(150).max(3000).default(800),
+});
+
+/** Troca: isto sai, aquilo entra. Dois cartões e uma seta no meio. */
+export const swapLayer = baseLayer.extend({
+	type: z.literal("swap"),
+	fromLabel: z.string(),
+	toLabel: z.string(),
+	fromIcon: z.string().optional(),
+	toIcon: z.string().optional(),
+	/** Texto pequeno sob a seta (ex.: "−180 kcal"). */
+	note: z.string().optional(),
+	x: z.number().min(0).max(100).default(50),
+	y: z.number().min(0).max(100).default(45),
+	width: z.number().min(40).max(96).default(84),
+	drawMs: z.number().int().min(150).max(3000).default(700),
+});
+
+/** Grade de unidades que aparecem uma a uma — "são 12 cubos de açúcar nisso aqui". */
+export const unitsLayer = baseLayer.extend({
+	type: z.literal("units"),
+	count: z.number().int().min(1).max(60),
+	shape: z.enum(["cube", "circle", "drop", "pill"]).default("cube"),
+	label: z.string().optional(),
+	x: z.number().min(0).max(100).default(50),
+	y: z.number().min(0).max(100).default(42),
+	width: z.number().min(20).max(92).default(62),
+	color: z.string().optional(),
+	/** Tempo até a última unidade aparecer. */
+	drawMs: z.number().int().min(200).max(5000).default(1200),
+});
+
+/** Medidor com faixa de limite: o ponteiro anda e para — verde, amarelo, vermelho. */
+export const limitGaugeLayer = baseLayer.extend({
+	type: z.literal("limit_gauge"),
+	value: z.number().min(0).max(100),
+	limit: z.number().min(0).max(100).default(70),
+	label: z.string().optional(),
+	valueText: z.string().optional(),
+	x: z.number().min(0).max(100).default(50),
+	y: z.number().min(0).max(100).default(40),
+	width: z.number().min(25).max(92).default(60),
+	drawMs: z.number().int().min(150).max(3000).default(900),
+});
+
+/** Lista de sinais de alerta, cada um com seu ícone, entrando em sequência. */
+export const warningSignsLayer = baseLayer.extend({
+	type: z.literal("warning_signs"),
+	title: z.string().optional(),
+	items: z.array(z.object({ icon: z.string().optional(), text: z.string() })).min(1).max(6),
+	x: z.number().min(0).max(100).default(50),
+	y: z.number().min(0).max(100).default(45),
+	width: z.number().min(40).max(94).default(80),
+	color: z.string().optional(),
+	/** Intervalo entre um item e o seguinte. */
+	staggerMs: z.number().int().min(60).max(1200).default(220),
+});
+
 /** Número que sobe (ou desce) de `from` a `to` — "contador" do vocabulário das referências. */
 export const counterLayer = baseLayer.extend({
 	type: z.literal("counter"),
@@ -409,6 +589,13 @@ export const syringeRulerLayer = baseLayer.extend({
 export const layer = z.discriminatedUnion("type", [
 	syringeRulerLayer,
 	scribbleLayer,
+	pointerLayer,
+	bodyMapLayer,
+	plateLayer,
+	swapLayer,
+	unitsLayer,
+	limitGaugeLayer,
+	warningSignsLayer,
 	counterLayer,
 	barLayer,
 	lineChartLayer,
@@ -544,6 +731,7 @@ export const creativeSpec = z.object({
 export type CreativeSpec = z.infer<typeof creativeSpec>;
 export type Scene = z.infer<typeof scene>;
 export type Layer = z.infer<typeof layer>;
+export type TextLook = z.infer<typeof textLook>;
 export type BrandKit = z.infer<typeof brandKit>;
 export type TextPreset = z.infer<typeof textPreset>;
 export type SpecAudio = z.infer<typeof specAudio>;

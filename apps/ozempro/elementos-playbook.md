@@ -295,6 +295,46 @@ quadro, o foco é ele e nada entra por cima — a tela do app é a prova do prod
 **Vídeo dentro de elemento não existe** e não é para usar por enquanto (decisão de 14/10). Só
 imagem.
 
+## Vocabulário novo (19/10/2026) — apontadores, aparências de texto e painéis
+
+Entrou a partir da leitura do catálogo do `editonny` (MIT, de onde veio só a **referência**: nada
+do código, dos assets nem da GSAP dele está aqui). Tudo desenhado pelo renderer, com Montserrat e
+a cor da marca. Demonstrações renderizáveis em `render/specs/_vocabulario/`.
+
+### `pointer` — o "olha aqui" (16 formas)
+
+`curved_arrow` · `side_arrow` · `down_arrow` · `tap` · `highlighter` · `underline` · `box` ·
+`banner` · `number` · `check` · `cross` · `exclamation` · `question` · `rays` · `spotlight` ·
+`toggle`
+
+Campos: `shape`, `x`, `y`, `size` (% da largura), `color`, `rotate`, `text` (só `banner` e
+`number`), `drawMs`. O apontador **encosta** na coisa, não fica em cima dela — e nada entra sobre
+o mockup do celular. O círculo à mão continua reprovado e não existe aqui.
+
+### `look` — aparência do texto (9), no `text` e no `sticker`
+
+`plain` (padrão) · `impact` · `outline_glow` · `translucent_box` · `chromatic` · `glitch` ·
+`doodle` · `red_word` · `spotlight_off`
+
+Em `red_word`, a palavra entre `*asteriscos*` sai colorida (`lookColor`). `doodle` usa a fonte
+**Caveat**, que precisa estar instalada na máquina que renderiza.
+
+A aparência é separada da animação, então combina com qualquer `anim`. Entraram cinco entradas
+novas, que valem em qualquer layer: `typewriter`, `spring`, `twist`, `exhale`, `rising_glow`.
+
+### Painéis de saúde e comida (6 layers)
+
+| Layer | Para quê |
+|---|---|
+| `body_map` | corpo de frente com os pontos de aplicação; o escolhido acende |
+| `plate` | prato dividido em fatias com nome e proporção |
+| `swap` | "isto sai, aquilo entra" — dois cartões, seta e nota |
+| `units` | N unidades aparecendo uma a uma (cubos de açúcar, gotas, comprimidos) |
+| `limit_gauge` | medidor com faixa de limite: verde, amarelo, vermelho |
+| `warning_signs` | sinais de alerta em lista, entrando em sequência |
+
+Os seis usam a mesma caixa de vidro dos cartões, para não parecerem de outro kit.
+
 ## Reprovado pela equipe
 
 - **Círculo à mão (`scribble` com `shape: "circle"`)** — testado em 14/10/2026 e reprovado: não
@@ -329,3 +369,93 @@ que atravessava `hook-a` e `hook-b`: ele piscava no corte.
 
 Mesma lógica para `anim` de entrada: só a **primeira** cópia anima a entrada; as seguintes
 entram com `anim: "none"`, senão o elemento "nasce" de novo a cada corte.
+
+---
+
+## Moldes de interface (embalagens do PDF, 18/10/2026)
+
+Cada molde abaixo é **vocabulário de consulta**, não componente de estoque: a regra da seção 7
+vale. Primeiro se entende o que a frase do criativo precisa mostrar; só então se desenha o mock
+daquele criativo. Todo mock é desenhado pelo Remotion (texto e interface nunca vêm de modelo
+generativo) e nenhum print real de terceiro entra sem autorização por escrito. O número é o da
+embalagem em `formatos.md`.
+
+A coluna "Com o que já existe" descreve um **esboço aceitável hoje**, montado só com as layers da
+lista "O que o renderer sabe fazer". Não é o mock fiel. A coluna "O que falta" diz o que
+precisaria existir para ficar fiel; onde diz "não existe", não existe.
+
+| Molde | Embalagens | Com o que já existe | O que falta no renderer | Cuidado |
+|---|---|---|---|---|
+| Nota do iPhone | 4, 42 | `card` variant `light` (amarelo-papel via `color`) com `title` = título da nota e `kicker` = data; texto da nota em `text` preset `sub` por cima; `list_card` variant `light` se a nota for lista | Moldura do app Notas (barra com "< Notas", ícones de compartilhar) e texto digitado letra a letra: o typewriter do catálogo 4.25 **não existe** como layer nem como `anim` | Conteúdo é cena vivida, com detalhe miúdo. Sem bordão, sem frase de efeito. Sem logo até o CTA |
+| Conversa de WhatsApp | 5 | `card` `light` e `card` `ok` (verde) empilhados em `y` diferentes, um por mensagem, cada um com `startMs` próprio; `sticker` com `chip` para a hora | **Não existe layer para isso.** Faltam balões alinhados à esquerda e à direita, cauda do balão, avatar, nome do contato, tique de lido e cabeçalho do app. Os `card` são centrados por `x` e a altura varia com o texto, então o esboço lê como dois cartões, não como conversa | Encenação declarada (selo "simulação") ou conversa real autorizada. Nome e foto fictícios. Pergunta de dor com apelido da caneta |
+| Barra de busca do Google com autocompletar | 7 | `card` `light` com `title` = termo digitado; `list_card` `light` logo abaixo com as sugestões (`staggerMs` faz entrarem uma a uma, até 6 linhas) | Campo arredondado com lupa e logo, lista de sugestões colada ao campo, cursor piscando e digitação. Hoje campo e lista são dois elementos separados | Sugestões com apelido (canetinha, moun, tirze), tiradas da masterlist de dores. Não afirmar nada sobre quem pesquisa |
+| Thread / pergunta em grupo com respostas | 8 | `card` `light` para a pergunta e 2–3 `card` menores abaixo, um por resposta, com `startMs` escalonado; a resposta que aponta a calculadora usa `variant` `accent` | Avatar redondo, nome, hora, recuo da resposta, contador de curtidas. Layer de post ou comentário com avatar não existe (o 4.21 do catálogo também não) | Nomes e avatares fictícios. Nunca post real sem autorização. Carrossel: um cartão por resposta |
+| Caixinha de pergunta do story | 10 | `card` `accent` com `kicker` = "Faça uma pergunta" e `title` = a pergunta; `card` `light` ou `image` (recorte da calculadora) como resposta | Fundo em degradê do story, caixa branca arredondada com a pergunta, moldura do story (barra de progresso no topo, avatar). Nada disso é layer | A faixa acima de y 18 é coberta pela interface da rede: o mock fica nas três faixas. Pergunta = dor com apelido; resposta = tela do app |
+| Faixa de aviso amarela | 12 | `card` `warn` (ou `alert`) com `kicker` = "Atenção" e `title` = o erro da prática; `sticker` com ícone de alerta; `anim: "shake"`. Montável por inteiro | Nada essencial. Uma faixa de largura total ajudaria (hoje o `card` vai até 96% e tem cantos arredondados) | Uma vez por vídeo (playbook 4.2). O erro é da prática ("dose contada de cabeça"), nunca de quem lê. Sfx `error.mp3` |
+| Caixa "quebre o vidro em caso de emergência" | 14 | `card` `alert` (vermelho) com `title` = "Em caso de dúvida na dose" e `image` = ícone do app dentro do cartão; `sticker` com `rotate` pequeno | Moldura de vidro (reflexo, rachadura) e o martelo preso na corrente. Sem isso, lê como cartão vermelho com ícone | Dor: dúvida de dose na hora de aplicar. Sfx `click_hook.mp3`. Ícone do app é o oficial, nunca refeito |
+| Tela de chamada recebida | 29 | `solid` escuro de fundo, `image` com `radius` alto (ícone do app ou panda), `text` preset `title_top` com o nome, dois `sticker` com `chip` (verde e vermelho) para atender e recusar | Layout de chamada (nome grande, "chamando…", botões circulares com ícone de telefone, rótulos) e animação de toque. Os botões são `sticker` soltos, sem ícone de telefone | Nome da marca ou "Pandinha do OzemPro". Nunca nome ou rosto de pessoa real. Em vídeo, 5 s e corta para o app. Sfx de toque ainda não existe em `sfx/` |
+| Mock de manchete de portal | 1, 2, 26 | `card` `light` com `kicker` = veículo genérico e data, `title` = manchete, `value` = dado; `image` do Pexels acima | Cabeçalho de portal (logo, menu), foto com crédito, fonte de manchete. O renderer só tem Montserrat | **Só fato real e verificável, fonte e data na tela.** Nunca inventar notícia. Veículo genérico, nunca a marca de um portal real. Dado de estudo: ok da equipe antes |
+| Mock de e-mail | 6 | `card` `light` com `kicker` = remetente, `title` = assunto, `value` = primeira linha do corpo | Linha de caixa de entrada (avatar, remetente em negrito, prévia em cinza, hora, marca de não lido). Layer de e-mail não existe | Prioridade baixa (o público do app não vive no e-mail). Remetente fictício |
+| Mock de comentário de anúncio | 35, 47, 20 | `card` `light` com `kicker` = nome coberto e `title` = o comentário; `image` com `radius` alto como avatar; a resposta em `card` `accent` ou `ok` | Layer de comentário: avatar redondo à esquerda, balão cinza, "Curtir · Responder · 3 h", resposta recuada. É o mesmo buraco do 4.21 | Só comentário real dos **nossos** anúncios, nome e foto cobertos. Comentário de terceiro só com autorização. Se for encenação, selo "simulação" |
+| Diagrama de Venn | 30 | `equation` com dois blocos e o app no meio (`op: "plus"`, `op: "equals"`) como esboço; ou uma arte de Venn feita à parte entrando como `image`, com os rótulos em `text` | Dois círculos translúcidos sobrepostos, rótulo em cada um, interseção destacada. Não existe layer de forma geométrica (círculo preenchido, opacidade). O `scribble` circle é traço à mão e está **reprovado** | Rótulos sobre o app, não sobre quem assiste ("o que quero registrar" / "o que o médico pergunta") |
+| Mito x fato / duas colunas | 16, 37, 40, 67 | Dois `card` lado a lado, `x` 27 e 73, `width` 44, um `alert` (mito) e um `ok` (fato); ou dois `list_card` com `check` e `icon` por item; `equation` para o 4.20 | Layer `two_columns` com cabeçalho por coluna, divisória e itens alinhados linha a linha. Com dois `card` o alinhamento depende de acertar `y` na mão, e as alturas variam com o texto | Mito e fato sobre a **rotina e o app**, nunca afirmação médica. #67: o que o app faz, nunca descrevendo quem assiste. Sem concorrente pelo nome |
+| Tabela com checks e X | 58, 37, 39 | `list_card` `light` com `icon` e `color` por linha ("✓" verde, "✕" vermelho), uma linha por critério; para colunas, dois `list_card` lado a lado | Tabela de verdade: cabeçalho de colunas, grade, células alinhadas por linha. O `list_card` tem uma só coluna de valor | **Nunca planos nem preço.** Tabela dos jeitos de calcular (cabeça, tabela do WhatsApp, calculadora) ou das abas do app. Sem citar concorrente |
+| Outdoor com texto em perspectiva | 27 | `image` do Pexels (outdoor ou ponto de ônibus) em tela cheia + `text` preset `title_top`, ou `sticker` com `rotate` e `width` estreita | Transformação de perspectiva (corner pin) para casar texto com o plano do outdoor. `rotate` é só giro no plano: o texto fica colado na foto, não dentro do outdoor | Texto curto, com apelido. Foto do Pexels sem marca legível de terceiro nem rosto reconhecível |
+| Celular com o app em fundo limpo (foto do produto) | 77, 78 | `app_screen_recording` com `device: "iphone15_mock"` e `src` de um print (`.png`); fundo `solid` `#F6F2FC` ou `#12091F`; `text` preset `title_top` com uma frase; `image` com o ícone. Montável por inteiro: é o molde do criativo 95 (validado). Para o 78, `image` do Pexels de bancada ao fundo | Sombra de contato, reflexo, inclinação em perspectiva e fundo de estúdio em degradê. O molde sai sem isso | Sem preço. Tela do app sem nome de medicamento legível (regra do borrão). Uma frase só |
+| Carta longa (estático com muito texto) | 53 | `card` `light` com `color` amarelo-papel, `width` 90, `rotate` de 1 a 2 graus; texto em `title` | Bloco de texto corrido, com quebra de linha e fonte manuscrita ou de post-it. O `card` serve para 3–4 linhas; mais que isso exige dividir em cartões (carrossel) | Conexão, detalhe miúdo, zero frase de efeito. Primeira pessoa só de pessoa real; sem ela, impessoal. É a exceção declarada à regra de 6–12 palavras |
+| Carta de término (nota em tom de despedida) | 42 | O esboço da nota do iPhone: `card` `light` + `text`; o jeito antigo riscado com `list_card` e `strikeAtMs` | Os mesmos buracos da nota do iPhone | Despedida do **jeito antigo** (caderno, tabela), nunca de pessoa. Precisa de detalhe vivido; frase de efeito é proibida |
+
+**Montáveis hoje só com o que existe:** faixa de aviso amarela (12); celular com o app em fundo
+limpo (77/78); caixa de emergência (14, sem moldura de vidro); mito x fato e tabela com checks e
+X (16/37/39/40/58/67, com `card` e `list_card`); mock de manchete (1/2/26); nota do iPhone e
+carta de término (4/42, sem moldura do app); carta longa (53, só curta); busca do Google (7,
+em dois elementos); outdoor (27, sem perspectiva).
+
+**Precisam de layer nova para ficar fiéis:** conversa de WhatsApp (5), thread (8), comentário de
+anúncio (35/47), caixinha do story (10), tela de chamada (29), e-mail (6), Venn (30), e o
+outdoor (27) para a perspectiva.
+
+### Regras que valem para todo mock
+
+- **Tipografia e cor da marca:** Montserrat (negrito no título, semibold no resto), roxo
+  `#8630E4`, fundo `#12091F` ou off-white `#F6F2FC`. As cores com significado da seção 3 valem
+  (vermelho erro, verde confirmado, amarelo alerta). O mock imita a **estrutura** da interface,
+  nunca a identidade visual de terceiro (logo do WhatsApp, do Google, de portal).
+- **Três faixas verticais, só três:** inferior y≈75, centro y≈50, topo y≈25. Nada acima de y 18
+  nem abaixo de y 82. Mock alto (conversa, thread) ocupa **uma** faixa; se não cabe, divide em
+  duas cenas.
+- **Texto curto:** 6 a 12 palavras por bloco, como no viral. Mock que precisa de mais vira
+  carrossel ou fica de fora (a carta longa, 53, é a única exceção).
+- **Nome e foto fictícios.** Nada de nome real, foto real, telefone ou @ de perfil real.
+  Comentário real dos nossos anúncios só com nome e foto cobertos.
+- **Selo pequeno "simulação"** (`sticker` ou `disclaimer`) sempre que for encenação: conversa,
+  thread, comentário, chamada e e-mail.
+- **Nada sobre quem assiste:** o mock mostra a dúvida como comum, nunca presume peso, corpo,
+  tratamento ou sintoma. Nome de medicamento só por apelido (canetinha, moun, tirze).
+- **Sem frase de efeito dentro do mock.** Conexão, fator uau ou polêmica.
+- **O mock some antes de a tela do app entrar:** a regra "legenda sai quando a tela do app
+  entra" vale para mock também. Saída com `animOut`; nunca mock por cima do mockup do celular.
+- **Elemento nunca com legenda por cima:** cena de mock sem `karaoke` sobre ele; estático não
+  leva legenda.
+
+### Pedidos para o renderer
+
+Em ordem de prioridade (o que destrava mais embalagens vem primeiro). Nada disto existe; é só a
+lista.
+
+1. **`chat`** (balões). Mensagens com lado (esquerda ou direita), avatar, nome, hora, tique de
+   lido e entrada uma a uma (`staggerMs`). Variantes `whatsapp`, `comment` (avatar, balão,
+   resposta recuada) e `thread`. Destrava: #5 conversa de WhatsApp, #8 thread, #35 e #47
+   (comentário de anúncio), #20 (comentário atrás da pessoa).
+2. **`phone_ui`** com variantes `notes`, `search`, `call`, `story_box` e `email`. Moldura do app
+   (cabeçalho, campo, botões) mais conteúdo em texto, com digitação letra a letra (`typeMs`).
+   Destrava: #4 e #42 (notas), #7 (Google com autocompletar), #29 (chamada), #10 (caixinha),
+   #6 (e-mail).
+3. **`two_columns`**. Duas colunas com cabeçalho, divisória e itens alinhados linha a linha, cada
+   item com ✓ ou ✕. Destrava: #16 mito x fato, #37 nós contra eles, #39 jeito antigo × novo,
+   #40 problema × solução, #58 tabela, #67 pra quem é / pra quem não é.
+4. **Campo `perspective`** (corner pin, quatro cantos em % do quadro) em `image` e `text`.
+   Destrava: #27 outdoor, #78 foto de estúdio e o print inclinado do 4.18.
+5. **`shape`** (círculo e retângulo com `fill`, `opacity` e rótulo) e `anim: "type_in"` no
+   `text`. Destrava: #30 Venn, sem usar o círculo à mão reprovado, e a digitação do 4.25 nos
+   moldes que já têm esboço (#4, #42, #7).

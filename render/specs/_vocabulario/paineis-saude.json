@@ -1,0 +1,198 @@
+{
+ "specVersion": "1",
+ "creativeId": "_vocab-paineis",
+ "appId": "ozempro",
+ "locale": "pt-BR",
+ "output": {},
+ "format": {
+  "w": 1080,
+  "h": 1920,
+  "fps": 30
+ },
+ "brandKit": {
+  "bg": "#12091F",
+  "fg": "#FFFFFF",
+  "accent": "#8630E4",
+  "fontFamily": "Montserrat, Inter, system-ui, sans-serif"
+ },
+ "audio": {},
+ "scenes": [
+  {
+   "id": "body",
+   "role": "DEMO",
+   "startMs": 0,
+   "durationMs": 2000,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "solid",
+     "color": "#1B1030"
+    },
+    {
+     "type": "body_map",
+     "spots": [
+      "abdomen_lr"
+     ],
+     "label": "abdômen inferior direito",
+     "x": 50,
+     "y": 40,
+     "width": 46,
+     "anim": "pop_in",
+     "startMs": 0
+    }
+   ]
+  },
+  {
+   "id": "plate",
+   "role": "DEMO",
+   "startMs": 2000,
+   "durationMs": 2000,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "solid",
+     "color": "#1B1030"
+    },
+    {
+     "type": "plate",
+     "slices": [
+      {
+       "label": "legume",
+       "percent": 50
+      },
+      {
+       "label": "proteína",
+       "percent": 25
+      },
+      {
+       "label": "carboidrato",
+       "percent": 25
+      }
+     ],
+     "x": 50,
+     "y": 40,
+     "width": 58,
+     "anim": "pop_in",
+     "startMs": 0
+    }
+   ]
+  },
+  {
+   "id": "swap",
+   "role": "DEMO",
+   "startMs": 4000,
+   "durationMs": 2000,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "solid",
+     "color": "#1B1030"
+    },
+    {
+     "type": "swap",
+     "fromLabel": "refri",
+     "toLabel": "água com gás",
+     "fromIcon": "🥤",
+     "toIcon": "💧",
+     "note": "−140 kcal",
+     "x": 50,
+     "y": 40,
+     "width": 86,
+     "anim": "fade_in",
+     "startMs": 0
+    }
+   ]
+  },
+  {
+   "id": "units",
+   "role": "DEMO",
+   "startMs": 6000,
+   "durationMs": 2000,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "solid",
+     "color": "#1B1030"
+    },
+    {
+     "type": "units",
+     "count": 12,
+     "shape": "cube",
+     "label": "12 cubos de açúcar",
+     "x": 50,
+     "y": 40,
+     "width": 62,
+     "anim": "fade_in",
+     "startMs": 0
+    }
+   ]
+  },
+  {
+   "id": "gauge",
+   "role": "DEMO",
+   "startMs": 8000,
+   "durationMs": 2000,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "solid",
+     "color": "#1B1030"
+    },
+    {
+     "type": "limit_gauge",
+     "value": 82,
+     "limit": 70,
+     "label": "da meta de sódio",
+     "valueText": "82%",
+     "x": 50,
+     "y": 40,
+     "width": 58,
+     "anim": "pop_in",
+     "startMs": 0
+    }
+   ]
+  },
+  {
+   "id": "warn",
+   "role": "DEMO",
+   "startMs": 10000,
+   "durationMs": 2000,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "solid",
+     "color": "#1B1030"
+    },
+    {
+     "type": "warning_signs",
+     "title": "procure seu médico",
+     "items": [
+      {
+       "icon": "⚠️",
+       "text": "vômito que não para"
+      },
+      {
+       "icon": "⚠️",
+       "text": "dor forte na barriga"
+      },
+      {
+       "icon": "⚠️",
+       "text": "desmaio"
+      }
+     ],
+     "x": 50,
+     "y": 40,
+     "width": 84,
+     "anim": "slide_up",
+     "startMs": 0
+    }
+   ]
+  }
+ ]
+}

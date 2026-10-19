@@ -24,6 +24,20 @@
 | Hold (p75 ÷ plays) |  |  |
 | Sinais indiretos (Biblioteca) | tempo no ar · nº de anúncios com o mesmo criativo |  |
 
+## Etiquetas (dimensões do criativo — obrigatórias desde 18/10/2026)
+
+Sem isto a análise não agrupa por embalagem e o teste não aprende. Mesmos valores do nome do
+anúncio (`apps/<slug>/formatos.md`, "Nome do anúncio").
+
+| Dimensão | Valor | Fonte |
+|---|---|---|
+| **Embalagem** | `E<nº>` + nome (ex.: `E07 pesquisa no Google`) | `apps/<slug>/formatos.md` |
+| **Dor** | `D<tier>-<dor curta>` (ex.: `D1-risquinhos`) | `apps/<slug>/masterlist-dores.md` |
+| **Hook** | `conexao` · `uau` · `polemica` | `apps/<slug>/roteiro-ugc.md` |
+| **Produção** | `flash` · `narrado` · `viral` · `estatico` · `carrossel` | `apps/<slug>/roteiro-ugc.md` |
+| **Fonte de imagem** | pessoa (quem) · panda · app · elementos · pexels · higgsfield | catálogos de material |
+| **Mercado** | `pt-BR` · `fr` · … | `apps/<slug>/mercados.md` |
+
 ## Hook (primeiros 3s)
 
 - **Visual:** 

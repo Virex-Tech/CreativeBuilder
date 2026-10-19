@@ -1,0 +1,561 @@
+{
+ "specVersion": "1",
+ "creativeId": "vitoria-plato-br",
+ "appId": "ozempro",
+ "locale": "pt-BR",
+ "output": {},
+ "format": {
+  "w": 1080,
+  "h": 1920,
+  "fps": 30
+ },
+ "brandKit": {
+  "bg": "#12091F",
+  "fg": "#FFFFFF",
+  "accent": "#8630E4",
+  "fontFamily": "Montserrat, Inter, system-ui, sans-serif"
+ },
+ "audio": {
+  "voiceover": {
+   "src": "audio/ozempro-plato-vitoria-corte-vo.wav",
+   "atMs": 0,
+   "durationMs": 35078,
+   "script": "Eu quase desisti das canetinhas quando entrei no efeito platô. Mas a minha sorte foi que encontrei o app OzemPro, e ele me ajudou a enxergar o que eu tava fazendo errado. No gráfico eu vi a linha reta, e vi que não estava batendo a meta de proteína do dia. Comecei a tirar foto do prato. E ele calcula quanto de proteína, fibra e gordura tem na refeição. E a parte que eu tinha mais medo: calcular os risquinhos. Digito o frasco e a dose, ele me mostra certinho o quanto preciso puxar pra não ter erro. Registro o local onde apliquei, e ele me avisa o dia da próxima aplicação. Acabou a dúvida de qual lado apliquei semana passada. Deixei o link aqui embaixo pra você baixar o app. Não perca tempo."
+  },
+  "sfx": [
+   {
+    "src": "sfx/click_hook.mp3",
+    "atMs": 0,
+    "volume": 0.55
+   },
+   {
+    "src": "sfx/click.mp3",
+    "atMs": 8180,
+    "volume": 0.5
+   },
+   {
+    "src": "sfx/mostrar_magia.mp3",
+    "atMs": 13480,
+    "volume": 0.38
+   },
+   {
+    "src": "sfx/click.mp3",
+    "atMs": 20420,
+    "volume": 0.45
+   },
+   {
+    "src": "sfx/click.mp3",
+    "atMs": 24660,
+    "volume": 0.45
+   },
+   {
+    "src": "sfx/ding.mp3",
+    "atMs": 31400,
+    "volume": 0.35
+   }
+  ]
+ },
+ "scenes": [
+  {
+   "id": "hook",
+   "role": "HOOK",
+   "startMs": 0,
+   "durationMs": 3000,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "footage",
+     "takeId": "vitoria-12seg-v6",
+     "src": "takes/vitoria-12seg-v6.mp4",
+     "startFromMs": 0,
+     "mirror": true,
+     "zoom": 1,
+     "volume": 0
+    },
+    {
+     "type": "sticker",
+     "content": "3 SEMANAS SEM SAIR DO LUGAR\nCOM AS CANETINHAS",
+     "x": 50,
+     "y": 73,
+     "size": 72,
+     "width": 86,
+     "chip": true,
+     "anim": "none",
+     "animOut": "pop_out",
+     "startMs": 0
+    }
+   ]
+  },
+  {
+   "id": "sorte",
+   "role": "PROBLEM",
+   "startMs": 3000,
+   "durationMs": 5180,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "footage",
+     "takeId": "vitoria-12seg-v6",
+     "src": "takes/vitoria-12seg-v6.mp4",
+     "startFromMs": 3000,
+     "mirror": true,
+     "zoom": 1.08,
+     "volume": 0
+    },
+    {
+     "type": "image",
+     "src": "elementos/logo-ozempro.png",
+     "x": 83,
+     "y": 36,
+     "width": 18,
+     "anim": "pop_in",
+     "animOut": "fade_out",
+     "startMs": 1620,
+     "durationMs": 2200
+    },
+    {
+     "type": "karaoke",
+     "text": "mas a minha sorte",
+     "startMs": 0,
+     "durationMs": 800,
+     "wordEndsMs": [
+      160,
+      260,
+      380,
+      800
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "foi que encontrei o app",
+     "startMs": 800,
+     "durationMs": 1020,
+     "wordEndsMs": [
+      180,
+      300,
+      680,
+      820,
+      1020
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "OzemPro",
+     "startMs": 1820,
+     "durationMs": 760,
+     "wordEndsMs": [
+      760
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "e ele me ajudou",
+     "startMs": 2580,
+     "durationMs": 900,
+     "wordEndsMs": [
+      420,
+      520,
+      620,
+      900
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "em enxergar",
+     "startMs": 3480,
+     "durationMs": 380,
+     "wordEndsMs": [
+      120,
+      380
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "o que eu estava fazendo errado.",
+     "startMs": 3860,
+     "durationMs": 960,
+     "wordEndsMs": [
+      140,
+      180,
+      240,
+      340,
+      600,
+      960
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    }
+   ]
+  },
+  {
+   "id": "grafico",
+   "role": "DEMO",
+   "startMs": 8180,
+   "durationMs": 1500,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "footage",
+     "takeId": "vitoria-12seg-v6",
+     "src": "takes/vitoria-12seg-v6.mp4",
+     "startFromMs": 1500,
+     "mirror": true,
+     "zoom": 1.15,
+     "volume": 0
+    },
+    {
+     "type": "image",
+     "src": "elementos/ozempro-peso-linha-reta.png",
+     "x": 50,
+     "y": 70,
+     "width": 68,
+     "radius": 20,
+     "border": true,
+     "anim": "pop_in",
+     "animOut": "fade_out",
+     "startMs": 100
+    }
+   ]
+  },
+  {
+   "id": "proteina",
+   "role": "DEMO",
+   "startMs": 9680,
+   "durationMs": 2580,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do elemento",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 3100,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/br/mockup/pagina_inicial-resumo_geral.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 1200
+    }
+   ]
+  },
+  {
+   "id": "foto",
+   "role": "DEMO",
+   "startMs": 12260,
+   "durationMs": 1220,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do elemento",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 5700,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/br/mockup/registro_alimentacao-macros_por_foto.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 1200
+    }
+   ]
+  },
+  {
+   "id": "macros",
+   "role": "DEMO",
+   "startMs": 13480,
+   "durationMs": 3800,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do elemento",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 7000,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/br/mockup/registro_alimentacao-macros_por_foto.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 2800
+    }
+   ]
+  },
+  {
+   "id": "medo",
+   "role": "DEMO",
+   "startMs": 17280,
+   "durationMs": 3140,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "footage",
+     "takeId": "vitoria-12seg-v6",
+     "src": "takes/vitoria-12seg-v6.mp4",
+     "startFromMs": 8200,
+     "mirror": true,
+     "zoom": 1.12,
+     "volume": 0
+    },
+    {
+     "type": "syringe_ruler",
+     "from": 0,
+     "to": 100,
+     "step": 2,
+     "labelEvery": 10,
+     "highlightFrom": 0,
+     "highlightTo": 25,
+     "x": 50,
+     "y": 75,
+     "width": 86,
+     "anim": "slide_up",
+     "animOut": "fade_out",
+     "startMs": 500
+    },
+    {
+     "type": "karaoke",
+     "text": "E a parte que",
+     "startMs": 0,
+     "durationMs": 480,
+     "wordEndsMs": [
+      60,
+      140,
+      340,
+      480
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "eu tinha mais medo,",
+     "startMs": 480,
+     "durationMs": 900,
+     "wordEndsMs": [
+      60,
+      220,
+      620,
+      900
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "calcular os risquinhos.",
+     "startMs": 1580,
+     "durationMs": 1240,
+     "wordEndsMs": [
+      580,
+      780,
+      1240
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    }
+   ]
+  },
+  {
+   "id": "calc-form",
+   "role": "DEMO",
+   "startMs": 20420,
+   "durationMs": 1600,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do elemento",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 11000,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/br/mockup/calculadora-calcular-risquinho-na-seringa.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 6400
+    }
+   ]
+  },
+  {
+   "id": "calc-resultado",
+   "role": "DEMO",
+   "startMs": 22020,
+   "durationMs": 2640,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do elemento",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 12600,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/br/mockup/calculadora-calcular-risquinho-na-seringa.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 0
+    }
+   ]
+  },
+  {
+   "id": "local",
+   "role": "DEMO",
+   "startMs": 24660,
+   "durationMs": 1680,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do elemento",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 15200,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/br/mockup/aplicacao_registrar-dose-e-local.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 6700
+    }
+   ]
+  },
+  {
+   "id": "proxima",
+   "role": "DEMO",
+   "startMs": 26340,
+   "durationMs": 2380,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do elemento",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 16900,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/br/mockup/pagina_inicial-resumo_geral.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 0
+    }
+   ]
+  },
+  {
+   "id": "lado",
+   "role": "PROOF",
+   "startMs": 28720,
+   "durationMs": 2680,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do elemento",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 19300,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/br/mockup/tratamento-grafico_medicamento-grafico_evolucao-IMC.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 200
+    }
+   ]
+  },
+  {
+   "id": "cta",
+   "role": "CTA",
+   "startMs": 31400,
+   "durationMs": 3678,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do elemento",
+     "provider": "higgsfield",
+     "src": "takes/fundo_vitoria-12seg-v6.mp4",
+     "fit": "cover",
+     "startFromMs": 22000,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/br/mockup/pagina_inicial-resumo_geral.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 1600
+    }
+   ]
+  }
+ ]
+}

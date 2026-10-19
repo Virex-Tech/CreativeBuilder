@@ -7,6 +7,8 @@ export interface AnimState {
 	opacity: number;
 	scale: number;
 	translateY: number;
+	/** Giro no eixo Y, em graus. Só o `twist` usa; o resto fica em 0. */
+	rotateY?: number;
 }
 
 const IDLE: AnimState = { opacity: 1, scale: 1, translateY: 0 };
@@ -127,6 +129,27 @@ export function resolveAnim(
 				translateY: Math.sin(t * 2.1) * 4 + Math.sin(t * 5.3) * 1.5,
 			};
 		}
+		case "spring": {
+			// Entra passando do ponto e volta — a entrada de texto mais usada nas referências.
+			const s = spring({ frame, fps, config: { damping: 9, mass: 0.5, stiffness: 180 } });
+			return { opacity: Math.min(1, s * 2), scale: 0.7 + s * 0.3, translateY: 0 };
+		}
+		case "twist": {
+			const s = spring({ frame, fps, config: { damping: 13, mass: 0.6 } });
+			return { opacity: Math.min(1, s * 1.8), scale: 1, translateY: 0, rotateY: (1 - s) * -70 };
+		}
+		case "exhale": {
+			// Abre grande e assenta, como um suspiro.
+			const s = spring({ frame, fps, config: { damping: 16, mass: 0.8 } });
+			return { opacity: Math.min(1, s * 1.6), scale: 1.3 - s * 0.3, translateY: 0 };
+		}
+		case "rising_glow": {
+			const s = spring({ frame, fps, config: { damping: 20 } });
+			return { opacity: Math.min(1, s * 1.4), scale: 1, translateY: (1 - s) * 40 };
+		}
+		case "typewriter":
+			// A revelação é por letra, feita no texto; aqui a layer só aparece.
+			return IDLE;
 		case "none":
 		default:
 			return IDLE;

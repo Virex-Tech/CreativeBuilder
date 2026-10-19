@@ -59,3 +59,11 @@ render/public/app/**/*.png
 
 # dados de idioma que o tesseract.js baixa sozinho na primeira execucao
 *.traineddata
+
+# modelo de rosto (baixado por tools/rosto.py)
+tools/modelos/*.onnx
+
+# props do Remotion: gerados de cada spec por `spec-tool props`, não são fonte
+render/specs/**/props/
+# roteiros que viram locução; o texto fica no proprio spec (audio.voiceover.script)
+.cache-tts/

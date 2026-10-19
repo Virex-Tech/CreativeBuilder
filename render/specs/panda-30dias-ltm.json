@@ -1,0 +1,793 @@
+{
+ "specVersion": "1",
+ "creativeId": "panda-30dias-ltm",
+ "appId": "ozempro",
+ "locale": "es-419",
+ "output": {},
+ "format": {
+  "w": 1080,
+  "h": 1920,
+  "fps": 30
+ },
+ "brandKit": {
+  "bg": "#12091F",
+  "fg": "#FFFFFF",
+  "accent": "#8630E4",
+  "fontFamily": "Montserrat, Inter, system-ui, sans-serif"
+ },
+ "audio": {
+  "voiceover": {
+   "src": "audio/ozempro-panda-30dias-ltm-vo.wav",
+   "atMs": 0,
+   "durationMs": 33580,
+   "script": "¿Qué le pasa a tu cuerpo si usas las lapiceras por 30 días?\nDía 1. Primera dosis aplicada. Una noche entera de náuseas, sin poder comer.\nDía 7. Las náuseas pasaron, pero vino la duda: ¿cuántas marcas cargo ahora? ¿En qué parte del cuerpo me la puse la semana pasada? ¿Estaré llegando a mis metas de proteína?\nDía 15. App OzemPro descargada. La calculadora mostrando cuántas marcas cargar para el frasco. El lugar de la aplicación de la semana pasada registrado. Foto del plato mostrando cuánta proteína estás comiendo.\nDía 30. Dosis correcta. Lugar rotado. Plato calculado. Y un gráfico con todo lo que cambió en esas semanas.\nHaz clic en el link, descarga OzemPro y ten control total de tu tratamiento."
+  },
+  "sfx": [
+   {
+    "src": "sfx/click_hook.mp3",
+    "atMs": 0,
+    "volume": 0.55
+   },
+   {
+    "src": "sfx/click.mp3",
+    "atMs": 2700,
+    "volume": 0.45
+   },
+   {
+    "src": "sfx/click.mp3",
+    "atMs": 7180,
+    "volume": 0.45
+   },
+   {
+    "src": "sfx/mostrar_magia.mp3",
+    "atMs": 15000,
+    "volume": 0.4
+   },
+   {
+    "src": "sfx/ding.mp3",
+    "atMs": 24140,
+    "volume": 0.4
+   }
+  ]
+ },
+ "scenes": [
+  {
+   "id": "hook",
+   "role": "HOOK",
+   "startMs": 0,
+   "durationMs": 2700,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "panda: panda_perdido-lendo-bula-quarto",
+     "provider": "higgsfield",
+     "src": "panda/panda_perdido-lendo-bula-quarto.mp4",
+     "fit": "cover",
+     "startFromMs": 0,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "sticker",
+     "content": "DÍA 1 → DÍA 30",
+     "x": 50,
+     "y": 74,
+     "size": 76,
+     "width": 86,
+     "chip": true,
+     "anim": "pop_in",
+     "animOut": "pop_out",
+     "startMs": 0
+    }
+   ]
+  },
+  {
+   "id": "dia1-a",
+   "role": "PROBLEM",
+   "startMs": 2700,
+   "durationMs": 1800,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "panda: panda_aplicando-medicamento-na-barriga-sala",
+     "provider": "higgsfield",
+     "src": "panda/panda_aplicando-medicamento-na-barriga-sala.mp4",
+     "fit": "cover",
+     "startFromMs": 0,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "sticker",
+     "content": "DÍA 1",
+     "x": 50,
+     "y": 74,
+     "size": 80,
+     "chip": true,
+     "anim": "pop_in",
+     "animOut": "pop_out",
+     "startMs": 0
+    },
+    {
+     "type": "pointer",
+     "shape": "tap",
+     "x": 50,
+     "y": 52,
+     "size": 26,
+     "anim": "fade_in",
+     "animOut": "fade_out",
+     "startMs": 300
+    }
+   ]
+  },
+  {
+   "id": "dia1-b",
+   "role": "PROBLEM",
+   "startMs": 4500,
+   "durationMs": 2680,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "panda: panda_triste-deitado-no-sofa",
+     "provider": "higgsfield",
+     "src": "panda/panda_triste-deitado-no-sofa.mp4",
+     "fit": "cover",
+     "startFromMs": 0,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "warning_signs",
+     "x": 50,
+     "y": 40,
+     "width": 82,
+     "items": [
+      {
+       "icon": "🤢",
+       "text": "náuseas toda la noche"
+      },
+      {
+       "icon": "🍽️",
+       "text": "sin poder comer"
+      }
+     ],
+     "anim": "slide_up",
+     "animOut": "fade_out",
+     "startMs": 200,
+     "staggerMs": 320
+    },
+    {
+     "type": "karaoke",
+     "text": "Una noche entera",
+     "startMs": 0,
+     "durationMs": 1040,
+     "wordEndsMs": [
+      160,
+      400,
+      1040
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "de náuseas sin",
+     "startMs": 1040,
+     "durationMs": 820,
+     "wordEndsMs": [
+      180,
+      640,
+      820
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "poder comer.",
+     "startMs": 1860,
+     "durationMs": 560,
+     "wordEndsMs": [
+      320,
+      560
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    }
+   ]
+  },
+  {
+   "id": "dia7-a",
+   "role": "PROBLEM",
+   "startMs": 7180,
+   "durationMs": 2660,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "panda: panda_perdido-lendo-bula-quarto",
+     "provider": "higgsfield",
+     "src": "panda/panda_perdido-lendo-bula-quarto.mp4",
+     "fit": "cover",
+     "startFromMs": 3300,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "sticker",
+     "content": "DÍA 7",
+     "x": 50,
+     "y": 74,
+     "size": 80,
+     "chip": true,
+     "anim": "pop_in",
+     "animOut": "pop_out",
+     "startMs": 0
+    },
+    {
+     "type": "pointer",
+     "shape": "question",
+     "x": 50,
+     "y": 42,
+     "size": 22,
+     "anim": "pop_in",
+     "animOut": "pop_out",
+     "startMs": 700
+    }
+   ]
+  },
+  {
+   "id": "dia7-b",
+   "role": "PROBLEM",
+   "startMs": 9840,
+   "durationMs": 1420,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "panda: panda_perdido-lendo-bula-quarto",
+     "provider": "higgsfield",
+     "src": "panda/panda_perdido-lendo-bula-quarto.mp4",
+     "fit": "cover",
+     "startFromMs": 6000,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "syringe_ruler",
+     "from": 0,
+     "to": 100,
+     "step": 2,
+     "labelEvery": 10,
+     "x": 50,
+     "y": 56,
+     "width": 84,
+     "anim": "slide_up",
+     "animOut": "fade_out",
+     "startMs": 100
+    },
+    {
+     "type": "karaoke",
+     "text": "¿Cuántas marcas cargó",
+     "startMs": 0,
+     "durationMs": 940,
+     "wordEndsMs": [
+      340,
+      660,
+      940
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "ahora?",
+     "startMs": 940,
+     "durationMs": 220,
+     "wordEndsMs": [
+      220
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    }
+   ]
+  },
+  {
+   "id": "dia7-c",
+   "role": "PROBLEM",
+   "startMs": 11260,
+   "durationMs": 2040,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "panda: panda_aplicando-medicamento-na-barriga-sala",
+     "provider": "higgsfield",
+     "src": "panda/panda_aplicando-medicamento-na-barriga-sala.mp4",
+     "fit": "cover",
+     "startFromMs": 3000,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "body_map",
+     "spots": [
+      "abdomen_ll",
+      "abdomen_lr"
+     ],
+     "label": "¿qué lado?",
+     "x": 50,
+     "y": 48,
+     "width": 34,
+     "anim": "pop_in",
+     "animOut": "fade_out",
+     "startMs": 100
+    }
+   ]
+  },
+  {
+   "id": "dia7-d",
+   "role": "PROBLEM",
+   "startMs": 13300,
+   "durationMs": 1700,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "panda: panda_empurrando-comida-pra-longe-cozinha",
+     "provider": "higgsfield",
+     "src": "panda/panda_empurrando-comida-pra-longe-cozinha.mp4",
+     "fit": "cover",
+     "startFromMs": 0,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "limit_gauge",
+     "value": 42,
+     "limit": 100,
+     "label": "meta de proteína",
+     "valueText": "42%",
+     "x": 50,
+     "y": 42,
+     "width": 56,
+     "anim": "pop_in",
+     "animOut": "fade_out",
+     "startMs": 100
+    },
+    {
+     "type": "karaoke",
+     "text": "¿Estaré llegando a",
+     "startMs": 0,
+     "durationMs": 700,
+     "wordEndsMs": [
+      260,
+      620,
+      700
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "mis metas de",
+     "startMs": 700,
+     "durationMs": 400,
+     "wordEndsMs": [
+      60,
+      300,
+      400
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "proteína?",
+     "startMs": 1100,
+     "durationMs": 380,
+     "wordEndsMs": [
+      380
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    }
+   ]
+  },
+  {
+   "id": "dia15-a",
+   "role": "DEMO",
+   "startMs": 15000,
+   "durationMs": 2000,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "panda: panda_mexendo-celular-sofa",
+     "provider": "higgsfield",
+     "src": "panda/panda_mexendo-celular-sofa.mp4",
+     "fit": "cover",
+     "startFromMs": 0,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "sticker",
+     "content": "DÍA 15",
+     "x": 50,
+     "y": 74,
+     "size": 80,
+     "chip": true,
+     "anim": "pop_in",
+     "animOut": "pop_out",
+     "startMs": 0
+    },
+    {
+     "type": "image",
+     "src": "elementos/logo-ozempro.png",
+     "x": 50,
+     "y": 44,
+     "width": 26,
+     "anim": "pop_in",
+     "animOut": "fade_out",
+     "startMs": 600
+    }
+   ]
+  },
+  {
+   "id": "dia15-b",
+   "role": "DEMO",
+   "startMs": 17000,
+   "durationMs": 2580,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "panda desfocado atrás do mockup",
+     "provider": "higgsfield",
+     "src": "panda/fundo_mexendo-celular-sofa.mp4",
+     "fit": "cover",
+     "startFromMs": 0,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/ltm/mockup/calculadora-calcular-risquinho-na-seringa.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 3600
+    }
+   ]
+  },
+  {
+   "id": "dia15-c",
+   "role": "DEMO",
+   "startMs": 19580,
+   "durationMs": 2220,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "panda desfocado atrás do mockup",
+     "provider": "higgsfield",
+     "src": "panda/fundo_mexendo-celular-sofa.mp4",
+     "fit": "cover",
+     "startFromMs": 2580,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/ltm/mockup/aplicacao_registrar-dose-e-local.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 6300
+    }
+   ]
+  },
+  {
+   "id": "dia15-d",
+   "role": "DEMO",
+   "startMs": 21800,
+   "durationMs": 2340,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "panda desfocado atrás do mockup",
+     "provider": "higgsfield",
+     "src": "panda/fundo_mexendo-celular-sofa.mp4",
+     "fit": "cover",
+     "startFromMs": 4800,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/ltm/mockup/registro_alimentacao-macros_por_foto.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 1200
+    }
+   ]
+  },
+  {
+   "id": "dia30-a",
+   "role": "PROOF",
+   "startMs": 24140,
+   "durationMs": 700,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "panda: panda_musculoso-olhando-no-espelho-quarto",
+     "provider": "higgsfield",
+     "src": "panda/panda_musculoso-olhando-no-espelho-quarto.mp4",
+     "fit": "cover",
+     "startFromMs": 0,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "sticker",
+     "content": "DÍA 30",
+     "x": 50,
+     "y": 74,
+     "size": 80,
+     "chip": true,
+     "anim": "pop_in",
+     "animOut": "pop_out",
+     "startMs": 0
+    }
+   ]
+  },
+  {
+   "id": "dia30-b",
+   "role": "PROOF",
+   "startMs": 24840,
+   "durationMs": 860,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "panda desfocado atrás do mockup",
+     "provider": "higgsfield",
+     "src": "panda/fundo_mexendo-celular-sofa.mp4",
+     "fit": "cover",
+     "startFromMs": 7140,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/ltm/mockup/calculadora-calcular-risquinho-na-seringa.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 0
+    }
+   ]
+  },
+  {
+   "id": "dia30-c",
+   "role": "PROOF",
+   "startMs": 25700,
+   "durationMs": 840,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "panda desfocado atrás do mockup",
+     "provider": "higgsfield",
+     "src": "panda/fundo_mexendo-celular-sofa.mp4",
+     "fit": "cover",
+     "startFromMs": 8000,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/ltm/mockup/aplicacao_registrar-dose-e-local.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 8000
+    }
+   ]
+  },
+  {
+   "id": "dia30-d",
+   "role": "PROOF",
+   "startMs": 26540,
+   "durationMs": 620,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "panda desfocado atrás do mockup",
+     "provider": "higgsfield",
+     "src": "panda/fundo_mexendo-celular-sofa.mp4",
+     "fit": "cover",
+     "startFromMs": 8840,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/ltm/mockup/macros-da-refeicao.png",
+     "device": "iphone15_mock",
+     "anim": "punch_in"
+    }
+   ]
+  },
+  {
+   "id": "dia30-e",
+   "role": "PROOF",
+   "startMs": 27160,
+   "durationMs": 2680,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "panda desfocado atrás do mockup",
+     "provider": "higgsfield",
+     "src": "panda/fundo_mexendo-celular-sofa.mp4",
+     "fit": "cover",
+     "startFromMs": 460,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/ltm/mockup/tratamento-grafico_medicamento-grafico_evolucao-IMC.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 2300
+    }
+   ]
+  },
+  {
+   "id": "cta",
+   "role": "CTA",
+   "startMs": 29840,
+   "durationMs": 3740,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "panda: panda_musculoso-mexendo-celular-sala",
+     "provider": "higgsfield",
+     "src": "panda/panda_musculoso-mexendo-celular-sala.mp4",
+     "fit": "cover",
+     "startFromMs": 0,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "image",
+     "src": "elementos/logo-ozempro.png",
+     "x": 50,
+     "y": 40,
+     "width": 24,
+     "anim": "pop_in",
+     "animOut": "fade_out",
+     "startMs": 200
+    },
+    {
+     "type": "pointer",
+     "shape": "down_arrow",
+     "x": 50,
+     "y": 72,
+     "size": 16,
+     "anim": "fade_in",
+     "animOut": "fade_out",
+     "startMs": 900
+    },
+    {
+     "type": "karaoke",
+     "text": "clic en el",
+     "startMs": 0,
+     "durationMs": 400,
+     "wordEndsMs": [
+      160,
+      320,
+      400
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "link, descarga ósen",
+     "startMs": 400,
+     "durationMs": 940,
+     "wordEndsMs": [
+      160,
+      700,
+      940
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "pro y te",
+     "startMs": 1340,
+     "durationMs": 620,
+     "wordEndsMs": [
+      160,
+      480,
+      620
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "encontró el total",
+     "startMs": 1960,
+     "durationMs": 700,
+     "wordEndsMs": [
+      420,
+      460,
+      700
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "de tu tratamiento.",
+     "startMs": 2660,
+     "durationMs": 720,
+     "wordEndsMs": [
+      220,
+      300,
+      720
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    }
+   ]
+  }
+ ]
+}

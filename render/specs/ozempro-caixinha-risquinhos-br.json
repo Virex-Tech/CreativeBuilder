@@ -1,0 +1,84 @@
+{
+	"specVersion": "1",
+	"creativeId": "ozempro-caixinha-risquinhos-br",
+	"appId": "ozempro",
+	"locale": "pt-BR",
+	"lineage": {
+		"mutation": "E10-caixinha-story · D1-risquinhos · Hconexao · estatico · pt-BR"
+	},
+	"output": {
+		"kind": "image"
+	},
+	"format": {
+		"w": 1080,
+		"h": 1920,
+		"fps": 30
+	},
+	"brandKit": {
+		"bg": "#12091F",
+		"fg": "#FFFFFF",
+		"accent": "#8630E4",
+		"fontFamily": "Montserrat, Inter, system-ui, sans-serif"
+	},
+	"autoCaptions": {
+		"enabled": false
+	},
+	"scenes": [
+		{
+			"id": "caixinha",
+			"role": "HOOK",
+			"startMs": 0,
+			"durationMs": 3000,
+			"timing": "locked",
+			"layers": [
+				{
+					"type": "solid",
+					"color": "#12091F"
+				},
+				{
+					"type": "image",
+					"src": "takes/vitoria-v4/f1.jpg",
+					"x": 50,
+					"y": 50,
+					"width": 100,
+					"radius": 0
+				},
+				{
+					"type": "card",
+					"variant": "accent",
+					"kicker": "Pergunta de seguidora",
+					"title": "Conto os risquinhos 3 vezes e aplico na dúvida. Quantos puxo pra 2,5 mg?",
+					"x": 50,
+					"y": 25,
+					"width": 84
+				},
+				{
+					"type": "image",
+					"src": "elementos/ozempro-calc-25ui.png",
+					"x": 50,
+					"y": 47,
+					"width": 58,
+					"radius": 26,
+					"border": true
+				},
+				{
+					"type": "card",
+					"variant": "light",
+					"kicker": "Resposta",
+					"title": "Digita o frasco e a dose. A calculadora mostra até que traço puxar.",
+					"x": 50,
+					"y": 68,
+					"width": 84
+				},
+				{
+					"type": "sticker",
+					"content": "Baixa o OzemPro",
+					"chip": true,
+					"x": 50,
+					"y": 80,
+					"size": 44
+				}
+			]
+		}
+	]
+}

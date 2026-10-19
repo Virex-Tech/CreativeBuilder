@@ -166,12 +166,50 @@ não aparece para quem assiste. Foi o erro da régua em y 86 e do hook em y 11, 
 centro, a legenda vai logo abaixo; se o elemento está em cima, a legenda fica no meio. Nunca
 sobrepostos, nunca encostados.
 
+## Elemento não concorre com o app (regra da equipe, 19/10/2026)
+
+**A partir do momento em que a tela do app entra, ela é a estrela.** Elemento que substitui a
+tela do app no meio da demonstração está proibido.
+
+- **Antes da inserção do app:** elemento à vontade. É ali que `line_chart`, `counter`, `plate`,
+  `body_map`, `units` e companhia vivem — eles preparam o problema.
+- **Durante as telas do app:** no máximo **apontadores** (`pointer`), para dizer "olha aqui".
+  Nada de painel, cartão ou gráfico nosso.
+- **Nunca** trocar a tela do app por um elemento que mostra a mesma coisa que o app mostraria.
+
+O erro que criou a regra (19/10/2026, criativo do platô da Vitória): no meio da sequência do app
+eu pus um `plate` com proteína/fibra/gordura e um `body_map` com o lado da aplicação. **As duas
+telas existem no app** — a dos macros e a do local da aplicação. O criativo perdeu a prova do
+produto para mostrar um desenho do que o produto já faz.
+
+Pergunta que resolve antes de pôr elemento: *o app mostra isso?* Se mostra, é a gravação que
+entra, e o elemento, se for usado, vira apontador em cima dela.
+
 ## Legenda: sai quando a tela do app entra (regra da equipe, 15/10/2026)
 
 **Cena com a tela do app em tela cheia (mockup) não leva legenda.** A tela do app já é texto; a
 legenda por cima polui e tira a atenção do que é a prova do produto.
 
 Quando o vídeo volta para a pessoa falando, a legenda volta.
+
+## Medidas aprovadas pela equipe (15/10/2026 — valores, não "mais ou menos")
+
+Saíram de ajuste em cima de criativo renderizado. Use estes números e só mude se o usuário pedir.
+
+| O quê | Valor | Como foi definido |
+|---|---|---|
+| Altura da legenda | **`bottomPct: 36`** (≈690 px num 1080×1920) | primeiro ficou baixa demais, subiu para ~800 px, e a equipe desceu para 690 |
+| Tamanho da legenda | **56–58** (72 só em cena curta de impacto) | — |
+| Palavras por bloco | **`maxWords: 3`** | 4 enche a linha e cobre o rosto |
+| Estilo | **`style: "plain"`** | o estilo próprio, não o karaokê colorido |
+| Hook de texto | até **4 s**, fonte um pouco maior que a legenda | "não precisa ficar o tempo inteiro na tela" |
+
+**Elemento perto do que ele explica.** Elemento solto no canto, pequeno e longe da tela do app ou
+do rosto foi reprovado em 15/10/2026 ("ficou muito baixo e simples", "muito distante da tela").
+O elemento encosta no que ele comenta — mas sem cobrir rosto, objeto importante nem a legenda.
+
+**Inserção do app: para mudar a posição, mova; não diminua.** Reclamação da equipe em 15/10/2026:
+pediram o print do app mais para cima e veio menor. Posição e tamanho são coisas diferentes.
 
 ## Inserções e legenda (padrão das referências, 11/10/2026)
 
@@ -386,3 +424,53 @@ Elemento só entra quando está **ancorado** em algo da cena:
 **Como usar elemento: `elementos-playbook.md`** — a síntese das 6 referências com a nossa marca
 (molde de cartão, cores com significado, os 4 lugares onde o elemento pode viver, o que faz ele
 parecer vivo e o ritmo de alternância). Base, não regra: misturar conforme a cena pedir.
+
+## Embalagem: a quarta dimensão do roteiro (18/10/2026)
+
+Até 18/10 o roteiro tinha três escolhas: a **dor** (`masterlist-dores.md`), o **hook** (os 4
+hooks + conexão / fator uau / polêmica) e a **produção** (flash, narrado, viral). A equipe
+acrescentou a **embalagem**: a cara que o anúncio tem no feed (nota do iPhone, busca no Google,
+aviso amarelo, foto do produto…). Catálogo completo, filtrado pelo compliance do app:
+`formatos.md` (65 embalagens entram, 35 ficam de fora com o motivo).
+
+Como a embalagem entra no roteiro:
+
+- **Escolha a embalagem antes de escrever**, junto com a dor e o hook. Ela define o que aparece
+  nos primeiros 3 segundos (o hook visual) e, no estático, a imagem inteira.
+- **Teste de embalagem muda só a embalagem.** Mesma dor, mesmo hook, mesma produção, mesma
+  página. Três embalagens bem diferentes por lote, na etapa fraca (método em `formatos.md`).
+- **Tudo que já vale continua valendo** dentro de qualquer embalagem: compliance, 4 hooks, três
+  faixas verticais, legenda sai quando o app entra, calculadora em todo criativo, sem frase de
+  efeito, sem presumir a condição de quem assiste.
+- **Mock de interface é texto nosso**, desenhado pelo Remotion (moldes em
+  `elementos-playbook.md`, seção "Moldes de interface"). Conversa, comentário e manchete são
+  encenação declarada ou material real com autorização; nome e foto de terceiro cobertos.
+- A embalagem, a dor e o hook vão no **nome do anúncio** e na **ficha**
+  (`analise/criativos/_modelo-ficha.md`, "Etiquetas"), senão o teste não aprende.
+
+### D · Estático e carrossel (imagem, sem vídeo)
+
+Liberado pela equipe em 18/10/2026. O criativo 95 (imagem: celular com o app + frase) validou com
+ROAS 2,27 na CA01, então estático não é teste de curiosidade: é embalagem com histórico.
+
+| | **D · Estático** | **Carrossel** |
+|---|---|---|
+| O que é | 1 imagem | 2–10 imagens na mesma proporção |
+| Como sai | spec de **uma cena**, sem áudio, `remotion still --frame=<n>` no quadro em que todos os elementos já entraram | um `still` por cartão (uma cena por cartão no mesmo spec) |
+| Proporção | 1080×1920 (Stories/Reels) ou 1080×1350 (feed) | 1080×1350 ou 1080×1080 |
+| Quem carrega a mensagem | o texto na imagem (como no viral: 6–12 palavras por bloco, caixa roxa) | o 1º cartão é o hook; o último, o CTA |
+| Legenda / voz | nenhuma | nenhuma |
+| App na tela | print ou recorte da tela (calculadora sempre), ou o celular com o app (#77) | 1 tela por cartão |
+
+Regras do estático, derivadas das que já existem (não são novas):
+
+- **Hook de texto é a imagem inteira.** Não há segundo quadro: a frase precisa parar o dedo e se
+  explicar sozinha (regra do topo do catálogo). Conexão, fator uau ou polêmica; frase de efeito
+  continua proibida.
+- **Três faixas verticais** e zona proibida (acima de y 18, abaixo de y 82) valem igual; no 4:5 a
+  régua é a mesma, em % da altura.
+- **Elemento e tela do app não se cobrem.** Se o celular está na imagem, nada vai por cima dele.
+- **Olhar o PNG** antes de entregar, como se faz com o still de vídeo. `review.mjs` não roda em
+  imagem; a validação é o olho.
+- Estático **não substitui** o vídeo na Fase Zero: é mais uma embalagem no lote, julgada pela
+  mesma tabela da equipe.

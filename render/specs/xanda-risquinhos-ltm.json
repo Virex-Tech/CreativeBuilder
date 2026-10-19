@@ -1,0 +1,606 @@
+{
+ "specVersion": "1",
+ "creativeId": "xanda-risquinhos-ltm",
+ "appId": "ozempro",
+ "locale": "es-419",
+ "output": {
+  "kind": "video"
+ },
+ "format": {
+  "w": 1080,
+  "h": 1920,
+  "fps": 30
+ },
+ "brandKit": {
+  "bg": "#12091F",
+  "fg": "#FFFFFF",
+  "accent": "#8630E4",
+  "fontFamily": "'Plus Jakarta Sans', Inter, system-ui, sans-serif"
+ },
+ "audio": {
+  "voiceover": {
+   "src": "audio/ozempro-risquinhos-xanda-ltm-vo.wav",
+   "atMs": 0,
+   "durationMs": 27072,
+   "script": "Cada vez que tenía que fraccionar la lapicera, no sabía si estaba contando bien las marcas. Nadie me enseñó a hacerlo. Por eso les doy este consejo. Dentro de la aplicación OzemPro elijo el medicamento que estoy tomando, su concentración, la dosis, y me muestra exactamente hasta qué marca cargar. Ya no tengo que hacer cuentas. Después registro la aplicación con el lugar donde me la puse, para no perderme la próxima semana. Sigo el nivel de medicamento en mi cuerpo y veo cuántas dosis quedan en mi frasco. Si también necesitas esta ayuda, hace clic en el link y descarga OzemPro."
+  },
+  "sfx": [
+   {
+    "src": "sfx/click_hook.mp3",
+    "atMs": 0,
+    "volume": 0.55
+   },
+   {
+    "src": "sfx/mostrar_magia.mp3",
+    "atMs": 5320,
+    "volume": 0.4
+   },
+   {
+    "src": "sfx/click.mp3",
+    "atMs": 6840,
+    "volume": 0.5
+   },
+   {
+    "src": "sfx/click.mp3",
+    "atMs": 15320,
+    "volume": 0.45
+   },
+   {
+    "src": "sfx/click.mp3",
+    "atMs": 19760,
+    "volume": 0.45
+   },
+   {
+    "src": "sfx/click.mp3",
+    "atMs": 21340,
+    "volume": 0.45
+   },
+   {
+    "src": "sfx/ding.mp3",
+    "atMs": 23540,
+    "volume": 0.35
+   }
+  ]
+ },
+ "scenes": [
+  {
+   "id": "hook-a",
+   "role": "HOOK",
+   "startMs": 0,
+   "durationMs": 1920,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "filmagem real: mulher fracionando a dose com seringa e frasco, em casa",
+     "provider": "higgsfield",
+     "src": "takes/xanda-12seg-v3.mp4",
+     "fit": "cover",
+     "startFromMs": 0,
+     "blur": 0,
+     "dim": 0,
+     "anim": "none"
+    },
+    {
+     "type": "sticker",
+     "content": "DESPUÉS DE ESTE CONSEJO NUNCA MÁS ERRÉ LAS MARCAS",
+     "x": 50,
+     "y": 27,
+     "size": 60,
+     "width": 90,
+     "chip": true,
+     "anim": "none",
+     "startMs": 0
+    },
+    {
+     "type": "karaoke",
+     "text": "Cada vez que",
+     "startMs": 0,
+     "durationMs": 420,
+     "wordEndsMs": [
+      120,
+      300,
+      420
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "tenía que fraccionar",
+     "startMs": 420,
+     "durationMs": 740,
+     "wordEndsMs": [
+      180,
+      340,
+      740
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "la lapicera,",
+     "startMs": 1160,
+     "durationMs": 760,
+     "wordEndsMs": [
+      160,
+      620
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    }
+   ]
+  },
+  {
+   "id": "hook-b",
+   "role": "HOOK",
+   "startMs": 1920,
+   "durationMs": 2020,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "filmagem real: mulher fracionando a dose com seringa e frasco, em casa",
+     "provider": "higgsfield",
+     "src": "takes/xanda-12seg-v3.mp4",
+     "fit": "cover",
+     "startFromMs": 2200,
+     "blur": 0,
+     "dim": 0,
+     "anim": "punch_in"
+    },
+    {
+     "type": "sticker",
+     "content": "DESPUÉS DE ESTE CONSEJO NUNCA MÁS ERRÉ LAS MARCAS",
+     "x": 50,
+     "y": 27,
+     "size": 60,
+     "width": 90,
+     "chip": true,
+     "anim": "none",
+     "animOut": "pop_out",
+     "startMs": 0
+    },
+    {
+     "type": "syringe_ruler",
+     "from": 0,
+     "to": 100,
+     "step": 2,
+     "labelEvery": 10,
+     "x": 50,
+     "y": 75,
+     "width": 86,
+     "startMs": 360,
+     "anim": "slide_up",
+     "animOut": "fade_out"
+    },
+    {
+     "type": "karaoke",
+     "text": "no sabía",
+     "startMs": 0,
+     "durationMs": 340,
+     "wordEndsMs": [
+      60,
+      340
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "si estaba contando",
+     "startMs": 340,
+     "durationMs": 820,
+     "wordEndsMs": [
+      120,
+      360,
+      820
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "bien las marcas.",
+     "startMs": 1160,
+     "durationMs": 860,
+     "wordEndsMs": [
+      140,
+      320,
+      640
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    }
+   ]
+  },
+  {
+   "id": "polemica",
+   "role": "PROBLEM",
+   "startMs": 3940,
+   "durationMs": 1380,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "filmagem real: mulher fracionando a dose com seringa e frasco, em casa",
+     "provider": "higgsfield",
+     "src": "takes/xanda-12seg-v3.mp4",
+     "fit": "cover",
+     "startFromMs": 4000,
+     "blur": 0,
+     "dim": 0,
+     "anim": "none"
+    },
+    {
+     "type": "karaoke",
+     "text": "Nadie me enseñó",
+     "startMs": 0,
+     "durationMs": 740,
+     "wordEndsMs": [
+      320,
+      440,
+      740
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "a hacerlo.",
+     "startMs": 740,
+     "durationMs": 640,
+     "wordEndsMs": [
+      80,
+      320
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    }
+   ]
+  },
+  {
+   "id": "dica",
+   "role": "POINT",
+   "startMs": 5320,
+   "durationMs": 1520,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "filmagem real: mulher fracionando a dose com seringa e frasco, em casa",
+     "provider": "higgsfield",
+     "src": "takes/xanda-12seg-v3.mp4",
+     "fit": "cover",
+     "startFromMs": 8400,
+     "blur": 0,
+     "dim": 0,
+     "anim": "punch_in"
+    },
+    {
+     "type": "image",
+     "src": "elementos/ozempro-calc-carga-ltm.png",
+     "x": 50,
+     "y": 24,
+     "width": 70,
+     "radius": 22,
+     "border": true,
+     "anim": "pop_in",
+     "startMs": 250
+    },
+    {
+     "type": "karaoke",
+     "text": "Por eso les",
+     "startMs": 0,
+     "durationMs": 460,
+     "wordEndsMs": [
+      120,
+      300,
+      460
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    },
+    {
+     "type": "karaoke",
+     "text": "doy este consejo.",
+     "startMs": 460,
+     "durationMs": 1060,
+     "wordEndsMs": [
+      120,
+      280,
+      720
+     ],
+     "bottomPct": 36,
+     "size": 58,
+     "style": "plain",
+     "maxWords": 3
+    }
+   ]
+  },
+  {
+   "id": "app-1",
+   "role": "DEMO",
+   "startMs": 6840,
+   "durationMs": 3260,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_xanda-12seg-v3.mp4",
+     "fit": "cover",
+     "startFromMs": 0,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/ltm/mockup/calculadora-calcular-risquinho-na-seringa.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 2600
+    }
+   ]
+  },
+  {
+   "id": "app-2",
+   "role": "DEMO",
+   "startMs": 10100,
+   "durationMs": 1500,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_xanda-12seg-v3.mp4",
+     "fit": "cover",
+     "startFromMs": 3260,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/ltm/mockup/calculadora-calcular-risquinho-na-seringa.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 5300
+    }
+   ]
+  },
+  {
+   "id": "app-3",
+   "role": "DEMO",
+   "startMs": 11600,
+   "durationMs": 2360,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_xanda-12seg-v3.mp4",
+     "fit": "cover",
+     "startFromMs": 4760,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/ltm/mockup/calculadora-calcular-risquinho-na-seringa.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 0
+    }
+   ]
+  },
+  {
+   "id": "app-4",
+   "role": "DEMO",
+   "startMs": 13960,
+   "durationMs": 1360,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_xanda-12seg-v3.mp4",
+     "fit": "cover",
+     "startFromMs": 7120,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/ltm/mockup/calculadora-calcular-risquinho-na-seringa.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 7100
+    }
+   ]
+  },
+  {
+   "id": "app-5",
+   "role": "DEMO",
+   "startMs": 15320,
+   "durationMs": 2560,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_xanda-12seg-v3.mp4",
+     "fit": "cover",
+     "startFromMs": 8480,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/ltm/mockup/aplicacao_registrar-dose-e-local.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 2600
+    }
+   ]
+  },
+  {
+   "id": "app-6",
+   "role": "DEMO",
+   "startMs": 17880,
+   "durationMs": 1880,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_xanda-12seg-v3.mp4",
+     "fit": "cover",
+     "startFromMs": 11040,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/ltm/mockup/aplicacao_registrar-dose-e-local.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 6300
+    }
+   ]
+  },
+  {
+   "id": "app-7",
+   "role": "DEMO",
+   "startMs": 19760,
+   "durationMs": 1580,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_xanda-12seg-v3.mp4",
+     "fit": "cover",
+     "startFromMs": 12920,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/ltm/mockup/tratamento-grafico_medicamento-grafico_evolucao-IMC.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 2300
+    }
+   ]
+  },
+  {
+   "id": "app-8",
+   "role": "DEMO",
+   "startMs": 21340,
+   "durationMs": 2200,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_xanda-12seg-v3.mp4",
+     "fit": "cover",
+     "startFromMs": 14500,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/ltm/mockup/estoque-doses-restantes.png",
+     "device": "iphone15_mock",
+     "anim": "punch_in",
+     "startFromMs": 0
+    }
+   ]
+  },
+  {
+   "id": "app-9",
+   "role": "CTA",
+   "startMs": 23540,
+   "durationMs": 1500,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_xanda-12seg-v3.mp4",
+     "fit": "cover",
+     "startFromMs": 16700,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/ltm/mockup/pagina_inicial-resumo_geral.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 0
+    }
+   ]
+  },
+  {
+   "id": "app-10",
+   "role": "CTA",
+   "startMs": 25040,
+   "durationMs": 2032,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "generative_video",
+     "prompt": "a própria filmagem desfocada atrás do mockup",
+     "provider": "higgsfield",
+     "src": "takes/fundo_xanda-12seg-v3.mp4",
+     "fit": "cover",
+     "startFromMs": 18200,
+     "blur": 0,
+     "dim": 0
+    },
+    {
+     "type": "app_screen_recording",
+     "src": "app/ozempro/ltm/mockup/pagina_inicial-resumo_geral.mp4",
+     "device": "iphone15_mock",
+     "startFromMs": 1600
+    }
+   ]
+  }
+ ]
+}

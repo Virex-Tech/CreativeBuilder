@@ -44,6 +44,46 @@ Isso extrai frames nos cortes reais + áudio em `.cache-ingestao/<nome>/` e escr
 Fala da referência: `python tools/transcribe.py .cache-ingestao/<nome>/audio.wav --lang pt` dá o texto
 falado (sem tom, música ou efeitos). Views/curtidas não vêm da ingestão.
 
+## Os três arquivos que mandam no criativo (leia ANTES de escrever roteiro ou spec)
+
+Não existe "criativo rápido" que pule isto. Em ordem de precedência:
+
+1. `apps/<slug>/contexto.md` — produto, público, dores, oferta, provas, tom, marca e
+   **compliance**. Compliance vence brief, referência e ângulo de concorrente.
+2. `apps/<slug>/roteiro-ugc.md` — como o roteiro é escrito: os formatos, os hooks, o que é
+   proibido dizer, onde cada coisa fica na tela.
+3. `apps/<slug>/elementos-playbook.md` — o que pode aparecer na tela como elemento, e o que a
+   equipe já reprovou (inclui os **moldes de interface**: nota, conversa, busca, aviso…).
+
+Junto com esses três, desde 18/10/2026 (OzemPro):
+
+- `apps/<slug>/formatos.md` — as **embalagens** (os 100 formatos do PDF filtrados pelo
+  compliance: 65 entram, 35 fora com o motivo), estático e carrossel, método de teste e as
+  etiquetas do nome do anúncio. Todo criativo escolhe dor + hook + embalagem + produção.
+- `apps/<slug>/mercados.md` — o que muda por **país e idioma** além da tradução (apelido,
+  prática de uso, dores, mocks, moeda, regulação). O que está "a definir" é pergunta para a
+  equipe, não regra.
+- `apps/<slug>/pauta-gravacao.md` — o que gravar com cada pessoa, os takes do panda a gerar e as
+  telas do app que faltam, por embalagem.
+- Etiquetas na ficha: `analise/criativos/_modelo-ficha.md`, seção "Etiquetas".
+
+As regras da equipe que mais foram quebradas por agente novo — todas detalhadas no
+`roteiro-ugc.md`:
+
+- **Frase de efeito é proibida.** Slogan, antítese, frase genérica bonita: não existe, em nenhum
+  formato, em nenhum idioma, nunca. No lugar: **conexão**, **fator uau**, **polêmica**.
+- **O hook de texto não repete a narração.** Ele é a linha de impacto, e fica até ~4 s na tela.
+- **Três posições na vertical, e só três:** inferior y≈75, centro y≈50, topo y≈25. Nada acima de
+  y 18 nem abaixo de y 82 (a interface da rede social cobre).
+- **Elemento nunca com legenda por cima**, e **cena com a tela do app não leva legenda**.
+- **O panda nunca fala em primeira pessoa** — ele é personagem. Primeira pessoa só com pessoa
+  real.
+- **A Calculadora de Doses entra em todo criativo**, exceto quando o pedido é recriar uma
+  referência exatamente como ela é — aí a referência manda.
+- **Nunca presumir a condição de quem assiste** (peso, corpo, se usa caneta).
+- Elemento reprovado não volta: círculo à mão (`scribble` circle), emoji solto, cartão com
+  frase solta.
+
 ## Contexto do app
 
 Antes de escrever qualquer spec, leia `apps/<slug>/contexto.md`: produto, público, dores,
@@ -119,6 +159,17 @@ frames (`takes/<nome>/f1.jpg`, `f2.jpg`) e imprime a fala como `[início–fim] 
 
 A plataforma web faz este mesmo fluxo em `/estudio` (calendário por conta, aprovação e publicação
 no Instagram) — ver `docs/ESTUDIO.md`.
+
+### Onde o rosto está (posição do texto/elemento)
+
+```bash
+python tools/rosto.py render/specs/<spec>.json [--amostras 5] [--json saida.json]
+```
+
+Dependência: `pip install opencv-python` (modelo YuNet baixado sozinho para `tools/modelos/`, fora do
+git). Por cena: faixa vertical do rosto (% da altura), quais das três posições (topo 18-32, centro
+42-58, inferior 68-82) ficam livres e a recomendada. PNGs com a caixa em `render/out/_rosto/<cena>.png`
+(**olhe**). Cena marcada INCERTO (vídeo borrado, rosto de lado) não vale: confira no PNG.
 
 ## Ajustes em linguagem natural
 
@@ -215,6 +266,29 @@ texto + CTA. Nunca gere a tela do app com modelo generativo.
 **Só o nome**: mg, números, botões e o resto da interface ficam legíveis. Tela meio borrada não
 se entrega.
 
+### A REGRA (definida pela equipe em 18/10/2026 — vale para sempre, em todos os idiomas)
+
+**Ler a palavra. É medicamento? Borra aquela palavra. Não é? Não borra. Lê a próxima. Fim.**
+
+Uma caixa por palavra, do tamanho da palavra. **Palavra inteira**: fragmento não conta, e
+**palavra incompleta** (chip cortado pela margem da tela) não é identificada, logo não é borrada.
+
+Está proibido, em qualquer idioma e por qualquer motivo:
+
+- juntar as palavras de uma linha num borrão só;
+- esticar o borrão até a margem, até o vizinho ou até a próxima palavra;
+- cobrir "o chip que o OCR não leu";
+- reaproveitar a caixa do quadro anterior;
+- fragmento de nome na lista de `--nomes` (foi assim que "lie", de *Lié*, casou dentro de
+  "ca**lie**nte" e de "app**lie**d" e borrou palavra inocente — 18/10/2026).
+
+A única folga é **erro de leitura**: o OCR troca letra em texto de baixo contraste ("Mounjaro" →
+"Mouniaro"), então vale uma letra errada a cada cinco — **só** para nome de 7 letras ou mais,
+senão "Olire" aceitaria "Olive" de uma receita. Nome curto exige grafia exata.
+
+Toda vez que essa regra foi "melhorada", o resultado foi borrar o que tinha de ficar legível.
+Não melhore.
+
 Ferramenta: `tools/borrar-ocr.mjs`. Ela lê **cada quadro** com OCR (tesseract.js, roda na
 máquina, sem API e sem crédito), acha onde está escrito o nome e borra exatamente ali. Sem
 interpolar, sem rastrear: por isso o borrão acompanha a rolagem sozinho e some quando o nome sai
@@ -234,76 +308,88 @@ qualquer nome, o borrão falhou naquele quadro.
 
 ### Custo medido (16/10/2026, gravação de 10s a 30fps)
 
-- 1,4 s por quadro (duas leituras: imagem normal e invertida) → **~7 min por 10 s de vídeo**.
+- ~3,5 s por quadro (três leituras) × número de passadas. Medido em 18/10/2026: tela de 7 s
+  (210 quadros) = 26 min de borrão + 6 min de validação; tela de 10 s = ~31 min + 7 min. Quando
+  a primeira passada não acha nada novo, para na primeira e sai pela metade do tempo.
 - **Resolução cheia é obrigatória.** Em `--escala 0.5` o texto fica com 18 px e o OCR acha o nome
   em só 36 de 300 quadros. Em resolução cheia, 290 de 300.
-- **Não dá para pular quadros parados**: medido, **0%** dos quadros são idênticos ao anterior —
-  a gravação tem ruído de compressão.
+- **Não dá para pular quadros parados.** Em br, medido, 0% dos quadros são idênticos ao
+  anterior (ruído de compressão). Em latam a miniatura acusou 185 de 285 "iguais" — e estava
+  errada: 18 deles tinham um chip que os anteriores não tinham. O atalho foi removido.
 
-### Duas coisas que a ferramenta já resolve sozinha
+### Mais de uma ocorrência por quadro
 
-- **Chip selecionado** (texto branco em fundo preto) o OCR não lê. Por isso ela lê também a
-  imagem **invertida**, e o borrão de cada linha vai **do fim da última palavra que não é nome**
-  até o fim do último nome — assim o chip que o OCR perder entra no meio, e o "Ignorer" (que não
-  é medicamento) continua legível.
-- **Mais de uma ocorrência por quadro**: borra todas, inclusive a tabela no fim do vídeo.
+Borra todas, cada uma na sua caixa — inclusive a tabela no fim do vídeo.
 
-### Por que o quadro é ACHATADO antes de ler (16/10/2026 — o achado que destravou tudo)
+### Como o quadro é entregue ao OCR (16 e 18/10/2026)
 
-**O Tesseract converte a imagem para preto e branco usando um único corte de brilho, e isso
-acontece ANTES de tentar reconhecer qualquer letra.** Num quadro em que um modal branco cobre
-parte da tela e o resto fica escurecido, o branco domina o corte e **toda a camada escurecida
-vira "fundo"** — o nome fica legível para o olho e invisível para o OCR. O mesmo vale para texto
-branco sobre chip colorido.
+O Tesseract tem duas limitações que decidem tudo aqui:
 
-A solução é tirar a iluminação da imagem antes de entregar: dividir o quadro por uma cópia bem
-borrada dele mesmo. Isso remove qualquer variação suave de luz e deixa só o desenho das letras.
+1. ele converte a imagem para preto e branco com **um único corte de brilho**, escolhido para a
+   tela inteira, e isso acontece ANTES de tentar reconhecer letra;
+2. ele só lê **texto escuro em fundo claro**.
+
+Por isso o quadro passa por três preparos e **a palavra lida em qualquer um deles conta**:
+
+| Leitura | Filtro | Pega |
+|---|---|---|
+| `c100i` | achatado, corte 100, invertido | chip selecionado (texto branco em fundo colorido) |
+| `c190` | achatado, corte 190 | texto cinza claro em fundo cinza |
+| `inv` | cinza invertido, sem achatar | o que o achatamento apaga dentro de chip colorido |
+
+**Achatar** = dividir o quadro por uma cópia bem borrada dele mesmo. Remove qualquer variação
+suave de luz (o escurecimento de um modal, o fundo colorido de um chip) e deixa só o desenho das
+letras:
 
 ```
 [0:v]format=gray,split=2[a][b];[b]gblur=sigma=60[bg];
 [a][bg]blend=all_mode=divide,eq=contrast=1.6:brightness=-0.25
 ```
 
-Medido no quadro 45 da aplicação em inglês (modal escurecendo a tela):
+Medido no quadro 45 da aplicação em inglês (modal escurecendo a tela): 6 palavras lidas no
+quadro cru, 50 no achatado, e o nome escurecido **só** aparece no achatado.
 
-| O que foi entregue ao OCR | Palavras lidas | Achou o nome escurecido? |
+E no estoque em turco, com os três chips na tela — nenhuma leitura sozinha acha os três:
+
+| | quadro 48 | quadro 164 |
 |---|---|---|
-| imagem crua, quadro inteiro | 6 | não |
-| imagem crua, invertida | 6 | não |
-| imagem crua, contraste reforçado | 4 | não |
-| imagem crua, `normalize` | — | não |
-| **imagem achatada, quadro inteiro** | **50** | **sim, 91%** |
+| corte 100 invertido | Mounjaro | Mounjaro, Ozempic |
+| corte 190 | Ozempic, Ozivy | Ozempic |
+| cinza invertido | — | Ozempic, Ozivy |
 
-E no chip roxo selecionado do estoque em br: a imagem crua lia só os chips vizinhos; a achatada
-lê também o selecionado.
-
-**O achatamento é só para LER.** O borrão é aplicado nos pixels originais; o vídeo entregue é a
+**O preparo é só para LER.** O borrão é aplicado nos pixels originais; o vídeo entregue é a
 imagem real, sem nenhum tratamento.
 
-**O que foi tentado e não resolve:** cortar o quadro em faixas horizontais funciona, mas o número
-de faixas depende de quanta área clara a tela tem (3 faixas bastavam em br e liam ZERO em en), é
-mais lento e não tem vantagem sobre achatar. `rectangle` do tesseract.js não serve: a binarização
-continua sendo da imagem toda.
+**O que foi tentado e não acrescenta nada:** faixas horizontais, fatias com sobreposição,
+ampliar 2x, PNG no lugar de JPEG, e os modos de segmentação do Tesseract (psm 4, 6, 11, 12).
+`rectangle` do tesseract.js não serve: a binarização continua sendo da imagem toda.
 
-### Nada de arrastar caixa entre quadros
+### Passadas: ler de novo até não achar palavra nova (18/10/2026)
 
-Houve uma versão que, ao não achar o nome num quadro, reaproveitava a caixa do quadro anterior.
-Com o OCR falhando muito isso parecia ajudar; com a leitura em faixas virou só defeito — a caixa
-fica parada enquanto o conteúdo rola e passa a borrar o que não deve (cobriu "Constipação" no
-histórico do tratamento, em 16/10/2026). **Cada quadro é lido por si:** acha a palavra, borra ali.
+O Tesseract lê um chip conforme os vizinhos. No quadro 164 do estoque em turco ele lia só
+"Ozempic"; **depois que o "Ozempic" foi borrado, passou a ler o "Ozivy" ao lado**. Uma passada
+só nunca ia achar os dois.
 
-### Lixo do OCR não segura o borrão
+Então a mesma regra roda de novo: lê, acha a palavra, guarda a caixa dela; aplica o que já tem
+num vídeo **provisório**; lê esse provisório; o que aparecer de novo vira mais uma caixa. Para
+quando uma passada não acha nada novo (`--passadas`, padrão 4).
 
-O borrão de cada linha vai do fim da última palavra que **não** é nome até o fim do último nome.
-Só conta como palavra quem tem **3 letras ou mais**: o OCR cospe tokens como `)` e `”»` entre os
-chips, e tratá-los como palavra empurrava o borrão para a direita, deixando o nome à esquerda
-exposto. Sem nenhuma palavra de verdade à esquerda, o borrão começa na margem (2% da largura).
+As caixas se **acumulam** e o vídeo entregue é gravado **uma vez só, a partir do original** — o
+provisório serve só para ler e é descartado, então não há perda de qualidade empilhada.
 
-### A comparação tolera erro de leitura
+### Cada quadro é lido por si (sem exceção)
 
-Em texto de baixo contraste o OCR troca letra: "Mounjaro" vira "Mouniaro", "Mournjaro",
-"Mounjara". A comparação aceita **uma letra errada a cada cinco** (distância de edição). Testado:
-reconhece essas variações e rejeita "Medicamento", "Comunidade", "Constipação", "Caneta".
+Duas versões tentaram economizar leitura e as duas vazaram:
+
+- reaproveitar a caixa do quadro anterior quando o nome não era achado. A caixa fica parada
+  enquanto o conteúdo rola e passa a borrar o que não deve — cobriu "Constipação" no histórico
+  do tratamento (16/10/2026);
+- **pular quadro "igual ao anterior"** (comparação por miniatura). A miniatura dizia igual e não
+  era: na calculadora em latam, 18 quadros saíram com o chip "Oziv" **legível**, porque a caixa
+  reaproveitada era de antes do chip entrar na tela (18/10/2026).
+
+Ler todo quadro custa ~1,4 s por quadro e é o preço da regra. Nenhum atalho de leitura entra
+aqui de novo.
 
 ### Quais telas têm nome (levantado em 16/10/2026, nas 18 gravações em br)
 
@@ -366,6 +452,9 @@ claro encosta na curva da moldura e denuncia o encaixe.
   rápida e quando ela passa sob o cabeçalho fixo.
 - **`find_rect`/`cover_rect` do ffmpeg.** O chip muda de aparência ao ser selecionado e o filtro
   só acha um objeto por quadro.
+- **Esticar o borrão para cobrir o que o OCR não leu** (até a margem, até o vizinho, até a
+  próxima palavra). Reprovado pela equipe em 18/10/2026: borrou "Applied", "caliente" e a dose
+  do histórico. Ver "A REGRA" no começo desta seção.
 
 `tools/borrar.mjs` continua para borrão manual de região fixa, quando a tela não rola.
 
@@ -421,6 +510,23 @@ em `node tools/kie.mjs gerar <modelo> ...` (Kling: primeiro quadro; Veo: primeir
 alternativa Higgsfield: `kling3_0 --start-image/--end-image <arquivo>` ou `seedance_2_0
 --image-references/--video-references <arquivo>` — custo e ok antes. Rosto real só com
 autorização; sem música de terceiros.
+
+## A transcrição pode truncar sem avisar (19/10/2026)
+
+O `transcribe.py` (faster-whisper) às vezes **para antes do fim do áudio e não reclama**. Na
+locução francesa do criativo do platô ele devolveu 138 palavras terminando em 24,4s para um áudio
+de 29,6s — os últimos 5 segundos simplesmente não vieram. Como as fronteiras das cenas saem desses
+tempos, o criativo inteiro cairia errado do meio para o fim.
+
+**Confira sempre** que o `endMs` da última palavra bate com a duração do arquivo:
+
+```bash
+ffprobe -v error -show_entries format=duration -of csv=p=0 <audio>
+node -e 'const w=require("./<audio>.words.json").words; console.log(w[w.length-1].endMs)'
+```
+
+Faltando pedaço, transcreva só o trecho que faltou (`ffmpeg -ss <seg> -i <audio> <fim>.wav`) e
+emende somando o deslocamento aos tempos. O áudio está inteiro; quem falhou foi a leitura.
 
 ## Locução e legenda sincronizada (karaokê)
 

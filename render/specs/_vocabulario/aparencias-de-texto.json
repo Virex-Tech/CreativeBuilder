@@ -1,0 +1,134 @@
+{
+ "specVersion": "1",
+ "creativeId": "_teste-look",
+ "appId": "ozempro",
+ "locale": "pt-BR",
+ "output": {},
+ "format": {
+  "w": 1080,
+  "h": 1920,
+  "fps": 30
+ },
+ "brandKit": {
+  "bg": "#12091F",
+  "fg": "#FFFFFF",
+  "accent": "#8630E4",
+  "fontFamily": "Montserrat, Inter, system-ui, sans-serif"
+ },
+ "audio": {},
+ "scenes": [
+  {
+   "id": "grade",
+   "role": "DEMO",
+   "startMs": 0,
+   "durationMs": 2000,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "solid",
+     "color": "#1B1030"
+    },
+    {
+     "type": "sticker",
+     "content": "plain",
+     "x": 50,
+     "y": 8,
+     "size": 62,
+     "chip": false,
+     "look": "plain",
+     "startMs": 0,
+     "anim": "none"
+    },
+    {
+     "type": "sticker",
+     "content": "impact",
+     "x": 50,
+     "y": 18,
+     "size": 62,
+     "chip": false,
+     "look": "impact",
+     "startMs": 0,
+     "anim": "none"
+    },
+    {
+     "type": "sticker",
+     "content": "outline glow",
+     "x": 50,
+     "y": 28,
+     "size": 62,
+     "chip": false,
+     "look": "outline_glow",
+     "startMs": 0,
+     "anim": "none"
+    },
+    {
+     "type": "sticker",
+     "content": "translucent box",
+     "x": 50,
+     "y": 38,
+     "size": 62,
+     "chip": false,
+     "look": "translucent_box",
+     "startMs": 0,
+     "anim": "none"
+    },
+    {
+     "type": "sticker",
+     "content": "chromatic",
+     "x": 50,
+     "y": 48,
+     "size": 62,
+     "chip": false,
+     "look": "chromatic",
+     "startMs": 0,
+     "anim": "none"
+    },
+    {
+     "type": "sticker",
+     "content": "glitch",
+     "x": 50,
+     "y": 58,
+     "size": 62,
+     "chip": false,
+     "look": "glitch",
+     "startMs": 0,
+     "anim": "none"
+    },
+    {
+     "type": "sticker",
+     "content": "doodle",
+     "x": 50,
+     "y": 68,
+     "size": 62,
+     "chip": false,
+     "look": "doodle",
+     "startMs": 0,
+     "anim": "none"
+    },
+    {
+     "type": "sticker",
+     "content": "nunca *errei*",
+     "x": 50,
+     "y": 78,
+     "size": 62,
+     "chip": false,
+     "look": "red_word",
+     "startMs": 0,
+     "anim": "none"
+    },
+    {
+     "type": "sticker",
+     "content": "spotlight off",
+     "x": 50,
+     "y": 88,
+     "size": 62,
+     "chip": false,
+     "look": "spotlight_off",
+     "startMs": 0,
+     "anim": "none"
+    }
+   ]
+  }
+ ]
+}

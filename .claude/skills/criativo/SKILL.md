@@ -49,6 +49,14 @@ Isso detecta os cortes reais e extrai um frame em cada um, mais o áudio, em
 narração). A transcrição não traz tom de voz, música nem efeitos — pergunte se forem relevantes.
 Views/curtidas não vêm da ingestão — use os números que o usuário der.
 
+**As regras do criativo estão em três arquivos, e os três se leem antes de escrever qualquer
+roteiro ou spec:** `apps/<slug>/contexto.md` (produto e compliance), `apps/<slug>/roteiro-ugc.md`
+(como o roteiro é escrito) e `apps/<slug>/elementos-playbook.md` (o que pode aparecer na tela).
+O resumo do que mais se quebra — frase de efeito proibida, hook de texto que não repete a
+narração, as três posições na vertical, legenda que sai quando a tela do app entra, panda nunca
+em primeira pessoa, calculadora em todo criativo — está no `AGENTS.md`, seção "Os três arquivos
+que mandam no criativo".
+
 **Contexto do app:** antes de escrever qualquer spec, leia `apps/<slug>/contexto.md` (o que o
 app faz, público, dores, funcionalidades, oferta, provas, tom, marca e **compliance**). As
 regras da seção "Compliance" vencem brief e referência, como o bloco `never` do director.

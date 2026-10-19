@@ -130,8 +130,12 @@ Cores tiradas do ícone do app (gradiente roxo). Os blogs usam rosa/azul — **n
 
 - **bg:** `#12091F` (roxo quase preto, fundo de vídeo) · **fg:** `#FFFFFF` · **accent:** `#8630E4`
 - Variações do roxo do ícone: escuro `#5C1CCB` · médio `#6A23D6` · claro `#9E40EA`
-- **fontFamily:** `"'Plus Jakarta Sans', Inter, system-ui, sans-serif"` (fonte dos sites). O renderer
-  não embute fontes: sem a Plus Jakarta Sans instalada na máquina, o vídeo cai na fonte do sistema.
+- **fontFamily:** `"Montserrat, Inter, system-ui, sans-serif"` — **Montserrat em tudo** (decisão da
+  equipe, 18/10/2026): títulos, legenda e elementos. Os sites usam Plus Jakarta Sans, mas ela não
+  entra no vídeo. O renderer não embute fontes: a Montserrat precisa estar instalada na máquina de
+  quem renderiza (arquivos em `entrada/ozempro/fontes/`, variável + itálica; instalar para o usuário).
+- **Caveat** (manuscrito, OFL) — instalada em 19/10/2026, usada **só** pela aparência `look: "doodle"`
+  de texto e selo. Sem ela o texto cai num fallback arredondado que não parece manuscrito.
 - **Ícone:** `render/public/app/ozempro/icone.png` (1024×1024, panda com caneta) — use no CTA final.
 - **Ferramentas oficiais (13/10/2026):** vídeo/b-roll no **Higgsfield**; narração no **Google AI
   Studio** (`tools/tts-gemini.mjs`). A Kie.ai fica como alternativa.

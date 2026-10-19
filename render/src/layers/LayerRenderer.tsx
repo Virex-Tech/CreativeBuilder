@@ -5,7 +5,7 @@ import { layoutFor, type Layout } from "../formats";
 import { useMediaAspect } from "./mediaAspect";
 import { BADGE_TOP, badgeHeight, resolveAnim, resolveExit, resolveTextPreset, TOP_STACK_GAP } from "../presets/anims";
 import { resolveSrc } from "../resolveSrc";
-import { msToFrames, type BrandKit, type Layer } from "../spec";
+import { msToFrames, type BrandKit, type Layer, type TextLook } from "../spec";
 
 interface Props {
 	layer: Layer;
@@ -35,13 +35,14 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames,
 		opacity: entrada.opacity * saida.opacity,
 		scale: entrada.scale * saida.scale,
 		translateY: entrada.translateY + saida.translateY,
+		rotateY: (entrada.rotateY ?? 0) + (saida.rotateY ?? 0),
 	};
 	const msDaLayer = (frame / fps) * 1000;
 	// Every px below is in base 1080×1920 px, scaled to the composition (identity at 9:16).
 	const L = layoutFor(width, height);
 	const z = L.size;
 
-	const transform = `scale(${anim.scale}) translateY(${anim.translateY}px)`;
+	const transform = `perspective(1200px) rotateY(${anim.rotateY ?? 0}deg) scale(${anim.scale}) translateY(${anim.translateY}px)`;
 
 	switch (layer.type) {
 		case "syringe_ruler":
@@ -49,6 +50,27 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames,
 
 		case "scribble":
 			return <Scribble layer={layer} ms={msDaLayer} opacity={anim.opacity} />;
+
+		case "pointer":
+			return <Pointer layer={layer} brand={brand} ms={msDaLayer} anim={anim} />;
+
+		case "body_map":
+			return <BodyMap layer={layer} brand={brand} ms={msDaLayer} anim={anim} />;
+
+		case "plate":
+			return <Plate layer={layer} brand={brand} ms={msDaLayer} anim={anim} />;
+
+		case "swap":
+			return <Swap layer={layer} brand={brand} ms={msDaLayer} anim={anim} />;
+
+		case "units":
+			return <Units layer={layer} brand={brand} ms={msDaLayer} anim={anim} />;
+
+		case "limit_gauge":
+			return <LimitGauge layer={layer} brand={brand} ms={msDaLayer} anim={anim} />;
+
+		case "warning_signs":
+			return <WarningSigns layer={layer} brand={brand} ms={msDaLayer} anim={anim} />;
 
 		case "counter":
 			return <Counter layer={layer} brand={brand} ms={msDaLayer} anim={anim} />;
@@ -97,9 +119,18 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames,
 							boxShadow: style.boxShadow,
 							// Long locales (PT/ES run 20-30% longer than EN) must shrink, not overflow.
 							overflowWrap: "break-word",
+							...estiloDaAparencia(layer.look, brand, style.fontSize ?? 60, msDaLayer),
 						}}
 					>
-						{layer.content}
+						<TextoComAparencia
+							conteudo={layer.content}
+							look={layer.look}
+							lookColor={layer.lookColor}
+							anim={layer.anim}
+							brand={brand}
+							ms={msDaLayer}
+							durationMs={(durationInFrames / fps) * 1000}
+						/>
 					</div>
 				</AbsoluteFill>
 			);
@@ -592,13 +623,21 @@ export const LayerRenderer: React.FC<Props> = ({ layer, brand, durationInFrames,
 
 			return (
 				<AbsoluteFill>
-					<div style={{ ...base, ...comChip }}>
+					<div style={{ ...base, ...comChip, ...estiloDaAparencia(layer.look, brand, layer.size, msDaLayer) }}>
 						{layer.icon ? (
 							<span style={{ fontSize: layer.size * 1.25, marginRight: 12, verticalAlign: "-0.1em" }}>
 								{layer.icon}
 							</span>
 						) : null}
-						{layer.content}
+						<TextoComAparencia
+							conteudo={layer.content}
+							look={layer.look}
+							lookColor={layer.lookColor}
+							anim={layer.anim}
+							brand={brand}
+							ms={msDaLayer}
+							durationMs={(durationInFrames / fps) * 1000}
+						/>
 					</div>
 				</AbsoluteFill>
 			);
@@ -698,6 +737,747 @@ const Scribble: React.FC<{
 					);
 				})}
 			</svg>
+		</AbsoluteFill>
+	);
+};
+
+/**
+ * APARÊNCIA DO TEXTO — `look`, separado da animação.
+ *
+ * Nas referências cada estilo é uma cena fechada ("texto impacto", "texto com contorno"). Aqui é
+ * um campo: a mesma aparência serve ao hook, ao título e ao selo, e combina com qualquer `anim`.
+ * `plain` (ou sem `look`) devolve o que sempre foi, então nenhum spec antigo muda.
+ */
+function estiloDaAparencia(
+	look: TextLook | undefined,
+	brand: BrandKit,
+	tamanho: number,
+	ms: number,
+): React.CSSProperties {
+	const contorno = brand.accent;
+	switch (look) {
+		case "impact":
+			return {
+				fontWeight: 900,
+				textTransform: "uppercase",
+				letterSpacing: "-0.02em",
+				lineHeight: 1.02,
+				textShadow: "0 8px 0 rgba(0,0,0,0.55), 0 18px 40px rgba(0,0,0,0.5)",
+			};
+		case "outline_glow":
+			return {
+				WebkitTextStroke: `${Math.max(2, tamanho * 0.035)}px ${contorno}`,
+				textShadow: `0 0 ${tamanho * 0.3}px ${contorno}, 0 0 ${tamanho * 0.7}px ${contorno}`,
+			};
+		case "translucent_box":
+			return {
+				background: "rgba(255,255,255,0.14)",
+				backdropFilter: "blur(10px)",
+				WebkitBackdropFilter: "blur(10px)",
+				border: "1px solid rgba(255,255,255,0.26)",
+				borderRadius: 22,
+				padding: "0.34em 0.6em",
+			};
+		case "chromatic":
+			// Franja vermelha e ciano, como impressão fora de registro.
+			return { textShadow: `0.035em 0 0 #FF2D55, -0.035em 0 0 #00E5FF, 0 8px 28px rgba(0,0,0,0.5)` };
+		case "glitch": {
+			// A cor pula entre quadros — o passo é o quadro, então o salto é seco.
+			const q = Math.floor(ms / 33.3);
+			const salto = [0, 1, 0, 2, 0, 0, 1][q % 7];
+			return {
+				textShadow:
+					salto === 1
+						? "0.05em 0 0 #FF2D55, -0.05em 0 0 #00E5FF"
+						: salto === 2
+							? "-0.06em 0 0 #FF2D55, 0.06em 0 0 #00E5FF"
+							: "0 6px 24px rgba(0,0,0,0.55)",
+				transform: salto ? `translateX(${salto === 1 ? 3 : -3}px)` : undefined,
+			};
+		}
+		case "doodle":
+			return { fontFamily: "Caveat, 'Comic Sans MS', cursive", fontWeight: 700, letterSpacing: "0.01em" };
+		case "spotlight_off":
+			return { color: "transparent", textShadow: `0 0 ${tamanho * 0.45}px rgba(255,255,255,0.9)` };
+		case "red_word":
+		case "plain":
+		default:
+			return {};
+	}
+}
+
+/**
+ * Texto já com a aparência aplicada.
+ *
+ * Dois casos precisam mexer no conteúdo, não só no CSS:
+ *   `red_word`  — a palavra entre *asteriscos* sai colorida;
+ *   `typewriter` — as letras aparecem uma a uma (é `anim`, não `look`, mas também é conteúdo).
+ */
+const TextoComAparencia: React.FC<{
+	conteudo: string;
+	look?: TextLook;
+	lookColor?: string;
+	anim?: Layer["anim"];
+	brand: BrandKit;
+	ms: number;
+	durationMs: number;
+}> = ({ conteudo, look, lookColor, anim, brand, ms, durationMs }) => {
+	// Máquina de escrever: revela em 60% da cena, para a frase ficar lida antes de sair.
+	let texto = conteudo;
+	if (anim === "typewriter") {
+		const p = Math.min(1, ms / Math.max(1, durationMs * 0.6));
+		texto = conteudo.slice(0, Math.ceil(conteudo.length * p));
+	}
+
+	if (look !== "red_word") return <>{texto}</>;
+
+	// *palavra* vira palavra colorida. O asterisco some.
+	const partes = texto.split(/(\*[^*]+\*)/g);
+	return (
+		<>
+			{partes.map((parte, i) =>
+				parte.startsWith("*") && parte.endsWith("*") && parte.length > 2 ? (
+					<span key={`r-${String(i)}`} style={{ color: lookColor ?? "#FF3B30" }}>
+						{parte.slice(1, -1)}
+					</span>
+				) : (
+					parte
+				),
+			)}
+		</>
+	);
+};
+
+/** Caixa de painel: o mesmo vidro dos cartões, para os painéis novos não parecerem de outro kit. */
+const vidro = (raio = 28): React.CSSProperties => ({
+	// 0,88 e não 0,72: a 72% o cartão sumia por cima de conteúdo claro — no criativo do panda o
+	// mapa do corpo ficou lavado sobre a barriga branca dele (19/10/2026).
+	background: "rgba(18,9,31,0.88)",
+	backdropFilter: "blur(14px)",
+	WebkitBackdropFilter: "blur(14px)",
+	border: "1px solid rgba(255,255,255,0.14)",
+	borderRadius: raio,
+	boxShadow: "0 18px 48px rgba(0,0,0,0.45)",
+});
+
+/** Corpo de frente com os pontos de aplicação. O ponto escolhido acende e pulsa de leve. */
+const BodyMap: React.FC<{
+	layer: Extract<Layer, { type: "body_map" }>;
+	brand: BrandKit;
+	ms: number;
+	anim: { opacity: number; scale: number; translateY: number };
+}> = ({ layer, brand, ms, anim }) => {
+	const p = suave(Math.min(1, ms / layer.drawMs));
+	const cor = layer.color ?? brand.accent;
+	// Coordenadas no viewBox 0 0 100 190 — a mesma figura do seletor do app.
+	const pontos: Record<string, [number, number]> = {
+		// Conferido no still (19/10/2026): o tronco vai de y34 a y96, então o abdômen fica entre
+		// 72 e 88 — fora disso o ponto cai na perna, que foi o erro da primeira versão.
+		abdomen_ul: [43, 73],
+		abdomen_ur: [57, 73],
+		abdomen_ll: [43, 87],
+		abdomen_lr: [57, 87],
+		thigh_l: [41, 122],
+		thigh_r: [59, 122],
+		arm_l: [21, 68],
+		arm_r: [79, 68],
+	};
+
+	return (
+		<AbsoluteFill style={{ opacity: anim.opacity }}>
+			<div
+				style={{
+					position: "absolute",
+					left: `${layer.x}%`,
+					top: `${layer.y}%`,
+					width: `${layer.width}%`,
+					transform: `translate(-50%, -50%) scale(${anim.scale})`,
+					...vidro(),
+					padding: "22px 18px",
+					textAlign: "center",
+				}}
+			>
+				<svg viewBox="0 0 100 190" style={{ width: "100%", height: "auto" }}>
+					<g fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" strokeWidth={1.4}>
+						<circle cx="50" cy="18" r="13" />
+						<rect x="33" y="34" width="34" height="62" rx="14" />
+						<rect x="14" y="38" width="15" height="52" rx="7.5" />
+						<rect x="71" y="38" width="15" height="52" rx="7.5" />
+						<rect x="35" y="98" width="13" height="74" rx="6.5" />
+						<rect x="52" y="98" width="13" height="74" rx="6.5" />
+					</g>
+					{layer.spots.map((s) => {
+						const ponto = pontos[s];
+						const pulso = 1 + Math.sin(ms / 220) * 0.08;
+
+						return (
+							<g key={s}>
+								<circle cx={ponto[0]} cy={ponto[1]} r={7 * p * pulso} fill={cor} opacity={0.35} />
+								<circle cx={ponto[0]} cy={ponto[1]} r={4 * p} fill={cor} />
+							</g>
+						);
+					})}
+				</svg>
+				{layer.label ? (
+					<div
+						style={{
+							marginTop: 10,
+							fontFamily: `Montserrat, ${brand.fontFamily}`,
+							fontWeight: 700,
+							fontSize: 30,
+							color: brand.fg,
+							opacity: p,
+						}}
+					>
+						{layer.label}
+					</div>
+				) : null}
+			</div>
+		</AbsoluteFill>
+	);
+};
+
+/** Prato dividido: as fatias crescem em sequência e cada uma leva seu nome. */
+const Plate: React.FC<{
+	layer: Extract<Layer, { type: "plate" }>;
+	brand: BrandKit;
+	ms: number;
+	anim: { opacity: number; scale: number; translateY: number };
+}> = ({ layer, brand, ms, anim }) => {
+	const p = suave(Math.min(1, ms / layer.drawMs));
+	const total = layer.slices.reduce((a, s) => a + s.percent, 0);
+	const cores = ["#5CC98C", "#8630E4", "#F2B13C", "#59A7F0", "#E86A6A"];
+	let acumulado = 0;
+	const paradas = layer.slices.map((s, i) => {
+		const ini = (acumulado / total) * 360;
+		acumulado += s.percent;
+		const fim = (acumulado / total) * 360;
+
+		return `${s.color ?? cores[i % cores.length]} ${ini}deg ${fim * p + ini * (1 - p)}deg`;
+	});
+
+	return (
+		<AbsoluteFill style={{ opacity: anim.opacity }}>
+			<div
+				style={{
+					position: "absolute",
+					left: `${layer.x}%`,
+					top: `${layer.y}%`,
+					width: `${layer.width}%`,
+					transform: `translate(-50%, -50%) scale(${anim.scale})`,
+					...vidro(),
+					padding: 24,
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "center",
+					gap: 16,
+				}}
+			>
+				<div
+					style={{
+						width: "70%",
+						aspectRatio: "1 / 1",
+						borderRadius: "50%",
+						background: `conic-gradient(${paradas.join(",")}, rgba(255,255,255,0.08) 0deg)`,
+						border: "8px solid rgba(255,255,255,0.9)",
+						boxShadow: "inset 0 0 40px rgba(0,0,0,0.35)",
+					}}
+				/>
+				<div style={{ display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center" }}>
+					{layer.slices.map((s, i) => (
+						<div
+							key={s.label}
+							style={{
+								display: "flex",
+								alignItems: "center",
+								gap: 8,
+								fontFamily: `Montserrat, ${brand.fontFamily}`,
+								fontWeight: 700,
+								fontSize: 26,
+								color: brand.fg,
+								opacity: Math.max(0, Math.min(1, p * layer.slices.length - i)),
+							}}
+						>
+							<span style={{ width: 18, height: 18, borderRadius: 5, background: s.color ?? cores[i % cores.length] }} />
+							{s.label} · {s.percent}%
+						</div>
+					))}
+				</div>
+			</div>
+		</AbsoluteFill>
+	);
+};
+
+/** Troca: o cartão da esquerda sai riscado, a seta corre, o da direita entra. */
+const Swap: React.FC<{
+	layer: Extract<Layer, { type: "swap" }>;
+	brand: BrandKit;
+	ms: number;
+	anim: { opacity: number; scale: number; translateY: number };
+}> = ({ layer, brand, ms, anim }) => {
+	const p = suave(Math.min(1, ms / layer.drawMs));
+	const entra = suave(Math.max(0, Math.min(1, (ms - layer.drawMs * 0.5) / (layer.drawMs * 0.5))));
+
+	const cartao = (titulo: string, icone: string | undefined, ok: boolean, aparecer: number): React.ReactNode => (
+		<div
+			style={{
+				...vidro(22),
+				flex: 1,
+				padding: "20px 16px",
+				textAlign: "center",
+				opacity: aparecer,
+				transform: `scale(${0.92 + aparecer * 0.08})`,
+				borderColor: ok ? "rgba(92,201,140,0.6)" : "rgba(232,106,106,0.6)",
+			}}
+		>
+			{icone ? <div style={{ fontSize: 56, lineHeight: 1.1 }}>{icone}</div> : null}
+			<div
+				style={{
+					fontFamily: `Montserrat, ${brand.fontFamily}`,
+					fontWeight: 800,
+					fontSize: 30,
+					color: brand.fg,
+					textDecoration: ok ? "none" : "line-through",
+					opacity: ok ? 1 : 0.75,
+				}}
+			>
+				{titulo}
+			</div>
+		</div>
+	);
+
+	return (
+		<AbsoluteFill style={{ opacity: anim.opacity }}>
+			<div
+				style={{
+					position: "absolute",
+					left: `${layer.x}%`,
+					top: `${layer.y}%`,
+					width: `${layer.width}%`,
+					transform: `translate(-50%, -50%) scale(${anim.scale})`,
+					display: "flex",
+					alignItems: "center",
+					gap: 14,
+				}}
+			>
+				{cartao(layer.fromLabel, layer.fromIcon, false, p)}
+				<div style={{ textAlign: "center", minWidth: 70 }}>
+					<div style={{ fontSize: 46, color: brand.accent, opacity: p }}>→</div>
+					{layer.note ? (
+						<div
+							style={{
+								fontFamily: `Montserrat, ${brand.fontFamily}`,
+								fontWeight: 700,
+								fontSize: 22,
+								color: "#5CC98C",
+								opacity: entra,
+							}}
+						>
+							{layer.note}
+						</div>
+					) : null}
+				</div>
+				{cartao(layer.toLabel, layer.toIcon, true, entra)}
+			</div>
+		</AbsoluteFill>
+	);
+};
+
+/** Unidades que aparecem uma a uma — o "quanto é" virando imagem. */
+const Units: React.FC<{
+	layer: Extract<Layer, { type: "units" }>;
+	brand: BrandKit;
+	ms: number;
+	anim: { opacity: number; scale: number; translateY: number };
+}> = ({ layer, brand, ms, anim }) => {
+	const cor = layer.color ?? brand.accent;
+	const passo = layer.drawMs / layer.count;
+	const colunas = Math.min(10, Math.ceil(Math.sqrt(layer.count * 1.6)));
+	const raio =
+		layer.shape === "circle" ? "50%" : layer.shape === "pill" ? "999px" : layer.shape === "drop" ? "50% 50% 50% 0" : "8px";
+
+	return (
+		<AbsoluteFill style={{ opacity: anim.opacity }}>
+			<div
+				style={{
+					position: "absolute",
+					left: `${layer.x}%`,
+					top: `${layer.y}%`,
+					width: `${layer.width}%`,
+					transform: `translate(-50%, -50%) scale(${anim.scale})`,
+					...vidro(),
+					padding: 22,
+					textAlign: "center",
+				}}
+			>
+				<div style={{ display: "grid", gridTemplateColumns: `repeat(${colunas}, 1fr)`, gap: 10, justifyItems: "center" }}>
+					{Array.from({ length: layer.count }, (_, i) => {
+						const a = suave(Math.max(0, Math.min(1, (ms - i * passo) / 260)));
+
+						return (
+							<div
+								key={`u-${String(i)}`}
+								style={{
+									width: "100%",
+									aspectRatio: "1 / 1",
+									background: cor,
+									borderRadius: raio,
+									transform: `scale(${a}) rotate(${layer.shape === "drop" ? -45 : 0}deg)`,
+									boxShadow: "0 6px 16px rgba(0,0,0,0.35)",
+								}}
+							/>
+						);
+					})}
+				</div>
+				{layer.label ? (
+					<div
+						style={{
+							marginTop: 14,
+							fontFamily: `Montserrat, ${brand.fontFamily}`,
+							fontWeight: 800,
+							fontSize: 32,
+							color: brand.fg,
+						}}
+					>
+						{layer.label}
+					</div>
+				) : null}
+			</div>
+		</AbsoluteFill>
+	);
+};
+
+/** Medidor com limite: o arco enche e para; passou do limite, fica vermelho. */
+const LimitGauge: React.FC<{
+	layer: Extract<Layer, { type: "limit_gauge" }>;
+	brand: BrandKit;
+	ms: number;
+	anim: { opacity: number; scale: number; translateY: number };
+}> = ({ layer, brand, ms, anim }) => {
+	const p = suave(Math.min(1, ms / layer.drawMs));
+	const v = layer.value * p;
+	const passou = v > layer.limit;
+	const cor = passou ? "#E86A6A" : v > layer.limit * 0.75 ? "#F2B13C" : "#5CC98C";
+	// Semicírculo de raio 45: o arco mede π·45.
+	const comprimento = Math.PI * 45;
+
+	return (
+		<AbsoluteFill style={{ opacity: anim.opacity }}>
+			<div
+				style={{
+					position: "absolute",
+					left: `${layer.x}%`,
+					top: `${layer.y}%`,
+					width: `${layer.width}%`,
+					transform: `translate(-50%, -50%) scale(${anim.scale})`,
+					...vidro(),
+					padding: "24px 20px 18px",
+					textAlign: "center",
+				}}
+			>
+				<svg viewBox="0 0 100 58" style={{ width: "100%", height: "auto", overflow: "visible" }}>
+					<path
+						d="M5 52 A45 45 0 0 1 95 52"
+						fill="none"
+						stroke="rgba(255,255,255,0.16)"
+						strokeWidth={10}
+						strokeLinecap="round"
+					/>
+					<path
+						d="M5 52 A45 45 0 0 1 95 52"
+						fill="none"
+						stroke={cor}
+						strokeWidth={10}
+						strokeLinecap="round"
+						strokeDasharray={comprimento}
+						strokeDashoffset={comprimento * (1 - v / 100)}
+					/>
+					<g transform={`rotate(${(layer.limit / 100) * 180 - 90}, 50, 52)`}>
+						<line x1="50" y1="7" x2="50" y2="17" stroke="#FFFFFF" strokeWidth={3} strokeLinecap="round" />
+					</g>
+				</svg>
+				<div
+					style={{
+						marginTop: -6,
+						fontFamily: `Montserrat, ${brand.fontFamily}`,
+						fontWeight: 900,
+						fontSize: 52,
+						color: cor,
+					}}
+				>
+					{layer.valueText ?? `${String(Math.round(v))}%`}
+				</div>
+				{layer.label ? (
+					<div
+						style={{
+							fontFamily: `Montserrat, ${brand.fontFamily}`,
+							fontWeight: 600,
+							fontSize: 26,
+							color: "rgba(255,255,255,0.78)",
+						}}
+					>
+						{layer.label}
+					</div>
+				) : null}
+			</div>
+		</AbsoluteFill>
+	);
+};
+
+/** Sinais de alerta, um por linha, entrando em sequência. */
+const WarningSigns: React.FC<{
+	layer: Extract<Layer, { type: "warning_signs" }>;
+	brand: BrandKit;
+	ms: number;
+	anim: { opacity: number; scale: number; translateY: number };
+}> = ({ layer, brand, ms, anim }) => {
+	const cor = layer.color ?? "#F2B13C";
+
+	return (
+		<AbsoluteFill style={{ opacity: anim.opacity }}>
+			<div
+				style={{
+					position: "absolute",
+					left: `${layer.x}%`,
+					top: `${layer.y}%`,
+					width: `${layer.width}%`,
+					transform: `translate(-50%, -50%) scale(${anim.scale})`,
+					...vidro(),
+					padding: "22px 24px",
+					borderLeft: `8px solid ${cor}`,
+				}}
+			>
+				{layer.title ? (
+					<div
+						style={{
+							fontFamily: `Montserrat, ${brand.fontFamily}`,
+							fontWeight: 900,
+							fontSize: 32,
+							color: cor,
+							textTransform: "uppercase",
+							marginBottom: 12,
+						}}
+					>
+						{layer.title}
+					</div>
+				) : null}
+				{layer.items.map((item, i) => {
+					const a = suave(Math.max(0, Math.min(1, (ms - i * layer.staggerMs) / 300)));
+
+					return (
+						<div
+							key={item.text}
+							style={{
+								display: "flex",
+								alignItems: "center",
+								gap: 14,
+								padding: "8px 0",
+								opacity: a,
+								transform: `translateX(${(1 - a) * 24}px)`,
+							}}
+						>
+							<span style={{ fontSize: 34 }}>{item.icon ?? "•"}</span>
+							<span
+								style={{
+									fontFamily: `Montserrat, ${brand.fontFamily}`,
+									fontWeight: 700,
+									fontSize: 30,
+									color: brand.fg,
+								}}
+							>
+								{item.text}
+							</span>
+						</div>
+					);
+				})}
+			</div>
+		</AbsoluteFill>
+	);
+};
+
+/**
+ * APONTADOR — o "olha aqui" do criativo. Dezesseis formas numa layer só.
+ *
+ * Todas se desenham no tempo de `drawMs`: as de traço com strokeDasharray, as cheias com escala
+ * e opacidade. O desenho vive num viewBox 0 0 100 100 e é escalado por `size`, então a mesma
+ * forma serve de apontador pequeno encostado num chip ou de marca grande no meio do quadro.
+ */
+const Pointer: React.FC<{
+	layer: Extract<Layer, { type: "pointer" }>;
+	brand: BrandKit;
+	ms: number;
+	anim: { opacity: number; scale: number; translateY: number };
+}> = ({ layer, brand, ms, anim }) => {
+	const p = suave(Math.min(1, ms / layer.drawMs));
+	const cor = layer.color ?? brand.accent;
+	const forma = layer.shape;
+	// Traço proporcional ao tamanho: apontador pequeno não pode ter traço de apontador grande.
+	const traco = forma === "underline" || forma === "highlighter" ? 10 : 8;
+
+	/** Caminhos desenhados em sequência — a ponta da seta vem depois do corpo. */
+	const caminhos: Record<string, string[]> = {
+		curved_arrow: ["M8 86 C30 86 70 70 88 30", "M88 30 L66 36", "M88 30 L84 54"],
+		side_arrow: ["M6 50 L86 50", "M86 50 L62 32", "M86 50 L62 68"],
+		down_arrow: ["M50 6 L50 80", "M50 80 L30 58", "M50 80 L70 58"],
+		underline: ["M4 58 L96 58"],
+		box: ["M8 18 L92 18", "M92 18 L92 82", "M92 82 L8 82", "M8 82 L8 18"],
+		check: ["M14 54 L40 80 L88 20"],
+		cross: ["M20 20 L80 80", "M80 20 L20 80"],
+		exclamation: ["M50 10 L50 62", "M50 84 L50 86"],
+		question: ["M26 30 C26 10 74 10 74 32 C74 50 50 50 50 66", "M50 84 L50 86"],
+		rays: ["M50 8 L50 26", "M79 21 L68 32", "M92 50 L74 50", "M79 79 L68 68", "M50 92 L50 74", "M21 79 L32 68", "M8 50 L26 50", "M21 21 L32 32"],
+	};
+
+	const estilo: React.CSSProperties = {
+		position: "absolute",
+		left: `${layer.x}%`,
+		top: `${layer.y}%`,
+		width: `${layer.size}%`,
+		transform: `translate(-50%, -50%) rotate(${layer.rotate}deg) scale(${anim.scale})`,
+		overflow: "visible",
+	};
+
+	// Formas de traço: desenham caminho por caminho, na ordem.
+	if (caminhos[forma]) {
+		const tracos = caminhos[forma];
+		const fatia = 1 / tracos.length;
+		return (
+			<AbsoluteFill style={{ opacity: anim.opacity }}>
+				<svg viewBox="0 0 100 100" style={{ ...estilo, aspectRatio: "1 / 1", filter: "drop-shadow(0 6px 18px rgba(0,0,0,0.45))" }}>
+					{tracos.map((d, i) => {
+						const local = Math.max(0, Math.min(1, (p - i * fatia) / fatia));
+						return (
+							<path
+								key={`p-${String(i)}`}
+								d={d}
+								pathLength={1}
+								fill="none"
+								stroke={forma === "check" ? "#2BBF6A" : forma === "cross" ? "#E53935" : cor}
+								strokeWidth={traco}
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeDasharray={1}
+								strokeDashoffset={1 - local}
+							/>
+						);
+					})}
+				</svg>
+			</AbsoluteFill>
+		);
+	}
+
+	// Marca-texto: a faixa varre da esquerda, atrás do que estiver ali.
+	if (forma === "highlighter") {
+		return (
+			<AbsoluteFill style={{ opacity: anim.opacity }}>
+				<div
+					style={{
+						...estilo,
+						height: `${layer.size * 0.32}%`,
+						background: cor,
+						opacity: 0.5,
+						borderRadius: 4,
+						transformOrigin: "left center",
+						transform: `translate(-50%, -50%) rotate(${layer.rotate}deg) scaleX(${p})`,
+						// Sem mix-blend-mode: `multiply` só aparece sobre fundo claro, e o marca-texto
+						// tem de funcionar também sobre filmagem escura (testado em 19/10/2026).
+					}}
+				/>
+			</AbsoluteFill>
+		);
+	}
+
+	// Toque: o círculo pressiona e uma onda sai dele.
+	if (forma === "tap") {
+		const onda = (ms % 1200) / 1200;
+		return (
+			<AbsoluteFill style={{ opacity: anim.opacity }}>
+				<svg viewBox="0 0 100 100" style={{ ...estilo, aspectRatio: "1 / 1" }}>
+					<circle cx="50" cy="50" r={30 + onda * 20} fill="none" stroke={cor} strokeWidth={6} opacity={(1 - onda) * 0.8} />
+					<circle cx="50" cy="50" r={26 * (1 - 0.12 * Math.sin(p * Math.PI))} fill={cor} opacity={0.9} />
+				</svg>
+			</AbsoluteFill>
+		);
+	}
+
+	// Holofote: escurece o quadro todo e abre um buraco de luz no ponto.
+	if (forma === "spotlight") {
+		const r = layer.size * p;
+		return (
+			<AbsoluteFill style={{ opacity: anim.opacity }}>
+				<div
+					style={{
+						position: "absolute",
+						inset: 0,
+						background: `radial-gradient(circle at ${layer.x}% ${layer.y}%, rgba(0,0,0,0) ${r}%, rgba(0,0,0,0.72) ${r * 1.6}%)`,
+					}}
+				/>
+			</AbsoluteFill>
+		);
+	}
+
+	// Alternador ligando.
+	if (forma === "toggle") {
+		return (
+			<AbsoluteFill style={{ opacity: anim.opacity }}>
+				<svg viewBox="0 0 100 56" style={{ ...estilo, aspectRatio: "100 / 56" }}>
+					<rect x="2" y="2" width="96" height="52" rx="26" fill={p > 0.5 ? cor : "#8A8A93"} />
+					<circle cx={16 + 68 * suave(Math.max(0, (p - 0.25) / 0.75))} cy="28" r="20" fill="#FFFFFF" />
+				</svg>
+			</AbsoluteFill>
+		);
+	}
+
+	// Bolha numerada: entra com mola.
+	if (forma === "number") {
+		return (
+			<AbsoluteFill style={{ opacity: anim.opacity }}>
+				<div
+					style={{
+						...estilo,
+						aspectRatio: "1 / 1",
+						borderRadius: "50%",
+						background: cor,
+						display: "flex",
+						alignItems: "center",
+						justifyContent: "center",
+						color: "#FFFFFF",
+						fontFamily: `Montserrat, ${brand.fontFamily}`,
+						fontWeight: 800,
+						fontSize: `${layer.size * 0.42}vw`,
+						boxShadow: "0 10px 30px rgba(0,0,0,0.45)",
+						transform: `translate(-50%, -50%) rotate(${layer.rotate}deg) scale(${anim.scale * (0.6 + 0.4 * p)})`,
+					}}
+				>
+					{layer.text ?? "1"}
+				</div>
+			</AbsoluteFill>
+		);
+	}
+
+	// Faixa com bico: o texto curto que nomeia o que está sendo apontado.
+	return (
+		<AbsoluteFill style={{ opacity: anim.opacity }}>
+			<div
+				style={{
+					...estilo,
+					width: "auto",
+					maxWidth: `${Math.max(30, layer.size * 3)}%`,
+					background: cor,
+					color: "#FFFFFF",
+					fontFamily: `Montserrat, ${brand.fontFamily}`,
+					fontWeight: 800,
+					fontSize: `${Math.max(2, layer.size * 0.2)}vw`,
+					padding: "0.5em 0.8em",
+					borderRadius: 14,
+					whiteSpace: "nowrap",
+					boxShadow: "0 10px 30px rgba(0,0,0,0.45)",
+					transformOrigin: "center",
+					transform: `translate(-50%, -50%) rotate(${layer.rotate}deg) scale(${anim.scale * (0.7 + 0.3 * p)})`,
+				}}
+			>
+				{layer.text ?? ""}
+			</div>
 		</AbsoluteFill>
 	);
 };

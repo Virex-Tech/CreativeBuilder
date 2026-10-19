@@ -24,7 +24,7 @@ import { createWorker } from "tesseract.js";
 
 /** Marcas e princípios ativos de GLP-1. Fragmento basta: a caixa é expandida com margem. */
 const NOMES_PADRAO = [
-	"mounjaro", "ozempic", "wegovy", "zepbound", "zep", "lié", "lie", "oziv", "saxenda",
+	"mounjaro", "ozempic", "wegovy", "zepbound", "zep", "lié", "lie", "oziv", "ozivy", "saxenda",
 	"trulicity", "victoza", "rybelsus", "tirzepatida", "tirzepatide", "semaglutida",
 	"semaglutide", "liraglutida", "liraglutide", "dulaglutida", "olire", "mysimba",
 ];
@@ -54,16 +54,22 @@ function distancia(a, b) {
 	return ant[n];
 }
 
-/** A palavra é um nome de medicamento, mesmo lida com erro? */
+/**
+ * A palavra é um nome de medicamento?
+ *
+ * Palavra INTEIRA. Fragmento não vale: "lie" (de Lié) dentro de "caliente" e de "applied"
+ * fazia a ferramenta borrar palavra inocente (18/10/2026). A única folga é erro de leitura —
+ * em texto de baixo contraste o OCR troca letra ("Mounjaro" → "Mouniaro") — e ela só vale para
+ * nome de 7 letras ou mais, senão "Olire" aceitaria "Olive" de uma receita.
+ *
+ * Palavra incompleta (chip cortado pela margem) não é identificada, e então não é borrada.
+ */
 function ehNome(texto, alvos) {
 	const t = texto.toLowerCase().replace(/[^a-zà-ÿ]/g, "");
 	if (!t) return false;
 	for (const alvo of alvos) {
-		if (t.includes(alvo)) return true;
-		// palavra do mesmo tamanho do alvo: aceita 1 erro a cada 5 letras
-		// Tolerância só para nome longo: "Olire" (5 letras) aceitaria "Olive" de uma receita, e
-		// "Wegovy" aceitaria qualquer palavra parecida. Nome curto exige grafia exata.
-		if (Math.abs(t.length - alvo.length) <= 2 && alvo.length >= 7) {
+		if (t === alvo) return true;
+		if (alvo.length >= 7 && Math.abs(t.length - alvo.length) <= 2) {
 			if (distancia(t, alvo) <= Math.max(1, Math.floor(alvo.length / 5))) return true;
 		}
 	}
@@ -199,61 +205,51 @@ const tmp = mkdtempSync(join(tmpdir(), "borrar-ocr-"));
 const ACHATA = "[0:v]format=gray,split=2[a][b];[b]gblur=sigma=60[bg];" +
 	"[a][bg]blend=all_mode=divide,eq=contrast=1.6:brightness=-0.25";
 
-const dirN = join(tmp, "n"), dirI = join(tmp, "i");
-mkdirSync(dirN); mkdirSync(dirI);
-console.error("1/3 extraindo quadros (brilho achatado)…");
-roda("ffmpeg", ["-v", "error", "-i", arquivo, "-filter_complex", `${ACHATA}[v]`,
-	"-map", "[v]", "-q:v", "2", "-start_number", "0", join(dirN, "%05d.jpg")]);
-roda("ffmpeg", ["-v", "error", "-i", arquivo, "-filter_complex", `${ACHATA},negate[v]`,
-	"-map", "[v]", "-q:v", "2", "-start_number", "0", join(dirI, "%05d.jpg")]);
+// TRÊS LEITURAS POR QUADRO, e a palavra lida em qualquer uma delas conta.
+//
+// O Tesseract só lê texto ESCURO em fundo claro, e decide o corte de preto-e-branco sozinho,
+// uma vez para a tela inteira. Isso faz ele perder chip de baixo contraste e chip colorido.
+// Entregando a imagem já binarizada, o corte passa a ser nosso; invertendo, o texto claro em
+// fundo escuro vira escuro em fundo claro.
+//
+// Um jeito só não serve. Medido no estoque em turco, 18/10/2026 (os três chips na tela):
+//
+//   quadro  48: corte 100 invertido → Mounjaro   | corte 190 → Ozempic, Ozivy
+//   quadro 164: corte 100 invertido → Mounjaro   | cinza invertido → Ozempic, Ozivy
+//
+// Nenhuma leitura sozinha achou os três em nenhum dos dois quadros; as três juntas acham.
+// Fatiar o quadro e ampliar 2x foram testados e não acrescentam nada.
+const LEITURAS = [
+	{ nome: "c100i", filtro: `${ACHATA},lut=y='if(gt(val,100),255,0)',negate` },
+	{ nome: "c190", filtro: `${ACHATA},lut=y='if(gt(val,190),255,0)'` },
+	{ nome: "inv", filtro: "[0:v]format=gray,negate" },
+];
 
-const quadros = readdirSync(dirN).filter((f) => f.endsWith(".jpg")).sort();
-console.error(`   ${quadros.length} quadros`);
+// --amostra N: lê só 1 quadro a cada N. Serve para CONFIRMAR que uma tela não tem nome.
+const amostra = Number(o.amostra ?? 0);
 
-// Quadros em miniatura, para saber quando a tela NÃO mudou e poder reaproveitar a leitura.
-// Comparar bytes do JPEG não serve (ruído de compressão faz todo quadro diferir); comparar os
-// pixels de uma miniatura mostra a verdade: 37% a 84% dos quadros são a mesma tela.
-console.error("2/3 comparando quadros…");
-const MW = 135, MH = Math.round((H * MW) / W / 2) * 2;
-const mini = spawnSync("ffmpeg", ["-v", "error", "-i", arquivo,
-	"-vf", `scale=${MW}:${MH},format=gray`, "-f", "rawvideo", "-pix_fmt", "gray", "-"],
-	{ maxBuffer: 1 << 30, encoding: "buffer" }).stdout;
-const porMini = MW * MH;
-/**
- * Diferença entre dois quadros IGNORANDO brilho e contraste.
- *
- * Quando um modal abre, ele escurece a tela inteira: todos os pixels mudam, mas a estrutura é a
- * mesma. Comparando valores crus, isso parecia rolagem e fazia o borrão ser descartado bem na
- * hora em que o OCR também falhava (texto cinza sobre cinza). Normalizando cada quadro pela sua
- * média e desvio, o escurecimento some da conta e sobra só o que mudou de verdade.
- */
-const difNormalizada = (i) => {
-	const a = (i - 1) * porMini, b = i * porMini;
-	let sa = 0, sb = 0, n = 0;
-	for (let k = 0; k < porMini; k += 3) { sa += mini[a + k]; sb += mini[b + k]; n++; }
-	const ma = sa / n, mb = sb / n;
-	let va = 0, vb = 0;
-	for (let k = 0; k < porMini; k += 3) {
-		va += (mini[a + k] - ma) ** 2; vb += (mini[b + k] - mb) ** 2;
-	}
-	const da = Math.sqrt(va / n) || 1, db = Math.sqrt(vb / n) || 1;
-	let soma = 0;
-	for (let k = 0; k < porMini; k += 3) {
-		soma += Math.abs((mini[a + k] - ma) / da - (mini[b + k] - mb) / db);
-	}
-	return soma / n;
-};
+// PASSADAS: o Tesseract lê um chip conforme os vizinhos. Medido no estoque em turco
+// (18/10/2026): no quadro 164 ele lia só "Ozempic"; com o "Ozempic" borrado, passava a ler
+// "Ozivy" ao lado. Uma passada só nunca ia achar os dois.
+//
+// Então a MESMA regra roda de novo: lê, acha a palavra, guarda a caixa dela; aplica o que já
+// tem num vídeo provisório; lê esse vídeo; o que aparecer de novo vira mais uma caixa. Para
+// quando uma passada não acha nada novo. As caixas se acumulam e o vídeo entregue é gravado
+// UMA vez, a partir do original — o provisório é só para ler, nunca é o que se entrega.
+const maxPassadas = Number(o.passadas ?? 4);
 
-const mudou = (i) => (i === 0 ? true : difNormalizada(i) >= 0.035);
-
-// Mudança GRANDE entre quadros = a tela rolou, e as caixas antigas não valem mais.
-const rolou = (i) => (i === 0 ? true : difNormalizada(i) >= 0.30);
-
-console.error("2/3 lendo cada quadro…");
-const worker = await createWorker(idioma);
-const caixasPorQuadro = [];
-let anterior = null, igual = 0, ocrs = 0;
-const t0 = Date.now();
+/** Extrai todo quadro do vídeo, achatado e binarizado em cada corte. */
+function extrai(video, tag) {
+	const dirs = LEITURAS.map((l) => {
+		const d = join(tmp, `${tag}-${l.nome}`);
+		mkdirSync(d, { recursive: true });
+		roda("ffmpeg", ["-v", "error", "-i", video, "-filter_complex", `${l.filtro}[v]`,
+			"-map", "[v]", "-q:v", "2", "-start_number", "0", join(d, "%05d.jpg")]);
+		return d;
+	});
+	const nomes = readdirSync(dirs[0]).filter((f) => f.endsWith(".jpg")).sort();
+	return { dirs, nomes };
+}
 
 const lePalavras = (dados) => {
 	const palavras = [];
@@ -275,83 +271,112 @@ const lePalavras = (dados) => {
 };
 
 /**
- * Monta o borrão de cada linha que tem nome.
+ * Uma caixa por palavra: leu a palavra, é medicamento, borra a palavra. Só isso.
  *
- * O chip selecionado (branco no preto) às vezes não é lido, e ele fica ENTRE as palavras lidas.
- * Por isso o borrão não vai do primeiro ao último nome: vai do fim da última palavra que não é
- * nome (o "Ignorer" da linha) até o fim do último nome. Assim o chip que o OCR perdeu entra
- * junto, e o que não é nome continua legível.
+ * Nada de juntar linha, esticar até a margem ou cobrir o vizinho que o OCR não leu. Toda
+ * tentativa de ser esperta aqui acabou borrando o que tinha de ficar legível.
  */
-const caixasDaTela = (palavras) => {
-	const linhas = [];
-	for (const p of palavras) {
-		const l = linhas.find((o) => Math.abs(o.cy - (p.y + p.h / 2)) < Math.max(p.h, o.alt) * 0.7);
-		if (l) { l.itens.push(p); l.alt = Math.max(l.alt, p.h); }
-		else linhas.push({ cy: p.y + p.h / 2, alt: p.h, itens: [p] });
-	}
-	const fora = [];
-	for (const l of linhas) {
-		const nomes = l.itens.filter((i) => i.nome);
-		if (!nomes.length) continue;
-		const primeiro = Math.min(...nomes.map((i) => i.x));
-		const ultimo = Math.max(...nomes.map((i) => i.x + i.w));
-		// até onde chega a última palavra "inocente" antes do primeiro nome
-		// Só palavra DE VERDADE segura o borrão. O OCR cospe lixo entre os chips (")", "”»",
-		// pedaços de borda) e, tratado como palavra inocente, esse lixo empurrava o borrão para a
-		// direita e deixava o nome à esquerda exposto — o vazamento de 16/10/2026.
-		const antes = l.itens
-			.filter((i) => !i.nome && i.x + i.w <= primeiro && i.texto.replace(/[^\p{L}\p{N}]/gu, "").length >= 3)
-			.map((i) => i.x + i.w);
-		// Sem palavra inocente à esquerda, o primeiro nome da linha pode ter um vizinho que o OCR
-		// não leu (chip selecionado, texto claro em fundo colorido). Estende até a margem.
-		const esq = antes.length ? Math.max(...antes) + 8 : Math.round(W * 0.02);
-		const topo = Math.min(...nomes.map((i) => i.y));
-		const base = Math.max(...nomes.map((i) => i.y + i.h));
-		fora.push({
-			x: Math.max(0, esq),
-			y: Math.max(0, topo - margemY),
-			w: Math.min(W, ultimo + margemX) - Math.max(0, esq),
-			h: base - topo + margemY * 2,
-			texto: nomes.map((i) => i.texto).join("+"),
-		});
-	}
-	return fora;
-};
+const caixasDaTela = (palavras) => palavras.filter((p) => p.nome).map((p) => ({
+	x: Math.max(0, p.x - margemX),
+	y: Math.max(0, p.y - margemY),
+	w: Math.min(W - Math.max(0, p.x - margemX), p.w + margemX * 2),
+	h: p.h + margemY * 2,
+	texto: p.texto,
+}));
 
-// --amostra N: lê só 1 quadro a cada N. Serve para CONFIRMAR que uma tela não tem nome,
-// não para borrar — telas que já se sabe ter nome vão sem amostra.
-const amostra = Number(o.amostra ?? 0);
-const MAX_SEM_LER = 15;   // meio segundo: teto de segurança mesmo com a tela parada
-let desdeUltima = 0;
-for (let f = 0; f < quadros.length; f++) {
-	if (amostra && f % amostra !== 0) { caixasPorQuadro.push([]); continue; }
-	// Tela igual à do quadro anterior: reaproveita as caixas em vez de reler.
-	if (f > 0 && !amostra && !mudou(f) && desdeUltima < MAX_SEM_LER) {
-		caixasPorQuadro.push(caixasPorQuadro[f - 1]);
-		desdeUltima++; igual++;
-		continue;
+let ocrs = 0, segOcr = 0;
+
+/** Lê um vídeo quadro a quadro e devolve as caixas de cada quadro. */
+async function leVideo(video, tag) {
+	const { dirs, nomes } = extrai(video, tag);
+	const t0 = Date.now();
+	const fora = [];
+	for (let f = 0; f < nomes.length; f++) {
+		if (amostra && f % amostra !== 0) { fora.push([]); continue; }
+		const palavras = [];
+		for (const dir of dirs) {
+			const r = await worker.recognize(join(dir, nomes[f]), {}, { blocks: true });
+			palavras.push(...lePalavras(r.data));
+		}
+		ocrs++;
+		fora.push(caixasDaTela(palavras));
+		if (f % 30 === 0) console.error(`   ${tag}: quadro ${f}/${nomes.length}`);
 	}
-	desdeUltima = 0;
-	// Uma leitura do quadro inteiro, mais a invertida (texto claro em fundo escuro).
-	const palavras = [];
-	for (const dir of [dirN, dirI]) {
-		const r = await worker.recognize(join(dir, quadros[f]), {}, { blocks: true });
-		palavras.push(...lePalavras(r.data));
+	segOcr += (Date.now() - t0) / 1000;
+	dirs.forEach((d) => rmSync(d, { recursive: true, force: true }));
+	return fora;
+}
+
+/** Junta as caixas novas às que já existem; devolve quantas eram realmente novas. */
+function mescla(base, novas) {
+	let n = 0;
+	for (let f = 0; f < novas.length; f++) {
+		base[f] ??= [];
+		for (const c of novas[f]) {
+			const jaCoberta = base[f].some((b) => {
+				const ix = Math.max(0, Math.min(b.x + b.w, c.x + c.w) - Math.max(b.x, c.x));
+				const iy = Math.max(0, Math.min(b.y + b.h, c.y + c.h) - Math.max(b.y, c.y));
+				return ix * iy >= 0.5 * c.w * c.h;
+			});
+			if (!jaCoberta) { base[f].push(c); n++; }
+		}
 	}
-	ocrs++;
-	// Cada quadro é lido por si. Nada de arrastar caixa de um quadro para o outro: a caixa
-	// antiga fica parada enquanto o conteúdo rola e acaba borrando o que não deve (em
-	// 16/10/2026 cobriu "Constipação" no histórico). Com a leitura em faixas o OCR acha o nome
-	// em praticamente todo quadro, e a muleta só atrapalhava.
-	caixasPorQuadro.push(caixasDaTela(palavras));
-	if (f % 30 === 0) console.error(`   quadro ${f}/${quadros.length}`);
+	return n;
+}
+
+/** Aplica as caixas no vídeo ORIGINAL e grava em `destino`. */
+async function aplica(caixasPorQuadro, destino) {
+	mkdirSync(dirname(destino), { recursive: true });
+	const dec = spawn("ffmpeg", ["-v", "error", "-i", arquivo, "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+		{ stdio: ["ignore", "pipe", "inherit"] });
+	const enc = spawn("ffmpeg", ["-y", "-v", "error",
+		"-f", "rawvideo", "-pix_fmt", "rgb24", "-s", `${W}x${H}`, "-r", String(fps), "-i", "-",
+		"-i", arquivo, "-map", "0:v", "-map", "1:a?", "-c:v", "libx264", "-preset", "medium",
+		"-crf", "18", "-pix_fmt", "yuv420p", "-c:a", "copy", "-shortest", destino],
+		{ stdio: ["pipe", "inherit", "inherit"] });
+	const porQuadro = W * H * 3;
+	let resto = Buffer.alloc(0), idx = 0;
+	await new Promise((ok, erro) => {
+		dec.stdout.on("data", (pedaco) => {
+			resto = resto.length ? Buffer.concat([resto, pedaco]) : pedaco;
+			while (resto.length >= porQuadro) {
+				const quadro = resto.subarray(0, porQuadro);
+				resto = resto.subarray(porQuadro);
+				for (const c of caixasPorQuadro[idx] ?? []) borraRegiao(quadro, W, H, c.x, c.y, c.w, c.h, raio);
+				idx++;
+				if (!enc.stdin.write(quadro)) dec.stdout.pause();
+			}
+		});
+		enc.stdin.on("drain", () => dec.stdout.resume());
+		dec.stdout.on("end", () => { enc.stdin.end(); });
+		enc.on("close", (c) => (c === 0 ? ok() : erro(new Error(`encoder saiu com ${c}`))));
+		dec.on("error", erro);
+	});
+}
+
+console.error("1/3 lendo o vídeo (três leituras por quadro)…");
+const worker = await createWorker(idioma);
+const caixasPorQuadro = await leVideo(arquivo, "p0");
+let passadas = 0;
+
+if (!o["so-ler"] && o.saida) {
+	console.error("2/3 repetindo a leitura até não achar palavra nova…");
+	for (let p = 1; p <= maxPassadas; p++) {
+		const prov = join(tmp, `p${p}.mp4`);
+		await aplica(caixasPorQuadro, prov);
+		const novas = await leVideo(prov, `p${p}`);
+		const n = mescla(caixasPorQuadro, novas);
+		passadas = p;
+		console.error(`   passada ${p}: ${n} palavra(s) nova(s)`);
+		rmSync(prov, { force: true });
+		if (!n) break;
+	}
 }
 await worker.terminate();
-const segOcr = (Date.now() - t0) / 1000;
 
 const comNome = caixasPorQuadro.filter((c) => c.length).length;
 const achados = [...new Set(caixasPorQuadro.flat().map((c) => c.texto))];
-console.error(`   ${ocrs} quadros lidos, ${igual} iguais ao anterior, ${segOcr.toFixed(1)}s`);
+console.error(`   ${ocrs} quadros lidos, ${segOcr.toFixed(1)}s`);
 console.error(`   nomes: ${achados.join(", ") || "(nenhum)"}`);
 
 if (o["dump-caixas"]) {
@@ -362,9 +387,9 @@ if (o["dump-caixas"]) {
 
 if (o["so-ler"]) {
 	console.log(JSON.stringify({
-		quadros: quadros.length, lidos: ocrs, reaproveitados: igual,
-		comNome, semNome: quadros.length - comNome, segundosOCR: Number(segOcr.toFixed(1)),
-		nomes: achados,
+		quadros: caixasPorQuadro.length, lidos: ocrs,
+		comNome, semNome: caixasPorQuadro.length - comNome,
+		segundosOCR: Number(segOcr.toFixed(1)), nomes: achados,
 	}, null, 2));
 	rmSync(tmp, { recursive: true, force: true });
 	process.exit(0);
@@ -372,47 +397,19 @@ if (o["so-ler"]) {
 
 if (!o.saida) { console.error("Falta --saida"); rmSync(tmp, { recursive: true, force: true }); process.exit(1); }
 
-console.error("3/3 aplicando o borrão…");
+console.error("3/3 gravando o vídeo…");
 const saida = resolve(String(o.saida));
-mkdirSync(dirname(saida), { recursive: true });
-
-const dec = spawn("ffmpeg", ["-v", "error", "-i", arquivo, "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
-	{ stdio: ["ignore", "pipe", "inherit"] });
-const enc = spawn("ffmpeg", ["-y", "-v", "error",
-	"-f", "rawvideo", "-pix_fmt", "rgb24", "-s", `${W}x${H}`, "-r", String(fps), "-i", "-",
-	"-i", arquivo, "-map", "0:v", "-map", "1:a?", "-c:v", "libx264", "-preset", "medium",
-	"-crf", "18", "-pix_fmt", "yuv420p", "-c:a", "copy", "-shortest", saida],
-	{ stdio: ["pipe", "inherit", "inherit"] });
-
-const porQuadro = W * H * 3;
-let resto = Buffer.alloc(0), idx = 0;
-
-await new Promise((ok, erro) => {
-	dec.stdout.on("data", (pedaco) => {
-		resto = resto.length ? Buffer.concat([resto, pedaco]) : pedaco;
-		while (resto.length >= porQuadro) {
-			const quadro = resto.subarray(0, porQuadro);
-			resto = resto.subarray(porQuadro);
-			for (const c of caixasPorQuadro[idx] ?? []) borraRegiao(quadro, W, H, c.x, c.y, c.w, c.h, raio);
-			idx++;
-			if (!enc.stdin.write(quadro)) dec.stdout.pause();
-		}
-	});
-	enc.stdin.on("drain", () => dec.stdout.resume());
-	dec.stdout.on("end", () => { enc.stdin.end(); });
-	enc.on("close", (c) => (c === 0 ? ok() : erro(new Error(`encoder saiu com ${c}`))));
-	dec.on("error", erro);
-});
+await aplica(caixasPorQuadro, saida);
 
 rmSync(tmp, { recursive: true, force: true });
 console.log(JSON.stringify({
 	saida: String(o.saida),
-	quadros: quadros.length,
+	quadros: caixasPorQuadro.length,
 	quadrosLidos: ocrs,
-	quadrosIguaisAoAnterior: igual,
+	passadas,
 	quadrosComNome: comNome,
-	quadrosSemNome: quadros.length - comNome,
+	quadrosSemNome: caixasPorQuadro.length - comNome,
 	nomesEncontrados: achados,
 	segundosOCR: Number(segOcr.toFixed(1)),
-	proximo: `node tools/borrar.mjs amostra "${o.saida}"`,
+	proximo: `node tools/borrar-ocr.mjs "${o.saida}" --so-ler --idioma ${idioma}`,
 }, null, 2));

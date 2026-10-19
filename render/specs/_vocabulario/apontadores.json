@@ -1,0 +1,165 @@
+{
+ "specVersion": "1",
+ "creativeId": "_teste-pointer",
+ "appId": "ozempro",
+ "locale": "pt-BR",
+ "output": {},
+ "format": {
+  "w": 1080,
+  "h": 1920,
+  "fps": 30
+ },
+ "brandKit": {
+  "bg": "#12091F",
+  "fg": "#FFFFFF",
+  "accent": "#8630E4",
+  "fontFamily": "Montserrat, Inter, system-ui, sans-serif"
+ },
+ "audio": {},
+ "scenes": [
+  {
+   "id": "grade",
+   "role": "DEMO",
+   "startMs": 0,
+   "durationMs": 2000,
+   "timing": "flex",
+   "transitionIn": "cut",
+   "layers": [
+    {
+     "type": "solid",
+     "color": "#1B1030"
+    },
+    {
+     "type": "pointer",
+     "shape": "curved_arrow",
+     "x": 14,
+     "y": 16,
+     "size": 14,
+     "startMs": 0
+    },
+    {
+     "type": "pointer",
+     "shape": "side_arrow",
+     "x": 38,
+     "y": 16,
+     "size": 14,
+     "startMs": 0
+    },
+    {
+     "type": "pointer",
+     "shape": "down_arrow",
+     "x": 62,
+     "y": 16,
+     "size": 14,
+     "startMs": 0
+    },
+    {
+     "type": "pointer",
+     "shape": "tap",
+     "x": 86,
+     "y": 16,
+     "size": 14,
+     "startMs": 0
+    },
+    {
+     "type": "pointer",
+     "shape": "highlighter",
+     "x": 14,
+     "y": 38,
+     "size": 14,
+     "startMs": 0
+    },
+    {
+     "type": "pointer",
+     "shape": "underline",
+     "x": 38,
+     "y": 38,
+     "size": 14,
+     "startMs": 0
+    },
+    {
+     "type": "pointer",
+     "shape": "box",
+     "x": 62,
+     "y": 38,
+     "size": 14,
+     "startMs": 0
+    },
+    {
+     "type": "pointer",
+     "shape": "banner",
+     "x": 86,
+     "y": 38,
+     "size": 14,
+     "text": "olha aqui",
+     "startMs": 0
+    },
+    {
+     "type": "pointer",
+     "shape": "number",
+     "x": 14,
+     "y": 60,
+     "size": 14,
+     "text": "9",
+     "startMs": 0
+    },
+    {
+     "type": "pointer",
+     "shape": "check",
+     "x": 38,
+     "y": 60,
+     "size": 14,
+     "startMs": 0
+    },
+    {
+     "type": "pointer",
+     "shape": "cross",
+     "x": 62,
+     "y": 60,
+     "size": 14,
+     "startMs": 0
+    },
+    {
+     "type": "pointer",
+     "shape": "exclamation",
+     "x": 86,
+     "y": 60,
+     "size": 14,
+     "startMs": 0
+    },
+    {
+     "type": "pointer",
+     "shape": "question",
+     "x": 14,
+     "y": 82,
+     "size": 14,
+     "startMs": 0
+    },
+    {
+     "type": "pointer",
+     "shape": "rays",
+     "x": 38,
+     "y": 82,
+     "size": 14,
+     "startMs": 0
+    },
+    {
+     "type": "pointer",
+     "shape": "spotlight",
+     "x": 62,
+     "y": 82,
+     "size": 14,
+     "startMs": 0
+    },
+    {
+     "type": "pointer",
+     "shape": "toggle",
+     "x": 86,
+     "y": 82,
+     "size": 14,
+     "startMs": 0
+    }
+   ]
+  }
+ ]
+}
