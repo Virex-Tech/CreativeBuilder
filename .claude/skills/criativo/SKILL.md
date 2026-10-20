@@ -49,13 +49,14 @@ Isso detecta os cortes reais e extrai um frame em cada um, mais o áudio, em
 narração). A transcrição não traz tom de voz, música nem efeitos — pergunte se forem relevantes.
 Views/curtidas não vêm da ingestão — use os números que o usuário der.
 
-**As regras do criativo estão em três arquivos, e os três se leem antes de escrever qualquer
-roteiro ou spec:** `apps/<slug>/contexto.md` (produto e compliance), `apps/<slug>/roteiro-ugc.md`
-(como o roteiro é escrito) e `apps/<slug>/elementos-playbook.md` (o que pode aparecer na tela).
-O resumo do que mais se quebra — frase de efeito proibida, hook de texto que não repete a
-narração, as três posições na vertical, legenda que sai quando a tela do app entra, panda nunca
-em primeira pessoa, calculadora em todo criativo — está no `AGENTS.md`, seção "Os três arquivos
-que mandam no criativo".
+**As regras do criativo valem para todos os apps e ficam em `docs/`; o que é de um app fica em
+`apps/<slug>/`.** Leia, nesta ordem, antes de escrever qualquer roteiro ou spec:
+`apps/<slug>/contexto.md` (produto e compliance — vence tudo), `docs/regras-criativo.md`,
+`docs/regras-elementos.md` e, por último, `apps/<slug>/roteiro-ugc.md` e
+`apps/<slug>/elementos-playbook.md`. O resumo do que mais se quebra — frase de efeito proibida,
+hook de texto que não repete a narração, as três posições na vertical, legenda que sai quando a
+tela do app entra, elemento que não concorre com o app, mascote nunca em primeira pessoa — está
+no `AGENTS.md`, seção "O que manda no criativo".
 
 **Contexto do app:** antes de escrever qualquer spec, leia `apps/<slug>/contexto.md` (o que o
 app faz, público, dores, funcionalidades, oferta, provas, tom, marca e **compliance**). As

@@ -44,31 +44,20 @@ Isso extrai frames nos cortes reais + áudio em `.cache-ingestao/<nome>/` e escr
 Fala da referência: `python tools/transcribe.py .cache-ingestao/<nome>/audio.wav --lang pt` dá o texto
 falado (sem tom, música ou efeitos). Views/curtidas não vêm da ingestão.
 
-## Os três arquivos que mandam no criativo (leia ANTES de escrever roteiro ou spec)
+## O que mandam no criativo (leia ANTES de escrever roteiro ou spec)
 
 Não existe "criativo rápido" que pule isto. Em ordem de precedência:
 
 1. `apps/<slug>/contexto.md` — produto, público, dores, oferta, provas, tom, marca e
-   **compliance**. Compliance vence brief, referência e ângulo de concorrente.
-2. `apps/<slug>/roteiro-ugc.md` — como o roteiro é escrito: os formatos, os hooks, o que é
-   proibido dizer, onde cada coisa fica na tela.
-3. `apps/<slug>/elementos-playbook.md` — o que pode aparecer na tela como elemento, e o que a
-   equipe já reprovou (inclui os **moldes de interface**: nota, conversa, busca, aviso…).
+   **compliance**. Compliance vence tudo: estas regras, a referência e o brief.
+2. `docs/regras-criativo.md` — **valem para todos os apps**: formatos, hooks, o que é proibido
+   dizer, onde cada coisa fica na tela, medidas de legenda e hook, CTA.
+3. `docs/regras-elementos.md` — **valem para todos os apps**: o vocabulário de elementos, como
+   entram e saem, o que a equipe já reprovou.
+4. `apps/<slug>/roteiro-ugc.md` e `apps/<slug>/elementos-playbook.md` — só o que é daquele app
+   (material disponível, funcionalidade que entra em todo criativo, mascote, exceções).
 
-Junto com esses três, desde 18/10/2026 (OzemPro):
-
-- `apps/<slug>/formatos.md` — as **embalagens** (os 100 formatos do PDF filtrados pelo
-  compliance: 65 entram, 35 fora com o motivo), estático e carrossel, método de teste e as
-  etiquetas do nome do anúncio. Todo criativo escolhe dor + hook + embalagem + produção.
-- `apps/<slug>/mercados.md` — o que muda por **país e idioma** além da tradução (apelido,
-  prática de uso, dores, mocks, moeda, regulação). O que está "a definir" é pergunta para a
-  equipe, não regra.
-- `apps/<slug>/pauta-gravacao.md` — o que gravar com cada pessoa, os takes do panda a gerar e as
-  telas do app que faltam, por embalagem.
-- Etiquetas na ficha: `analise/criativos/_modelo-ficha.md`, seção "Etiquetas".
-
-As regras da equipe que mais foram quebradas por agente novo — todas detalhadas no
-`roteiro-ugc.md`:
+As regras que mais foram quebradas por agente novo — todas detalhadas em `docs/regras-criativo.md`:
 
 - **Frase de efeito é proibida.** Slogan, antítese, frase genérica bonita: não existe, em nenhum
   formato, em nenhum idioma, nunca. No lugar: **conexão**, **fator uau**, **polêmica**.
@@ -76,13 +65,12 @@ As regras da equipe que mais foram quebradas por agente novo — todas detalhada
 - **Três posições na vertical, e só três:** inferior y≈75, centro y≈50, topo y≈25. Nada acima de
   y 18 nem abaixo de y 82 (a interface da rede social cobre).
 - **Elemento nunca com legenda por cima**, e **cena com a tela do app não leva legenda**.
-- **O panda nunca fala em primeira pessoa** — ele é personagem. Primeira pessoa só com pessoa
-  real.
-- **A Calculadora de Doses entra em todo criativo**, exceto quando o pedido é recriar uma
-  referência exatamente como ela é — aí a referência manda.
-- **Nunca presumir a condição de quem assiste** (peso, corpo, se usa caneta).
-- Elemento reprovado não volta: círculo à mão (`scribble` circle), emoji solto, cartão com
-  frase solta.
+- **Elemento não concorre com o app:** depois que a tela do app entra, ela é a estrela. Elemento
+  à vontade ANTES; durante, no máximo apontador. Nunca trocar a tela do app por um elemento que
+  mostra a mesma coisa que o app mostraria.
+- **Mascote nunca fala em primeira pessoa** — é personagem. Primeira pessoa só com pessoa real.
+- **Nunca presumir a condição de quem assiste** (peso, corpo, se usa medicamento).
+- Elemento reprovado não volta: círculo à mão, emoji solto, cartão com frase solta.
 
 ## Contexto do app
 
@@ -391,7 +379,13 @@ Duas versões tentaram economizar leitura e as duas vazaram:
 Ler todo quadro custa ~1,4 s por quadro e é o preço da regra. Nenhum atalho de leitura entra
 aqui de novo.
 
-### Quais telas têm nome (levantado em 16/10/2026, nas 18 gravações em br)
+### Quais telas têm nome — levante por APP
+
+A lista abaixo é do **OzemPro**. Em app novo, não presuma: rode `--so-ler --amostra 10` nas
+gravações e descubra quais telas mostram nome antes de borrar o lote. O que não muda é a regra —
+toda gravação sai com o nome ilegível, em todos os idiomas.
+
+#### OzemPro (levantado em 16/10/2026, nas 18 gravações em br)
 
 **Só 5 das 18 telas mostram nome de medicamento.** Nos outros idiomas, rode o borrão completo
 **só nessas cinco** e confirme as demais com `--amostra`, que é 5x mais rápido:
